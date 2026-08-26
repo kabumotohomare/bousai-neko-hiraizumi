@@ -1,0 +1,38 @@
+[
+  {
+    "id": "hydrant_0001",
+    "sourceId": "1-1",
+    "name": "平泉第1消火栓",
+    "lat": 38.9878,
+    "lng": 141.1161,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_0002",
+    "sourceId": "1-2",
+    "name": "志羅山北側消火栓",
+    "lat": 38.9871,
+    "lng": 141.1152,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_0003",
+    "sourceId": "2-1",
+    "name": "中尊寺通り入口消火栓",
+    "lat": 38.9823,
+    "lng": 141.1122,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_0004",
+    "sourceId": "2-2",
+    "name": "観自在王院跡付近消火栓",
+    "lat": 38.9815,
+    "lng": 141.1112,
+    "type": "ground",
+    "status": "active"
+  }
+]

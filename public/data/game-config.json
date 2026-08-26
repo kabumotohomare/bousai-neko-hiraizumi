@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "gameDurationSec": 90,
+  "playerMoveSpeedMps": 2.2,
+  "inspectRadiusMeters": 2.0,
+  "territoryBoundaryMarginMeters": 1.0,
+  "hintDelaySec": 20,
+  "defaultMapCenter": { "lat": 38.9869, "lng": 141.117 },
+  "defaultMapZoom": 16,
+  "reportFormUrl": "https://example.com/report",
+  "enableHint": true
+}

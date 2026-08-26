@@ -1,0 +1,115 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f7fb;
+  color: #172033;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 16px;
+  background: linear-gradient(180deg, #fef7ed 0%, #eff6ff 100%);
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(23, 32, 51, 0.08);
+}
+
+.stack {
+  display: grid;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  color: #52607a;
+  font-size: 0.95rem;
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 48px;
+  border-radius: 12px;
+  border: none;
+  padding: 0 16px;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: #ef4444;
+  color: #fff;
+}
+
+.secondary-button {
+  background: #e5edf9;
+  color: #172033;
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cat-list,
+.hydrant-list {
+  display: grid;
+  gap: 12px;
+}
+
+.cat-item,
+.hydrant-item {
+  border: 1px solid #dbe5f1;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fcfdff;
+}
+
+.selected {
+  border-color: #ef4444;
+  background: #fff1f2;
+}
+
+.map-placeholder,
+.scene-placeholder {
+  min-height: 220px;
+  border-radius: 16px;
+  border: 2px dashed #b8c5d8;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  color: #52607a;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.hud {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.hud .card {
+  text-align: center;
+  padding: 12px;
+}

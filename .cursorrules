@@ -1,0 +1,306 @@
+# .cursorrules - ぼうさいネコ＠平泉 開発指示ガイドライン
+
+あなたは「ぼうさいネコ＠平泉」の開発を担当するプログラマティックAIアシスタントです。
+以下の開発仕様・ルール・データ構造・アルゴリズムに厳密に従ってコードを生成・補完してください。
+
+---
+
+## 1. プロジェクト概要 & 技術スタック
+
+岩手県平泉町の消火栓オープンデータと猫目撃情報を活用した、スマートフォン向け地域参加型3DアクションWebゲーム。
+
+- **ビルド / 開発環境:** Vite, TypeScript, Node.js 22系, pnpm
+- **UI:** React, CSS Modules または Tailwind CSS
+- **状態管理:** Zustand
+- **2D / 3D ライブラリ:** Leaflet.js (`leaflet`), Three.js (`three`)
+- **バリデーション:** Zod (`zod`)
+- **テスト:** Vitest, React Testing Library, Playwright
+- **データ運用:** ノンログイン、`localStorage` 保存、`/public/data/*.json` 配信
+
+---
+
+## 2. ディレクトリ構造ルール
+
+以下のディレクトリ構成を厳守してコードを作成・追加してください。
+
+```text
+src/
+  app/             # Zustand store, router, アプリ全体の初期化 logic
+  features/        # 画面機能ごとのモジュール
+    boot/          # S01: ローディング・データフェッチ
+    map-selection/ # S02: 2D猫選択マップ
+    patrol-3d/     # S03: 3Dみまわり空間 & HUD
+    result/        # S04: おさんぽ完了（リザルト）
+    error/         # S05: エラー表示ダイアログ
+  components/      # 共通UIコンポーネント (ui/, map/, three/)
+  domain/          # エンティティ定義・純粋関数 (cat, hydrant, session)
+  services/        # API/JSON通信、storage、座標変換ロジック
+public/
+  data/            # 静的配信データ (cats.json, hydrants.json, game-config.json, messages.json)
+```
+
+---
+
+## 3. 画面遷移 & 状態管理仕様
+
+画面遷移はグローバルストア（Zustand: `useAppStore`）で一元管理します。
+
+### 画面ID一覧
+
+- S01: ローディング画面 (`loading`)
+- S02: 2D猫えらび画面 (`map`)
+- S03: 3Dみまわり画面 (`patrol`)
+- S04: おさんぽ完了画面 (`result`)
+- S05: エラー表示画面 / ダイアログ (`error`)
+
+### AppState 型定義
+
+```ts
+interface AppState {
+  bootStatus: 'idle' | 'loading' | 'ready' | 'error';
+  currentScreen: 'loading' | 'map' | 'patrol' | 'result' | 'error';
+  selectedCatId: string | null;
+  cats: Cat[];
+  hydrants: Hydrant[];
+  gameConfig: GameConfig;
+  messages: Messages;
+  localProgress: LocalProgress;
+  currentSession: PatrolSession | null;
+  error: AppError | null;
+}
+
+interface PatrolSession {
+  catId: string;
+  startedAt: string;
+  remainingSec: number;
+  score: number;
+  inspectedHydrantIds: string[];
+  lastHintAt?: string;
+  finished: boolean;
+}
+```
+
+---
+
+## 4. データモデル（Zod スキーマ & 型定義）
+
+`/public/data/*.json` を取得した際は、必ず Zod を用いてバリデーションを行ってください。
+
+### 4.1 `cats.json` スキーマ
+
+```ts
+import { z } from 'zod';
+
+export const CatSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  displayAreaName: z.string(),
+  status: z.enum(['unlocked', 'locked']),
+  center: z.object({ lat: z.number(), lng: z.number() }),
+  radius: z.number(),
+  spawn: z.object({ lat: z.number(), lng: z.number() }),
+  info: z.string(),
+  color: z.string(),
+  lastUpdated: z.string(),
+  version: z.number()
+});
+
+export type Cat = z.infer<typeof CatSchema>;
+```
+
+### 4.2 `hydrants.json` スキーマ
+
+```ts
+export const HydrantSchema = z.object({
+  id: z.string(),
+  sourceId: z.string(),
+  name: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  type: z.enum(['ground', 'above']),
+  status: z.enum(['active', 'inactive'])
+});
+
+export type Hydrant = z.infer<typeof HydrantSchema>;
+```
+
+### 4.3 `game-config.json` スキーマ
+
+```ts
+export const GameConfigSchema = z.object({
+  version: z.number(),
+  gameDurationSec: z.number().default(90),
+  playerMoveSpeedMps: z.number().default(2.2),
+  inspectRadiusMeters: z.number().default(2.0),
+  territoryBoundaryMarginMeters: z.number().default(1.0),
+  hintDelaySec: z.number().default(20),
+  defaultMapCenter: z.object({ lat: z.number(), lng: z.number() }),
+  defaultMapZoom: z.number().default(16),
+  reportFormUrl: z.string().url(),
+  enableHint: z.boolean().default(true)
+});
+
+export type GameConfig = z.infer<typeof GameConfigSchema>;
+```
+
+---
+
+## 5. 重要なアルゴリズム・コアロジック実装ルール
+
+### 5.1 座標変換エンジン（緯度経度 ➔ Three.js ローカルXZ座標）
+
+Three.js の空間は `game-config.defaultMapCenter` を原点 `(0, 0, 0)` としたメートル単位のローカル座標系で描画します。
+
+- Y軸: 高さ（猫視点カメラは 0.35〜0.5m）
+- XZ平面: 地面
+- +X: 東方向
+- -Z: 北方向
+
+```ts
+export function latLngToWorldPosition(
+  lat: number,
+  lng: number,
+  origin: { lat: number; lng: number }
+): { x: number; z: number } {
+  const metersPerLat = 111320;
+  const metersPerLng = 111320 * Math.cos((origin.lat * Math.PI) / 180);
+
+  const x = (lng - origin.lng) * metersPerLng;
+  const z = -1 * (lat - origin.lat) * metersPerLat;
+
+  return { x, z };
+}
+```
+
+### 5.2 点検アクションの判定ロジック
+
+「てんけんする」ボタンの有効化判定および点検実行時は、以下の4条件をすべてクリアしている必要があります。
+
+1. タイマー残り時間 > 0 秒
+2. プレイヤー位置と対象消火栓の 2D 距離が `<= 2.0m`（`inspectRadiusMeters`）
+3. 対象消火栓が `currentSession.inspectedHydrantIds` に未含有
+4. 前回のボタン押下から `800ms` 以上経過（連続入力防止）
+
+### 5.3 縄張り境界外の押し戻し処理
+
+プレイヤー座標が選択中猫の `center` から `radius`（メートル）以上外に出ようとした場合は、以下を実行してください。
+
+1. 当該フレームの移動更新をキャンセル
+2. 猫の `center` 方向へ `0.5〜1.0m` プレイヤーを押し戻す
+3. キャラクターテロップ文言を表示
+4. 同文言は 3 秒の連打抑制 cooldown を保持する
+
+---
+
+## 6. `localStorage` 仕様
+
+保存キーの競合を防ぐため、プレフィックス `bousaiNeko.` を必ず使用してください。
+
+### 進行状況保存（`bousaiNeko.progress`）
+
+```json
+{
+  "unlockedCatIds": ["cat_001"],
+  "inspectedHydrantIds": ["hydrant_0001"],
+  "playedTutorial": true,
+  "lastSelectedCatId": "cat_001",
+  "lastPlayedAt": "2026-08-26T09:00:00Z"
+}
+```
+
+### 注意
+
+- MVPではリロード時のゲームセッション復元は行わない
+- セッション情報はメモリ内（`PatrolSession`）で管理する
+
+---
+
+## 7. 実装・コーディングスタイル規約
+
+### 命名規則
+
+- Reactコンポーネント: `PascalCase`
+- カスタムフック: `useXxx`
+- データ変換関数: `toXxx`, `latLngToWorldPosition` などの動詞始まり
+
+### エラーハンドリング
+
+データロード失敗時や Zod 検証失敗時は、サイレントエラーにせず、エラーコード（`E1001`〜`E3001`）を発行して S05 (`error`) 画面へ遷移させてください。
+
+### パフォーマンス要件
+
+スマホの WebGL（Three.js）描画で 30fps 以上を維持するため、以下を原則としてください。
+
+- シャドウ（影）は極力使用しない
+- 重いポストエフェクトは使用しない
+- シンプルなメッシュ構造を採用する
+- 不要な再レンダリングを避ける
+
+---
+
+## 8. 実装時の最重要ルール
+
+1. まず **MVPとして確実に動くこと** を優先する
+2. ノンログイン前提を崩さない
+3. 公開データは `/public/data/*.json` を正本として扱う
+4. 型定義・Zodスキーマ・実データ構造を必ず一致させる
+5. 3D表現はリアルさより **軽さ・分かりやすさ・酔いにくさ** を優先する
+6. 状態管理はローカル state に分散させすぎず、`useAppStore` に集約する
+7. 新しいコードを追加する際は、既存ディレクトリ責務を壊さない
+8. テスト可能な純粋関数は `domain/` または `services/` に分離する
+
+---
+
+## 9. コード生成時の出力方針
+
+コードを生成・補完する際は、以下を守ってください。
+
+- 可能な限り **そのまま貼って動くファイル単位** で出力する
+- 変更対象ファイルパスを明記する
+- 依存追加が必要なら `package.json` 変更内容も併記する
+- 複数ファイル変更時は、依存順に並べる
+- 仮実装の場合は `TODO:` を残し、未実装理由を明記する
+- 推測で API を増やしすぎず、まずは静的JSON前提で成立させる
+
+---
+
+## 10. 禁止事項
+
+以下は原則禁止です。
+
+- プレイヤー認証前提の実装に変更すること
+- `localStorage` ではなく任意にサーバー保存前提へ変えること
+- 画面遷移ロジックを Zustand 管理外へ分散させること
+- Zod バリデーションを省略すること
+- Three.js に過剰な演出や重量級エフェクトを追加すること
+- ディレクトリ責務を無視したファイル配置を行うこと
+
+---
+
+## 11. 優先実装順
+
+1. `game-config.json`, `cats.json`, `hydrants.json`, `messages.json` のモック整備
+2. `useAppStore` 実装
+3. S01 ローディング画面
+4. S02 2D猫えらび画面
+5. 座標変換ロジック
+6. S03 3Dみまわり画面
+7. 点検判定・スコア加算
+8. S04 リザルト画面
+9. `localStorage` 保存
+10. S05 エラー処理
+11. テスト追加
+
+---
+
+## 12. 補足指示
+
+不明点がある場合でも、まずは本ガイドラインに沿って **破綻しない最小実装** を優先してください。
+もし仕様が競合する場合は、以下の優先順位で判断してください。
+
+1. ユーザー体験の分かりやすさ
+2. スマホでの軽量動作
+3. 型安全性と保守性
+4. 将来拡張性
+
+以上のルールに従い、「ぼうさいネコ＠平泉」のコード生成・補完を行ってください。
