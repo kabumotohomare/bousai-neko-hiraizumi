@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>ぼうさいネコ＠平泉 - UXプロトタイプ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{
+    --ink:#22282f;
+    --paper:#fff8ec;
+    --hydrant:#c1440e;
+    --hydrant-dark:#8f3009;
+    --moss:#5c7a52;
+    --moss-dark:#3e5636;
+    --sky-top:#2b3350;
+    --sky-bottom:#5b6a8f;
+    --gold:#e8a23a;
+    --danger:#d1483f;
+    --paw:#f2e2c4;
+    --radius-lg:22px;
+    --radius-md:14px;
+    --font-display: "Hiragino Maru Gothic ProN","Yu Gothic",-apple-system,BlinkMacSystemFont,"M PLUS Rounded 1c",sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent; user-select:none;}
+  html,body{height:100%; margin:0; overflow:hidden; overscroll-behavior:none;}
+  body{
+    font-family:var(--font-display);
+    background:var(--ink);
+    color:var(--ink);
+    touch-action:none;
+  }
+  #app{position:fixed; inset:0; width:100%; height:100%;}
+  .screen{position:absolute; inset:0; display:none; flex-direction:column;}
+  .screen.active{display:flex;}
+
+  /* ---------- 共通パーツ ---------- */
+  .btn{
+    font-family:inherit;
+    border:none;
+    border-radius:999px;
+    padding:14px 22px;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    min-height:48px;
+    transition:transform .12s ease, opacity .12s ease, box-shadow .12s ease;
+    box-shadow:0 3px 0 rgba(0,0,0,0.18);
+  }
+  .btn:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.18);}
+  .btn:disabled{opacity:.4; cursor:not-allowed; box-shadow:none;}
+  .btn-primary{background:var(--hydrant); color:#fff;}
+  .btn-secondary{background:var(--paw); color:var(--ink);}
+  .btn-ghost{background:transparent; color:#fff; box-shadow:none; border:1.5px solid rgba(255,255,255,.5);}
+
+  /* ---------- S02 2D猫えらび ---------- */
+  #screen-select{background:linear-gradient(180deg,#eef2df,#dfe8cf);}
+  .select-header{
+    padding:18px 18px 8px;
+    display:flex; align-items:baseline; justify-content:space-between;
+  }
+  .select-header h1{font-size:19px; margin:0; letter-spacing:.02em;}
+  .select-header .sub{font-size:11px; color:#5b6350; font-weight:600;}
+  .map-wrap{
+    position:relative; flex:1; margin:0 14px 10px; border-radius:var(--radius-lg);
+    overflow:hidden; background:
+      radial-gradient(circle at 30% 20%, #f4efd6 0, transparent 45%),
+      linear-gradient(160deg,#cddcc0,#a9c19a 55%, #93b184);
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.5), 0 6px 18px rgba(0,0,0,.15);
+  }
+  svg#mapsvg{width:100%; height:100%; display:block;}
+  .pin{cursor:pointer;}
+  .pin circle.head{transition:r .15s ease;}
+  .pin.selected circle.head{filter:drop-shadow(0 0 6px rgba(232,162,58,.9));}
+  .territory-ring{fill:rgba(92,122,82,.18); stroke:var(--moss-dark); stroke-width:2; stroke-dasharray:6 5; pointer-events:none;}
+  .cat-card{
+    margin:0 14px 14px; background:var(--paper); border-radius:var(--radius-lg);
+    padding:14px 16px; box-shadow:0 6px 14px rgba(0,0,0,.18);
+    display:flex; gap:12px; align-items:center;
+    min-height:78px;
+  }
+  .cat-avatar{width:52px; height:52px; border-radius:50%; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:26px; background:#f0e2c9; box-shadow:inset 0 0 0 2px rgba(0,0,0,.06);}
+  .cat-info{flex:1; min-width:0;}
+  .cat-info .name{font-weight:800; font-size:15px;}
+  .cat-info .area{font-size:11px; color:#7a6e52; font-weight:700; margin-top:1px;}
+  .cat-info .desc{font-size:12px; color:#514a3a; margin-top:4px; line-height:1.4;}
+  .cat-empty{color:#7c8468; font-size:13px; font-weight:600;}
+  .start-bar{padding:0 14px 18px;}
+  .start-bar .btn{width:100%; font-size:17px;}
+
+  /* ---------- S03 3Dみまわり ---------- */
+  #screen-patrol{background:#000;}
+  #three-canvas{position:absolute; inset:0; width:100%; height:100%; display:block;}
+  .hud-top{
+    position:absolute; top:0; left:0; right:0; padding:12px 14px calc(10px + env(safe-area-inset-top));
+    display:flex; gap:8px; align-items:center; justify-content:space-between;
+    background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,0));
+    pointer-events:none;
+  }
+  .hud-pill{
+    background:rgba(255,248,236,.94); color:var(--ink); border-radius:999px;
+    padding:7px 13px; font-weight:800; font-size:13px; display:flex; align-items:center; gap:6px;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);
+  }
+  .hud-pill.timer{min-width:78px; justify-content:center; font-variant-numeric:tabular-nums;}
+  .hud-pill.timer.danger{background:var(--danger); color:#fff; animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1)} 50%{transform:scale(1.06)}}
+  .timerbar-wrap{position:absolute; top:0; left:0; right:0; height:4px; background:rgba(255,255,255,.15);}
+  .timerbar{height:100%; width:100%; background:var(--gold); transition:width .3s linear, background .3s;}
+  .timerbar.danger{background:var(--danger);}
+
+  .boundary-toast{
+    position:absolute; left:50%; top:26%; transform:translate(-50%,-8px);
+    background:rgba(34,40,47,.9); color:#fff; padding:10px 16px; border-radius:999px;
+    font-size:13px; font-weight:700; opacity:0; transition:opacity .25s ease, transform .25s ease;
+    pointer-events:none; white-space:nowrap;
+  }
+  .boundary-toast.show{opacity:1; transform:translate(-50%,0);}
+
+  .hint-arrow{
+    position:absolute; width:46px; height:46px; left:50%; top:50%;
+    margin:-23px 0 0 -23px; pointer-events:none; opacity:0; transition:opacity .3s ease;
+  }
+  .hint-arrow.show{opacity:.95;}
+  .hint-arrow svg{width:100%; height:100%; filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));}
+
+  /* ---------- 画面酔い対策パーツ ---------- */
+  .vignette{position:absolute; inset:0; z-index:4; pointer-events:none;}
+  .whisker-anchor{
+    position:absolute; left:50%; bottom:112px; z-index:4; pointer-events:none;
+    width:360px; height:130px; margin-left:-180px;
+    opacity:0; transition:opacity .3s ease, transform .12s ease-out;
+    transform-origin:50% 100%;
+  }
+  .whisker-anchor.show{opacity:.85;}
+  .tap-hint{
+    position:absolute; left:50%; bottom:120px; transform:translateX(-50%);
+    background:rgba(0,0,0,.5); color:#fff; padding:8px 16px; border-radius:999px;
+    font-size:12px; font-weight:700; pointer-events:none; opacity:0; transition:opacity .3s ease;
+  }
+  .tap-hint.show{opacity:1;}
+  .tap-marker{position:absolute; width:34px; height:34px; margin:-17px 0 0 -17px; border-radius:50%; border:3px solid var(--gold); pointer-events:none; animation:tapmark 550ms ease forwards;}
+  @keyframes tapmark{0%{opacity:1; transform:scale(1.6);} 100%{opacity:0; transform:scale(0.5);}}
+
+  .joystick-base{
+    position:absolute; left:50%; bottom:calc(24px + env(safe-area-inset-bottom));
+    margin-left:-59px;
+    width:118px; height:118px; border-radius:50%;
+    background:rgba(255,255,255,.16); border:2px solid rgba(255,255,255,.35);
+    touch-action:none;
+  }
+  .joystick-knob{
+    position:absolute; width:52px; height:52px; border-radius:50%;
+    left:50%; top:50%; margin:-26px 0 0 -26px;
+    background:rgba(255,248,236,.95); box-shadow:0 3px 8px rgba(0,0,0,.35);
+  }
+  .inspect-btn{
+    position:absolute; right:22px; bottom:calc(30px + env(safe-area-inset-bottom));
+    width:96px; height:96px; border-radius:50%;
+    background:var(--hydrant); color:#fff; font-weight:800; font-size:13px;
+    border:3px solid rgba(255,255,255,.85);
+    box-shadow:0 5px 0 var(--hydrant-dark), 0 8px 16px rgba(0,0,0,.35);
+    display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.3;
+    transition:transform .1s ease, opacity .2s ease, box-shadow .1s ease, background .2s ease;
+    touch-action:none;
+  }
+  .inspect-btn:active:not(:disabled){transform:translateY(4px); box-shadow:0 1px 0 var(--hydrant-dark), 0 3px 8px rgba(0,0,0,.35);}
+  .inspect-btn:disabled{background:#8a8579; box-shadow:0 5px 0 #625e54, 0 8px 16px rgba(0,0,0,.25); opacity:.55;}
+  .inspect-btn.ready{animation:ready-pulse 1s infinite;}
+  @keyframes ready-pulse{0%,100%{box-shadow:0 5px 0 var(--hydrant-dark), 0 0 0 0 rgba(232,162,58,.55);} 50%{box-shadow:0 5px 0 var(--hydrant-dark), 0 0 0 14px rgba(232,162,58,0);}}
+
+  .score-pop{
+    position:absolute; font-weight:900; font-size:20px; color:var(--gold);
+    text-shadow:0 2px 3px rgba(0,0,0,.6); pointer-events:none;
+    transform:translate(-50%,-50%);
+    animation:pop 900ms ease forwards;
+  }
+  @keyframes pop{
+    0%{opacity:0; transform:translate(-50%,-50%) scale(.5);}
+    18%{opacity:1; transform:translate(-50%,-70%) scale(1.15);}
+    100%{opacity:0; transform:translate(-50%,-160%) scale(1);}
+  }
+
+  .patrol-topbar{position:absolute; top:0; left:0; right:0; z-index:5;}
+  .quit-btn{
+    position:absolute; top:calc(10px + env(safe-area-inset-top)); right:12px; z-index:6;
+    background:rgba(0,0,0,.4); color:#fff; border:1px solid rgba(255,255,255,.4);
+    border-radius:999px; padding:6px 10px; font-size:11px; font-weight:700;
+  }
+
+  /* ---------- S04 リザルト ---------- */
+  #screen-result{
+    background:linear-gradient(180deg,#2b3350,#5b6a8f);
+    align-items:center; justify-content:center; padding:24px;
+    color:#fff;
+  }
+  .result-card{
+    background:var(--paper); color:var(--ink); border-radius:var(--radius-lg);
+    padding:26px 22px; width:100%; max-width:380px; text-align:center;
+    box-shadow:0 14px 32px rgba(0,0,0,.35);
+  }
+  .result-card .cat-emoji{font-size:44px;}
+  .result-card h2{margin:6px 0 2px; font-size:19px;}
+  .result-stats{display:flex; gap:10px; margin:16px 0;}
+  .stat-box{flex:1; background:#f0e2c9; border-radius:var(--radius-md); padding:10px 6px;}
+  .stat-box .num{font-size:24px; font-weight:900; color:var(--hydrant);}
+  .stat-box .label{font-size:11px; font-weight:700; color:#6b6350;}
+  .result-msg{font-size:13.5px; line-height:1.6; color:#42392a; background:#fbf3e2; border-radius:var(--radius-md); padding:12px 14px; margin-bottom:18px;}
+  .result-actions{display:flex; flex-direction:column; gap:9px;}
+
+  /* ---------- デブパネル ---------- */
+  .dev-toggle{
+    position:absolute; z-index:20; top:calc(10px + env(safe-area-inset-top)); left:12px;
+    width:34px; height:34px; border-radius:50%; background:rgba(0,0,0,.45); color:#fff; border:1px solid rgba(255,255,255,.4);
+    display:flex; align-items:center; justify-content:center; font-size:16px;
+  }
+  .dev-panel{
+    position:absolute; z-index:30; top:0; left:0; bottom:0; width:min(300px,84%);
+    background:rgba(20,24,30,.95); color:#fff; padding:16px 16px 20px; overflow-y:auto;
+    transform:translateX(-104%); transition:transform .22s ease;
+    font-size:12.5px;
+  }
+  .dev-panel.open{transform:translateX(0);}
+  .dev-panel h3{margin:0 0 10px; font-size:14px;}
+  .dev-row{margin-bottom:12px;}
+  .dev-row label{display:flex; justify-content:space-between; margin-bottom:4px; font-weight:700; color:#e8d9b8;}
+  .dev-row input[type=range]{width:100%;}
+  .dev-note{background:rgba(232,162,58,.15); border:1px solid rgba(232,162,58,.5); border-radius:8px; padding:8px 10px; margin-top:4px; line-height:1.5; color:#f1dfb8;}
+  .dev-note.warn{background:rgba(209,72,63,.2); border-color:rgba(209,72,63,.6); color:#ffd6d2;}
+  .dev-close{position:absolute; top:10px; right:10px; background:none; border:none; color:#fff; font-size:18px;}
+  .dev-mode-btns{display:flex; gap:6px; margin-top:4px;}
+  .dev-mode-btns button{flex:1; padding:8px 4px; border-radius:8px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.08); color:#fff; font-size:11px; font-weight:700;}
+  .dev-mode-btns button.active{background:var(--gold); color:#2b2110; border-color:var(--gold);}
+  .dev-reset{margin-top:6px; width:100%; padding:9px; border-radius:8px; border:none; background:#3b4250; color:#fff; font-weight:700;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ S02: 2D猫えらび ============ -->
+  <section id="screen-select" class="screen active">
+    <div class="select-header">
+      <h1>🐾 ぼうさいネコ＠平泉</h1>
+      <span class="sub">ねこをえらんでね</span>
+    </div>
+    <div class="map-wrap">
+      <svg id="mapsvg" viewBox="0 0 320 320"></svg>
+    </div>
+    <div id="cat-card" class="cat-card">
+      <div class="cat-empty">地図の🐾ピンをタップして、いっしょに見回るねこをえらんでね</div>
+    </div>
+    <div class="start-bar">
+      <button id="start-btn" class="btn btn-primary" disabled>このねこでみまわりスタート</button>
+    </div>
+  </section>
+
+  <!-- ============ S03: 3Dみまわり ============ -->
+  <section id="screen-patrol" class="screen">
+    <canvas id="three-canvas"></canvas>
+
+    <button id="dev-toggle" class="dev-toggle">⚙️</button>
+    <button id="quit-btn" class="quit-btn">✕ やめる</button>
+
+    <div class="timerbar-wrap"><div id="timerbar" class="timerbar"></div></div>
+    <div class="hud-top">
+      <div class="hud-pill timer" id="hud-timer">90</div>
+      <div class="hud-pill" id="hud-inspected">🚒 0 / 0</div>
+      <div class="hud-pill" id="hud-score">⭐ 0</div>
+    </div>
+
+    <div class="boundary-toast" id="boundary-toast">ここからそとは、ぼくのなわばりじゃない</div>
+    <div class="hint-arrow" id="hint-arrow">
+      <svg viewBox="0 0 100 100"><polygon points="50,6 90,60 65,60 65,94 35,94 35,60 10,60" fill="#e8a23a" stroke="#3e2c10" stroke-width="4"/></svg>
+    </div>
+
+    <div class="vignette" id="vignette"></div>
+    <div class="whisker-anchor" id="whisker-anchor">
+      <svg viewBox="0 0 360 130" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="130" cy="118" rx="70" ry="30" fill="#f4ede0" opacity="0.28"/>
+        <ellipse cx="230" cy="118" rx="70" ry="30" fill="#f4ede0" opacity="0.28"/>
+        <path d="M175,108 Q120,88 20,58" stroke="#fff8ec" stroke-width="2.4" fill="none" opacity="0.9" stroke-linecap="round"/>
+        <path d="M175,114 Q115,104 12,92" stroke="#fff8ec" stroke-width="2.4" fill="none" opacity="0.9" stroke-linecap="round"/>
+        <path d="M175,120 Q120,122 22,124" stroke="#fff8ec" stroke-width="2.4" fill="none" opacity="0.9" stroke-linecap="round"/>
+        <path d="M185,108 Q240,88 340,58" stroke="#fff8ec" stroke-width="2.4" fill="none" opacity="0.9" stroke-linecap="round"/>
+        <path d="M185,114 Q245,104 348,92" stroke="#fff8ec" stroke-width="2.4" fill="none" opacity="0.9" stroke-linecap="round"/>
+        <path d="M185,120 Q240,122 338,124" stroke="#fff8ec" stroke-width="2.4" fill="none" opacity="0.9" stroke-linecap="round"/>
+        <path d="M172,102 Q180,96 188,102 Q184,112 180,112 Q176,112 172,102 Z" fill="#e08a6b" stroke="#7a3d28" stroke-width="1.2"/>
+      </svg>
+    </div>
+    <div class="tap-hint" id="tap-hint">地面をタップしてすすもう</div>
+
+    <div class="joystick-base" id="joystick-base">
+      <div class="joystick-knob" id="joystick-knob"></div>
+    </div>
+    <button id="inspect-btn" class="inspect-btn" disabled>てんけん<br/>する</button>
+
+    <!-- デブパネル -->
+    <div class="dev-panel" id="dev-panel">
+      <button class="dev-close" id="dev-close">✕</button>
+      <h3>調整パネル（プロトタイプ検証用）</h3>
+
+      <div class="dev-row">
+        <label><span>縄張り半径</span><span id="val-radius">45m</span></label>
+        <input type="range" id="rng-radius" min="15" max="300" step="5" value="45">
+      </div>
+      <div class="dev-row">
+        <label><span>移動速度</span><span id="val-speed">2.2 m/s</span></label>
+        <input type="range" id="rng-speed" min="1" max="5" step="0.1" value="2.2">
+      </div>
+      <div class="dev-row">
+        <label><span>制限時間</span><span id="val-duration">90秒</span></label>
+        <input type="range" id="rng-duration" min="30" max="150" step="5" value="90">
+      </div>
+      <div class="dev-row" id="balance-note-wrap"></div>
+
+      <div class="dev-row">
+        <label><span>点検判定距離</span><span id="val-inspect">2.0m</span></label>
+        <input type="range" id="rng-inspect" min="1" max="6" step="0.5" value="2">
+      </div>
+      <div class="dev-row">
+        <label><span>ヒントが出るまで</span><span id="val-hint">20秒</span></label>
+        <input type="range" id="rng-hint" min="5" max="40" step="1" value="20">
+      </div>
+      <div class="dev-row">
+        <label><span>旋回速度</span><span id="val-turn">2.4 rad/s</span></label>
+        <input type="range" id="rng-turn" min="0.5" max="4" step="0.1" value="2.4">
+      </div>
+
+      <div class="dev-row">
+        <label>移動方式</label>
+        <div class="dev-mode-btns">
+          <button id="mode-tank" class="active">戦車型</button>
+          <button id="mode-free">自由移動</button>
+          <button id="mode-tap">タップ移動</button>
+        </div>
+        <div class="dev-note" style="margin-top:8px;" id="mode-desc"></div>
+      </div>
+
+      <div class="dev-row">
+        <label>画面酔い対策（比較用）</label>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:600;margin-top:8px;"><input type="checkbox" id="chk-vignette" checked> 移動・旋回中に視野を絞る（ビネット）</label>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:600;margin-top:8px;"><input type="checkbox" id="chk-whiskers" checked> ヒゲアンカーを常設表示（固定基準点・向き確認用）</label>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:600;margin-top:8px;"><input type="checkbox" id="chk-fov" checked> 移動中にFOVをわずかに狭める</label>
+      </div>
+
+      <div class="dev-row">
+        <label>境界の見た目</label>
+        <div class="dev-mode-btns">
+          <button id="bd-visible" class="active">リング表示あり</button>
+          <button id="bd-hidden">非表示（当ててから通知）</button>
+        </div>
+      </div>
+
+      <button class="dev-reset" id="dev-apply">この設定でやり直す</button>
+    </div>
+  </section>
+
+  <!-- ============ S04: リザルト ============ -->
+  <section id="screen-result" class="screen">
+    <div class="result-card">
+      <div class="cat-emoji" id="result-emoji">🐈‍⬛</div>
+      <h2 id="result-title">おさんぽ、おわり！</h2>
+      <div class="result-stats">
+        <div class="stat-box"><div class="num" id="result-count">0</div><div class="label">てんけんした数</div></div>
+        <div class="stat-box"><div class="num" id="result-score">0</div><div class="label">スコア</div></div>
+      </div>
+      <div class="result-msg" id="result-msg"></div>
+      <div class="result-actions">
+        <button class="btn btn-primary" id="btn-replay">もういちど遊ぶ</button>
+        <button class="btn btn-secondary" id="btn-other-cat">べつのねこで遊ぶ</button>
+        <button class="btn btn-ghost" id="btn-report">🐾 ねこの もくげきほうこくをする</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================
+   ぼうさいネコ＠平泉 — フロントエンドUXプロトタイプ
+   目的: 仕様書の未確定事項（移動方式・画面酔い対策・境界表現・
+   バランス設計）を実機で触りながら検討するための簡易実装。
+   実データ(GeoJSON/Leaflet)は使わず、ローカル座標のダミー
+   世界で3D体験部分のUXのみを再現している。
+   ========================================================= */
+
+const CATS = [
+  { id:'cat_001', name:'シラヤマ', area:'志羅山地区', emoji:'⬛🐈', color:0x2b2b2b,
+    desc:'志羅山地区でよく見られる黒猫。人なつっこく、消火栓のまわりをぐるぐる歩くのが好き。',
+    px:0.36, py:0.42, radiusPx:0.16 },
+  { id:'cat_002', name:'コハク', area:'関山地区', emoji:'🐈', color:0xdba25a,
+    desc:'関山地区のお寺のまわりを縄張りにする茶トラ猫。縄張りが広く、探検好き。',
+    px:0.62, py:0.58, radiusPx:0.24 },
+];
+
+const state = {
+  selectedCat: null,
+  config: {
+    territoryRadius: 45,   // m
+    moveSpeed: 2.2,        // m/s
+    duration: 90,          // s
+    inspectRadius: 2.0,    // m
+    hintDelay: 20,         // s
+    turnSpeed: 2.4,        // rad/s
+    moveMode: 'tank',      // 'tank' | 'free' | 'tap'
+    boundaryVisible: true,
+    vignette: true,
+    whiskerAnchor: true,
+    dynamicFov: true,
+  },
+  session: null,
+};
+
+/* ---------------- S02: 2D猫えらび ---------------- */
+const mapsvg = document.getElementById('mapsvg');
+const catCard = document.getElementById('cat-card');
+const startBtn = document.getElementById('start-btn');
+
+function renderMap(){
+  const NS='http://www.w3.org/2000/svg';
+  mapsvg.innerHTML='';
+  // 簡易な街区表現（本物のLeaflet地図の代わりのダミー背景）
+  const bg = document.createElementNS(NS,'g');
+  const blocks = [[20,20,60,40],[110,30,70,50],[210,20,80,60],[30,120,90,50],[150,140,110,70],[40,220,120,60],[190,230,100,60]];
+  blocks.forEach(([x,y,w,h])=>{
+    const r=document.createElementNS(NS,'rect');
+    r.setAttribute('x',x); r.setAttribute('y',y); r.setAttribute('width',w); r.setAttribute('height',h);
+    r.setAttribute('rx',6); r.setAttribute('fill','rgba(255,255,255,.35)');
+    bg.appendChild(r);
+  });
+  mapsvg.appendChild(bg);
+
+  CATS.forEach(cat=>{
+    const cx = cat.px*320, cy = cat.py*320, rpx = cat.radiusPx*320;
+    const g = document.createElementNS(NS,'g');
+    g.setAttribute('class','pin'+(state.selectedCat===cat.id?' selected':''));
+    g.dataset.catId = cat.id;
+
+    const ring = document.createElementNS(NS,'circle');
+    ring.setAttribute('cx',cx); ring.setAttribute('cy',cy); ring.setAttribute('r',rpx);
+    ring.setAttribute('class','territory-ring');
+    ring.style.display = state.selectedCat===cat.id ? 'block':'none';
+    ring.setAttribute('data-ring', cat.id);
+    mapsvg.appendChild(ring);
+
+    const head = document.createElementNS(NS,'circle');
+    head.setAttribute('cx',cx); head.setAttribute('cy',cy); head.setAttribute('r', state.selectedCat===cat.id?13:10);
+    head.setAttribute('class','head');
+    head.setAttribute('fill', state.selectedCat===cat.id ? '#e8a23a' : '#fff8ec');
+    head.setAttribute('stroke', '#22282f'); head.setAttribute('stroke-width','2');
+    g.appendChild(head);
+
+    const emoji = document.createElementNS(NS,'text');
+    emoji.setAttribute('x',cx); emoji.setAttribute('y',cy+5);
+    emoji.setAttribute('text-anchor','middle'); emoji.setAttribute('font-size','14');
+    emoji.textContent='🐾';
+    g.appendChild(emoji);
+
+    g.addEventListener('click', ()=> selectCat(cat.id));
+    mapsvg.appendChild(g);
+  });
+}
+
+function selectCat(catId){
+  state.selectedCat = catId;
+  const cat = CATS.find(c=>c.id===catId);
+  renderMap();
+  catCard.innerHTML = `
+    <div class="cat-avatar">${cat.emoji}</div>
+    <div class="cat-info">
+      <div class="name">${cat.name}</div>
+      <div class="area">${cat.area}・縄張り半径 約${state.config.territoryRadius}m（表示は簡略化）</div>
+      <div class="desc">${cat.desc}</div>
+    </div>`;
+  startBtn.disabled = false;
+}
+
+startBtn.addEventListener('click', ()=>{
+  if(!state.selectedCat) return;
+  startPatrol(true);
+});
+
+renderMap();
+
+/* ---------------- Three.js 3D みまわり ---------------- */
+const canvas = document.getElementById('three-canvas');
+let renderer, scene, camera, playerRig;
+let hydrantMeshes = [];
+let boundaryRing;
+let clock = new THREE.Clock();
+let animId = null;
+const BASE_FOV = 62;
+const raycaster = new THREE.Raycaster();
+const groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+let tapTarget = null;
+
+function initThree(){
+  renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  scene = new THREE.Scene();
+  const skyTop = new THREE.Color(0x9fd0e0), skyBottom = new THREE.Color(0xdcefd8);
+  scene.background = skyTop;
+  scene.fog = new THREE.Fog(0xbfe0d8, 30, 130);
+
+  camera = new THREE.PerspectiveCamera(BASE_FOV, window.innerWidth/window.innerHeight, 0.05, 400);
+
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x557755, 1.0);
+  scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xfff2d8, 0.9);
+  sun.position.set(30,40,10);
+  scene.add(sun);
+
+  playerRig = new THREE.Object3D();
+  scene.add(playerRig);
+  camera.position.set(0, 0.42, 0);
+  playerRig.add(camera);
+
+  window.addEventListener('resize', onResize);
+}
+function onResize(){
+  if(!renderer) return;
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+}
+
+function clearWorld(){
+  hydrantMeshes.forEach(h=>scene.remove(h.group));
+  hydrantMeshes = [];
+  if(boundaryRing){ scene.remove(boundaryRing); boundaryRing=null; }
+  const toRemove = [];
+  scene.traverse(o=>{ if(o.userData.isWorldDecor) toRemove.push(o); });
+  toRemove.forEach(o=>scene.remove(o));
+}
+
+function buildWorld(cat, cfg){
+  clearWorld();
+  const R = cfg.territoryRadius;
+
+  // 地面
+  const groundGeo = new THREE.CircleGeometry(R*2.4, 48);
+  const groundMat = new THREE.MeshLambertMaterial({color:0x8fbf7a});
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI/2;
+  ground.userData.isWorldDecor = true;
+  scene.add(ground);
+
+  // 道（十字）
+  const roadMat = new THREE.MeshLambertMaterial({color:0xcfc6ac});
+  const roadNS = new THREE.Mesh(new THREE.PlaneGeometry(6, R*4.6), roadMat);
+  roadNS.rotation.x=-Math.PI/2; roadNS.position.y=0.01; roadNS.userData.isWorldDecor=true;
+  scene.add(roadNS);
+  const roadEW = new THREE.Mesh(new THREE.PlaneGeometry(R*4.6, 6), roadMat);
+  roadEW.rotation.x=-Math.PI/2; roadEW.position.y=0.011; roadEW.userData.isWorldDecor=true;
+  scene.add(roadEW);
+
+  // 建物（縄張り外周ぎみに配置、簡易デフォルメ）
+  const buildingMat = [0xe7d9b8,0xd9c9a0,0xc9a97e,0xe3cba0].map(c=>new THREE.MeshLambertMaterial({color:c}));
+  const nBuild = 14;
+  for(let i=0;i<nBuild;i++){
+    const ang = (i/nBuild)*Math.PI*2 + Math.random()*0.3;
+    const dist = R*(0.65+Math.random()*0.55);
+    const w = 3+Math.random()*4, d=3+Math.random()*4, h=2.5+Math.random()*4;
+    const geo = new THREE.BoxGeometry(w,h,d);
+    const mesh = new THREE.Mesh(geo, buildingMat[i%buildingMat.length]);
+    mesh.position.set(Math.cos(ang)*dist, h/2, Math.sin(ang)*dist);
+    mesh.userData.isWorldDecor = true;
+    scene.add(mesh);
+    // 屋根
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*0.75,1.6,4), new THREE.MeshLambertMaterial({color:0x9c5a3c}));
+    roof.position.set(mesh.position.x, h+0.8, mesh.position.z);
+    roof.rotation.y = Math.PI/4;
+    roof.userData.isWorldDecor = true;
+    scene.add(roof);
+  }
+
+  // 木
+  for(let i=0;i<10;i++){
+    const ang = Math.random()*Math.PI*2;
+    const dist = R*(0.15+Math.random()*0.8);
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.22,1.4,6), new THREE.MeshLambertMaterial({color:0x7a5230}));
+    const leaves = new THREE.Mesh(new THREE.SphereGeometry(1.1,8,8), new THREE.MeshLambertMaterial({color:0x4f8a4a}));
+    trunk.position.set(Math.cos(ang)*dist, 0.7, Math.sin(ang)*dist);
+    leaves.position.set(trunk.position.x, 1.7, trunk.position.z);
+    trunk.userData.isWorldDecor = true; leaves.userData.isWorldDecor = true;
+    scene.add(trunk); scene.add(leaves);
+  }
+
+  // 境界リング（可視化トグル対応）
+  if(cfg.boundaryVisible){
+    const ringGeo = new THREE.RingGeometry(R-0.35, R, 64);
+    const ringMat = new THREE.MeshBasicMaterial({color:0xe8a23a, transparent:true, opacity:0.55, side:THREE.DoubleSide});
+    boundaryRing = new THREE.Mesh(ringGeo, ringMat);
+    boundaryRing.rotation.x = -Math.PI/2;
+    boundaryRing.position.y = 0.03;
+    scene.add(boundaryRing);
+  }
+
+  // 消火栓配置: 中心付近に1本（初回成功体験用の救済配置）+ 残りをランダム散布
+  const count = Math.max(3, Math.min(8, Math.round(R/12)+3));
+  const hydrants = [];
+  hydrants.push({x:2.4, z:1.4}); // 近距離の確定1本
+  for(let i=1;i<count;i++){
+    const ang = Math.random()*Math.PI*2;
+    const dist = R*(0.25+Math.random()*0.68);
+    hydrants.push({x:Math.cos(ang)*dist, z:Math.sin(ang)*dist});
+  }
+
+  hydrants.forEach((h,i)=>{
+    const group = new THREE.Object3D();
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.26,0.75,10), new THREE.MeshLambertMaterial({color:0xc1440e}));
+    body.position.y = 0.375;
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.22,10,10), new THREE.MeshLambertMaterial({color:0xe8582a}));
+    cap.position.y = 0.78;
+    cap.userData.isCap = true;
+    const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.28,8), new THREE.MeshLambertMaterial({color:0x8f3009}));
+    nozzle.rotation.z = Math.PI/2;
+    nozzle.position.set(0.28,0.42,0);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.34,0.12,10), new THREE.MeshLambertMaterial({color:0x6b6558}));
+    base.position.y = 0.06;
+    group.add(body, cap, nozzle, base);
+    group.position.set(h.x, 0, h.z);
+    scene.add(group);
+    hydrantMeshes.push({group, cap, x:h.x, z:h.z, inspected:false, id:'hydrant_'+(i+1).toString().padStart(4,'0')});
+  });
+
+  // プレイヤー初期位置（中心付近／確定1本のさらに手前）
+  playerRig.position.set(0,0,0);
+  playerRig.rotation.y = 0;
+}
+
+/* ---------------- 操作（ジョイスティック） ---------------- */
+const joyBase = document.getElementById('joystick-base');
+const joyKnob = document.getElementById('joystick-knob');
+let joyVec = {x:0,y:0};
+let joyActive = false, joyPointerId = null, joyCenter = {x:0,y:0};
+
+function joyStart(e){
+  joyActive = true;
+  joyPointerId = e.pointerId;
+  const rect = joyBase.getBoundingClientRect();
+  joyCenter = {x:rect.left+rect.width/2, y:rect.top+rect.height/2};
+  joyBase.setPointerCapture(e.pointerId);
+  joyMove(e);
+}
+function joyMove(e){
+  if(!joyActive || e.pointerId!==joyPointerId) return;
+  const maxR = 40;
+  let dx = e.clientX - joyCenter.x, dy = e.clientY - joyCenter.y;
+  const len = Math.hypot(dx,dy);
+  if(len>maxR){ dx = dx/len*maxR; dy = dy/len*maxR; }
+  joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+  joyVec = {x: dx/maxR, y: dy/maxR};
+}
+function joyEnd(e){
+  if(e.pointerId!==joyPointerId) return;
+  joyActive=false; joyPointerId=null;
+  joyKnob.style.transform = 'translate(0,0)';
+  joyVec = {x:0,y:0};
+}
+joyBase.addEventListener('pointerdown', joyStart);
+joyBase.addEventListener('pointermove', joyMove);
+joyBase.addEventListener('pointerup', joyEnd);
+joyBase.addEventListener('pointercancel', joyEnd);
+
+/* タップ移動モード: 地面をタップした地点へ自動で歩く */
+canvas.addEventListener('pointerdown', (e)=>{
+  if(state.config.moveMode!=='tap' || !state.session || state.session.finished) return;
+  const ndc = new THREE.Vector2(
+    (e.clientX/window.innerWidth)*2-1,
+    -(e.clientY/window.innerHeight)*2+1
+  );
+  raycaster.setFromCamera(ndc, camera);
+  const hit = new THREE.Vector3();
+  const ok = raycaster.ray.intersectPlane(groundPlane, hit);
+  if(ok){
+    tapTarget = hit.clone();
+    showTapMarker(e.clientX, e.clientY);
+  }
+});
+function showTapMarker(x,y){
+  const el = document.createElement('div');
+  el.className='tap-marker';
+  el.style.left=x+'px'; el.style.top=y+'px';
+  document.getElementById('screen-patrol').appendChild(el);
+  setTimeout(()=>el.remove(), 600);
+}
+
+/* ---------------- ゲームループ ---------------- */
+const hudTimer = document.getElementById('hud-timer');
+const timerbar = document.getElementById('timerbar');
+const hudInspected = document.getElementById('hud-inspected');
+const hudScore = document.getElementById('hud-score');
+const boundaryToast = document.getElementById('boundary-toast');
+const hintArrow = document.getElementById('hint-arrow');
+const inspectBtn = document.getElementById('inspect-btn');
+const whiskerEl = document.getElementById('whisker-anchor');
+
+let boundaryToastTimer = 0, boundaryCooldown = 0;
+let lastInspectAt = 0; // seconds elapsed since start at last inspect
+let elapsed = 0;
+let nearestReady = null;
+
+function startPatrol(fromSelect){
+  const cat = CATS.find(c=>c.id===state.selectedCat) || CATS[0];
+  document.getElementById('screen-select').classList.remove('active');
+  document.getElementById('screen-result').classList.remove('active');
+  document.getElementById('screen-patrol').classList.add('active');
+
+  if(!renderer) initThree();
+
+  state.session = {
+    catId: cat.id,
+    score: 0,
+    inspectedIds: new Set(),
+    remaining: state.config.duration,
+    started: performance.now(),
+    finished: false,
+  };
+  elapsed = 0; lastInspectAt = 0; boundaryCooldown = 0;
+  tapTarget = null; joyVec = {x:0,y:0}; joyKnob.style.transform='translate(0,0)';
+  camera.fov = BASE_FOV; camera.updateProjectionMatrix();
+  document.getElementById('vignette').style.background = 'none';
+  updateWhiskerAnchor();
+  updateMoveModeUI();
+
+  buildWorld(cat, state.config);
+  updateHUD();
+  clock.start();
+  if(animId) cancelAnimationFrame(animId);
+  animId = requestAnimationFrame(loop);
+}
+
+function updateHUD(){
+  const s = state.session;
+  hudTimer.textContent = Math.ceil(s.remaining);
+  hudTimer.classList.toggle('danger', s.remaining<=10);
+  timerbar.style.width = Math.max(0,(s.remaining/state.config.duration*100))+'%';
+  timerbar.classList.toggle('danger', s.remaining<=10);
+  hudInspected.textContent = `🚒 ${s.inspectedIds.size} / ${hydrantMeshes.length}`;
+  hudScore.textContent = `⭐ ${s.score}`;
+}
+
+function loop(){
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const s = state.session;
+  if(!s.finished){
+    step(dt);
+  }
+  renderer.render(scene, camera);
+  animId = requestAnimationFrame(loop);
+}
+
+function step(dt){
+  const s = state.session;
+  const cfg = state.config;
+
+  // タイマー
+  s.remaining -= dt;
+  elapsed += dt;
+  if(s.remaining<=0){
+    s.remaining = 0;
+    finishPatrol();
+    updateHUD();
+    return;
+  }
+
+  // 移動
+  const speed = cfg.moveSpeed;
+  const prevPos = playerRig.position.clone();
+  const prevYaw = playerRig.rotation.y;
+
+  if(cfg.moveMode==='tank'){
+    // 1本スティック: 上下=前後, 左右=旋回（カメラは自分では回転させず、旋回操作のみで向きを変える）
+    playerRig.rotation.y -= joyVec.x * cfg.turnSpeed * dt;
+    const forward = -joyVec.y; // 上に倒す=前進
+    const dir = new THREE.Vector3(0,0,-1).applyQuaternion(playerRig.quaternion);
+    tryMove(dir.multiplyScalar(forward*speed*dt));
+  } else if(cfg.moveMode==='free'){
+    // 自由移動: スティック方向へワールド固定の前方(-Z=北)基準で直接移動、視点は回転しない
+    const mv = new THREE.Vector3(joyVec.x, 0, joyVec.y).multiplyScalar(speed*dt);
+    tryMove(mv);
+  } else if(cfg.moveMode==='tap'){
+    // タップ移動: 指定地点まで自動で歩く。視界の流れが少なく酔いにくい代わりに操作の主体感は下がる
+    if(tapTarget){
+      const p = playerRig.position;
+      const toTarget = new THREE.Vector3(tapTarget.x-p.x, 0, tapTarget.z-p.z);
+      const dist = toTarget.length();
+      if(dist > 0.15){
+        toTarget.normalize();
+        tryMove(toTarget.clone().multiplyScalar(Math.min(dist, speed*dt)));
+        const desiredYaw = Math.atan2(toTarget.x, -toTarget.z);
+        let diff = desiredYaw - playerRig.rotation.y;
+        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+        const maxTurn = cfg.turnSpeed*dt;
+        playerRig.rotation.y += Math.max(-maxTurn, Math.min(maxTurn, diff));
+      } else {
+        tapTarget = null;
+      }
+    }
+  }
+
+  // 縄張り境界判定
+  const R = cfg.territoryRadius;
+  const p = playerRig.position;
+  const dist = Math.hypot(p.x, p.z);
+  if(dist > R){
+    const k = R/dist;
+    p.x*=k; p.z*=k;
+    if(boundaryCooldown<=0){
+      showBoundaryToast();
+      boundaryCooldown = 3; // spec: 連打抑制3秒
+    }
+  }
+  boundaryCooldown = Math.max(0, boundaryCooldown-dt);
+  boundaryToastTimer = Math.max(0, boundaryToastTimer-dt);
+  if(boundaryToastTimer<=0) boundaryToast.classList.remove('show');
+
+  // 画面酔い対策: 移動量・旋回量から動的にビネット/FOV/ヒゲ傾きを調整
+  const linSpeed = playerRig.position.distanceTo(prevPos)/dt;
+  let yawDelta = playerRig.rotation.y - prevYaw;
+  yawDelta = Math.atan2(Math.sin(yawDelta), Math.cos(yawDelta));
+  const angVel = yawDelta/dt; // 符号付き（+:左旋回 / -:右旋回、Three.jsのY回転規約に準拠）
+  updateComfortEffects(linSpeed, angVel, cfg);
+
+  // 最寄りの未点検消火栓
+  nearestReady = null;
+  let nearestAny = null, nearestAnyDist = Infinity;
+  hydrantMeshes.forEach(h=>{
+    if(h.inspected) return;
+    const d = Math.hypot(p.x-h.x, p.z-h.z);
+    if(d < nearestAnyDist){ nearestAnyDist = d; nearestAny = h; }
+    if(d <= cfg.inspectRadius){ nearestReady = h; }
+  });
+  inspectBtn.disabled = !nearestReady;
+  inspectBtn.classList.toggle('ready', !!nearestReady);
+
+  // ヒント表示
+  if(nearestAny && (elapsed - lastInspectAt) >= cfg.hintDelay){
+    hintArrow.classList.add('show');
+    const ang = Math.atan2(nearestAny.x-p.x, -(nearestAny.z-p.z)) - playerRig.rotation.y;
+    hintArrow.style.transform = `rotate(${ang}rad)`;
+  } else {
+    hintArrow.classList.remove('show');
+  }
+
+  updateHUD();
+}
+
+function tryMove(delta){
+  playerRig.position.add(delta);
+}
+
+let whiskerTilt = 0;
+function updateComfortEffects(linSpeed, angVel, cfg){
+  const angSpeed = Math.abs(angVel);
+  const vigEl = document.getElementById('vignette');
+  if(cfg.vignette){
+    const linT = Math.min(1, linSpeed/Math.max(0.1,cfg.moveSpeed));
+    const angT = Math.min(1, angSpeed/Math.max(0.1,cfg.turnSpeed));
+    const vig = Math.max(linT, angT*0.85);
+    if(vig>0.02){
+      const innerPct = 62 - vig*22;
+      const outerOpacity = (0.55*vig).toFixed(2);
+      vigEl.style.background = `radial-gradient(circle at 50% 52%, transparent ${innerPct}%, rgba(8,8,12,${outerOpacity}) 100%)`;
+    } else {
+      vigEl.style.background = 'none';
+    }
+  } else if(vigEl.style.background !== 'none'){
+    vigEl.style.background = 'none';
+  }
+
+  if(cfg.dynamicFov){
+    const targetFov = BASE_FOV - Math.min(10, (linSpeed/Math.max(0.1,cfg.moveSpeed))*8);
+    camera.fov += (targetFov-camera.fov)*0.15;
+    camera.updateProjectionMatrix();
+  } else if(Math.abs(camera.fov-BASE_FOV)>0.05){
+    camera.fov += (BASE_FOV-camera.fov)*0.15;
+    camera.updateProjectionMatrix();
+  }
+
+  if(cfg.whiskerAnchor){
+    // 旋回方向に合わせてヒゲをわずかに傾け、「今どちらへ曲がっているか」の手がかりにする（最大±5deg）
+    const targetTilt = -Math.sign(angVel) * Math.min(1, angSpeed/Math.max(0.1,cfg.turnSpeed)) * 5;
+    whiskerTilt += (targetTilt-whiskerTilt)*0.2;
+    whiskerEl.style.transform = `rotate(${whiskerTilt.toFixed(2)}deg)`;
+  }
+}
+
+function updateWhiskerAnchor(){
+  const show = state.config.whiskerAnchor;
+  whiskerEl.classList.toggle('show', show);
+  if(!show){ whiskerTilt = 0; whiskerEl.style.transform = 'rotate(0deg)'; }
+}
+
+function updateMoveModeUI(){
+  const isTap = state.config.moveMode==='tap';
+  joyBase.style.display = isTap ? 'none' : 'block';
+  document.getElementById('tap-hint').classList.toggle('show', isTap);
+}
+
+function showBoundaryToast(){
+  boundaryToast.textContent = 'ここからそとは、ぼくのなわばりじゃない';
+  boundaryToast.classList.add('show');
+  boundaryToastTimer = 1.5;
+}
+
+inspectBtn.addEventListener('click', ()=>{
+  if(!nearestReady || state.session.finished) return;
+  const h = nearestReady;
+  h.inspected = true;
+  state.session.inspectedIds.add(h.id);
+  state.session.score += 100;
+  lastInspectAt = elapsed;
+  hintArrow.classList.remove('show');
+
+  // 演出: キャップが開く
+  const cap = h.cap;
+  const startY = cap.position.y, startRotZ = 0;
+  const t0 = performance.now();
+  function anim(){
+    const t = Math.min(1, (performance.now()-t0)/550);
+    cap.position.y = startY + Math.sin(t*Math.PI)*0.28;
+    cap.rotation.z = t*1.4;
+    if(t<1) requestAnimationFrame(anim);
+    else { cap.position.y = startY; cap.rotation.z = 0; cap.material.color.set(0x3e5636); }
+  }
+  anim();
+
+  spawnSparkles(h);
+  spawnScorePop(h);
+  beep();
+  updateHUD();
+
+  // 早期終了は仕様上「今後検討」扱いなので、ここでは全点検してもタイマー継続
+});
+
+function spawnSparkles(h){
+  const group = new THREE.Object3D();
+  for(let i=0;i<10;i++){
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.06,0.06), new THREE.MeshBasicMaterial({color:0xffe9a8}));
+    m.position.set(h.x, 0.9, h.z);
+    const ang = Math.random()*Math.PI*2, spd=1+Math.random()*1.4;
+    m.userData.vel = new THREE.Vector3(Math.cos(ang)*spd, 2+Math.random()*1.6, Math.sin(ang)*spd);
+    scene.add(m);
+    const t0=performance.now();
+    (function tick(){
+      const dt = 0.016;
+      m.position.addScaledVector(m.userData.vel, dt);
+      m.userData.vel.y -= 3.2*dt;
+      m.material.opacity = 1; 
+      if(performance.now()-t0 < 700){ requestAnimationFrame(tick); }
+      else scene.remove(m);
+    })();
+  }
+}
+
+function spawnScorePop(h){
+  const vec = new THREE.Vector3(h.x, 1.3, h.z).project(camera);
+  const x = (vec.x*0.5+0.5)*window.innerWidth;
+  const y = (-vec.y*0.5+0.5)*window.innerHeight;
+  const el = document.createElement('div');
+  el.className='score-pop';
+  el.style.left = x+'px'; el.style.top = y+'px';
+  el.textContent = '+100 みつけた！';
+  document.getElementById('screen-patrol').appendChild(el);
+  setTimeout(()=>el.remove(), 950);
+}
+
+let audioCtx;
+function beep(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type='triangle'; o.frequency.setValueAtTime(880, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime+0.12);
+    g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.25);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime+0.25);
+  }catch(e){}
+}
+
+function finishPatrol(){
+  state.session.finished = true;
+  setTimeout(showResult, 500);
+}
+
+document.getElementById('quit-btn').addEventListener('click', ()=>{
+  if(state.session) state.session.finished = true;
+  showResult();
+});
+
+function showResult(){
+  document.getElementById('screen-patrol').classList.remove('active');
+  document.getElementById('screen-result').classList.add('active');
+  const s = state.session;
+  const n = s.inspectedIds.size;
+  document.getElementById('result-count').textContent = n;
+  document.getElementById('result-score').textContent = s.score;
+  let msg;
+  if(n===0){ msg='今日は見つけられなかったね。つぎはもっとたくさん見つけてみよう。'; document.getElementById('result-title').textContent='きょうはもうつかれた。みまわりはおわりだ。'; }
+  else if(n<=2){ msg='この場所、ほんとうの町でもおぼえておこう。'; document.getElementById('result-title').textContent='おさんぽ、おわり！'; }
+  else { msg='みんなの見回りが、町のあんしんにつながる。'; document.getElementById('result-title').textContent='すごい見回りだったね！'; }
+  document.getElementById('result-msg').textContent = msg;
+}
+
+document.getElementById('btn-replay').addEventListener('click', ()=> startPatrol(false));
+document.getElementById('btn-other-cat').addEventListener('click', ()=>{
+  document.getElementById('screen-result').classList.remove('active');
+  document.getElementById('screen-select').classList.add('active');
+});
+document.getElementById('btn-report').addEventListener('click', ()=>{
+  alert('（プロトタイプ）ここで外部フォーム（Googleフォーム等）へ遷移します。');
+});
+
+/* ---------------- デブパネル ---------------- */
+const devToggle = document.getElementById('dev-toggle');
+const devPanel = document.getElementById('dev-panel');
+document.getElementById('dev-close').addEventListener('click', ()=>devPanel.classList.remove('open'));
+devToggle.addEventListener('click', ()=>devPanel.classList.toggle('open'));
+
+const rngRadius = document.getElementById('rng-radius');
+const rngSpeed = document.getElementById('rng-speed');
+const rngDuration = document.getElementById('rng-duration');
+const rngInspect = document.getElementById('rng-inspect');
+const rngHint = document.getElementById('rng-hint');
+
+function updateBalanceNote(){
+  const R = parseFloat(rngRadius.value), sp = parseFloat(rngSpeed.value), du = parseFloat(rngDuration.value);
+  const maxDist = sp*du;
+  const diameter = R*2;
+  const pct = Math.round(maxDist/diameter*100);
+  const wrap = document.getElementById('balance-note-wrap');
+  wrap.innerHTML = `<div class="dev-note ${pct<80?'warn':''}">
+    制限時間内の最大移動距離 ≒ <b>${maxDist.toFixed(0)}m</b><br/>
+    縄張りの直径 = <b>${diameter}m</b><br/>
+    → 到達できる範囲は最大でも約 <b>${pct}%</b>${pct<80?'（仕様のデフォルト値=300m/2.2m/s/90秒だと約33%しか届きません）':''}
+  </div>`;
+}
+[rngRadius,rngSpeed,rngDuration,rngInspect,rngHint].forEach(el=>{
+  el.addEventListener('input', ()=>{
+    document.getElementById('val-radius').textContent = rngRadius.value+'m';
+    document.getElementById('val-speed').textContent = parseFloat(rngSpeed.value).toFixed(1)+' m/s';
+    document.getElementById('val-duration').textContent = rngDuration.value+'秒';
+    document.getElementById('val-inspect').textContent = parseFloat(rngInspect.value).toFixed(1)+'m';
+    document.getElementById('val-hint').textContent = rngHint.value+'秒';
+    updateBalanceNote();
+  });
+});
+updateBalanceNote();
+
+const modeTank = document.getElementById('mode-tank');
+const modeFree = document.getElementById('mode-free');
+const modeTap = document.getElementById('mode-tap');
+const modeDesc = document.getElementById('mode-desc');
+const modeBtns = [modeTank, modeFree, modeTap];
+function setModeDesc(){
+  modeDesc.textContent =
+    state.config.moveMode==='tank' ? '上下=前進/後退、左右=その場で旋回。画面酔いしにくいが、慣れが要る。' :
+    state.config.moveMode==='free' ? 'スティックを倒した方向へそのまま移動（視点は回転しない）。直感的だが、自分がどっちを向いているか分かりにくいことがある。' :
+    '画面をタップした場所へ自動で歩く。視界の流れが少なく最も酔いにくいが、操作の主体感・没入感は下がる。';
+}
+function setMoveMode(mode, btn){
+  state.config.moveMode = mode;
+  modeBtns.forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  joyVec = {x:0,y:0}; joyKnob.style.transform='translate(0,0)'; tapTarget = null;
+  updateMoveModeUI();
+  setModeDesc();
+}
+modeTank.addEventListener('click', ()=>setMoveMode('tank', modeTank));
+modeFree.addEventListener('click', ()=>setMoveMode('free', modeFree));
+modeTap.addEventListener('click', ()=>setMoveMode('tap', modeTap));
+setModeDesc();
+
+const rngTurn = document.getElementById('rng-turn');
+rngTurn.addEventListener('input', ()=>{
+  document.getElementById('val-turn').textContent = parseFloat(rngTurn.value).toFixed(1)+' rad/s';
+  state.config.turnSpeed = parseFloat(rngTurn.value);
+});
+
+const chkVignette = document.getElementById('chk-vignette');
+const chkWhiskers = document.getElementById('chk-whiskers');
+const chkFov = document.getElementById('chk-fov');
+chkVignette.addEventListener('change', ()=>{ state.config.vignette = chkVignette.checked; });
+chkFov.addEventListener('change', ()=>{ state.config.dynamicFov = chkFov.checked; });
+chkWhiskers.addEventListener('change', ()=>{ state.config.whiskerAnchor = chkWhiskers.checked; updateWhiskerAnchor(); });
+
+const bdVisible = document.getElementById('bd-visible');
+const bdHidden = document.getElementById('bd-hidden');
+bdVisible.addEventListener('click', ()=>{ state.config.boundaryVisible=true; bdVisible.classList.add('active'); bdHidden.classList.remove('active'); });
+bdHidden.addEventListener('click', ()=>{ state.config.boundaryVisible=false; bdHidden.classList.add('active'); bdVisible.classList.remove('active'); });
+
+document.getElementById('dev-apply').addEventListener('click', ()=>{
+  state.config.territoryRadius = parseFloat(rngRadius.value);
+  state.config.moveSpeed = parseFloat(rngSpeed.value);
+  state.config.duration = parseFloat(rngDuration.value);
+  state.config.inspectRadius = parseFloat(rngInspect.value);
+  state.config.hintDelay = parseFloat(rngHint.value);
+  state.config.turnSpeed = parseFloat(rngTurn.value);
+  devPanel.classList.remove('open');
+  startPatrol(false);
+});
+</script>
+</body>
+</html>
