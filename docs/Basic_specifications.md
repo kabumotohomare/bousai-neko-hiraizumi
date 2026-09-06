@@ -324,7 +324,9 @@
     "status": "unlocked",
     "center": [38.987472, 141.115946],
     "radius": 300,
-    "info": "志羅山地区でよく見られる黒猫。住民報告により縄張り拡大中。",
+    "photo_url": "/images/cats/shirayama.png",
+    "named_by": "Code for hiraizumi",
+    "territory_color": "#4f46e5",
     "last_updated": "2026-08-25"
   }
 ]
@@ -337,8 +339,14 @@
 - `status`: 解放状態
 - `center`: 縄張り中心座標（緯度・経度）
 - `radius`: 縄張り半径（m想定）
-- `info`: 紹介文
+- `photo_url`: 猫の写真パス。地図ピンと猫一覧のサムネイルに使う
+- `named_by`: 名づけ主のクレジット。画面上に必ず表示する
+- `territory_color`: 地図上で縄張りを見分けるための表示色（`#rrggbb`）。毛色ではない
 - `last_updated`: 更新日
+
+### 紹介文を持たない理由
+実在の猫の写真を掲載するため、「◯◯にいる猫」のような住み処を特定させる紹介文は載せない。
+店舗や住民に迷惑がかかることを避けるのが目的で、画面上は地域名・縄張り・名づけ主だけを示す。
 
 ## 9.3 クライアント保存データ `localStorage`
 

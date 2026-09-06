@@ -1,37 +1,2008 @@
 [
   {
-    "id": "hydrant_0001",
+    "id": "hydrant_1-1",
     "sourceId": "1-1",
-    "name": "平泉第1消火栓",
-    "lat": 38.9878,
-    "lng": 141.1161,
+    "name": "泉屋14番地の消火栓",
+    "lat": 38.9863464631357,
+    "lng": 141.116522928934,
     "type": "ground",
     "status": "active"
   },
   {
-    "id": "hydrant_0002",
+    "id": "hydrant_1-2",
     "sourceId": "1-2",
-    "name": "志羅山北側消火栓",
-    "lat": 38.9871,
-    "lng": 141.1152,
+    "name": "志羅山の消火栓",
+    "lat": 38.9874723199752,
+    "lng": 141.115945638154,
     "type": "ground",
     "status": "active"
   },
   {
-    "id": "hydrant_0003",
+    "id": "hydrant_1-3",
+    "sourceId": "1-3",
+    "name": "志羅山3番地の消火栓",
+    "lat": 38.9885159157107,
+    "lng": 141.116078779705,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-4",
+    "sourceId": "1-4",
+    "name": "泉屋75番地の消火栓",
+    "lat": 38.9884335223182,
+    "lng": 141.11676624966,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-5",
+    "sourceId": "1-5",
+    "name": "鈴沢10番地3の消火栓",
+    "lat": 38.9895996066863,
+    "lng": 141.116868326388,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-6",
+    "sourceId": "1-6",
+    "name": "鈴沢7番地2の消火栓",
+    "lat": 38.9898078976289,
+    "lng": 141.116139044573,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-7",
+    "sourceId": "1-7",
+    "name": "泉屋51番地の消火栓",
+    "lat": 38.9871004723253,
+    "lng": 141.11880816686,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-8",
+    "sourceId": "1-8",
+    "name": "泉屋99番地3の消火栓",
+    "lat": 38.9898329792004,
+    "lng": 141.118870921497,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-9",
+    "sourceId": "1-9",
+    "name": "伽羅楽11番地の消火栓",
+    "lat": 38.9905180480107,
+    "lng": 141.119495203116,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-10",
+    "sourceId": "1-10",
+    "name": "鈴沢32番地6の消火栓",
+    "lat": 38.990947292926,
+    "lng": 141.117044851984,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-11",
+    "sourceId": "1-11",
+    "name": "花立209番地の消火栓",
+    "lat": 38.9920653377082,
+    "lng": 141.11719408082,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-12",
+    "sourceId": "1-12",
+    "name": "伽羅楽の消火栓",
+    "lat": 38.9928491811733,
+    "lng": 141.11940422106,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-13",
+    "sourceId": "1-13",
+    "name": "柳の御所の消火栓",
+    "lat": 38.9935162751831,
+    "lng": 141.118513727651,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-14",
+    "sourceId": "1-14",
+    "name": "柳の御所の消火栓",
+    "lat": 38.9951256135509,
+    "lng": 141.115793967676,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-15",
+    "sourceId": "1-15",
+    "name": "花立199番地の消火栓",
+    "lat": 38.9932065869345,
+    "lng": 141.116485718307,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-16",
+    "sourceId": "1-16",
+    "name": "花立120番地の消火栓",
+    "lat": 38.9947322177444,
+    "lng": 141.114259953362,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-17",
+    "sourceId": "1-17",
+    "name": "花立18番地4の消火栓",
+    "lat": 38.9961320556611,
+    "lng": 141.112164024196,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-19",
+    "sourceId": "1-19",
+    "name": "花立41番地30の消火栓",
+    "lat": 38.9942830253438,
+    "lng": 141.110503762478,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-20",
+    "sourceId": "1-20",
+    "name": "花立44番地の消火栓",
+    "lat": 38.9930819120379,
+    "lng": 141.111710585203,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-21",
+    "sourceId": "1-21",
+    "name": "花立65番地1の消火栓",
+    "lat": 38.991407037398,
+    "lng": 141.111401380146,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-22",
+    "sourceId": "1-22",
+    "name": "鈴沢67番地1の消火栓",
+    "lat": 38.9913625275047,
+    "lng": 141.114539144769,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-23",
+    "sourceId": "1-23",
+    "name": "志羅山138番地5の消火栓",
+    "lat": 38.9895277281339,
+    "lng": 141.113237050841,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-24",
+    "sourceId": "1-24",
+    "name": "志羅山155番地2の消火栓",
+    "lat": 38.988545542118,
+    "lng": 141.11403244271,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-25",
+    "sourceId": "1-25",
+    "name": "志羅山152番地2の消火栓",
+    "lat": 38.9874173003895,
+    "lng": 141.114307865474,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-26",
+    "sourceId": "1-26",
+    "name": "志羅山115番地2の消火栓",
+    "lat": 38.9873307110696,
+    "lng": 141.11179693735,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-27",
+    "sourceId": "1-27",
+    "name": "大沢15番地の消火栓",
+    "lat": 38.9907652148308,
+    "lng": 141.109878268715,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-28",
+    "sourceId": "1-28",
+    "name": "大沢11番地2の消火栓",
+    "lat": 38.9897154129659,
+    "lng": 141.109990531279,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-29",
+    "sourceId": "1-29",
+    "name": "大沢58番地の消火栓",
+    "lat": 38.9872521503349,
+    "lng": 141.109324054883,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-30",
+    "sourceId": "1-30",
+    "name": "大沢の消火栓",
+    "lat": 38.9871979443768,
+    "lng": 141.10637630715,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-31",
+    "sourceId": "1-31",
+    "name": "大沢95番地2の消火栓",
+    "lat": 38.9874054691826,
+    "lng": 141.100431194432,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-32",
+    "sourceId": "1-32",
+    "name": "倉町の消火栓",
+    "lat": 38.9851392130071,
+    "lng": 141.110451927325,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-33",
+    "sourceId": "1-33",
+    "name": "倉町の消火栓",
+    "lat": 38.9858522471368,
+    "lng": 141.111433615832,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-34",
+    "sourceId": "1-34",
+    "name": "志羅山の消火栓",
+    "lat": 38.9862775623257,
+    "lng": 141.114303579489,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-35",
+    "sourceId": "1-35",
+    "name": "志羅山22番地8の消火栓",
+    "lat": 38.9864906895369,
+    "lng": 141.115766118341,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-36",
+    "sourceId": "1-36",
+    "name": "花立4番地70の消火栓",
+    "lat": 38.9939807173885,
+    "lng": 141.107945064332,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-37",
+    "sourceId": "1-37",
+    "name": "花立54番地20の消火栓",
+    "lat": 38.9928127329859,
+    "lng": 141.107272325714,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-38",
+    "sourceId": "1-38",
+    "name": "大沢179番地25の消火栓",
+    "lat": 38.9906592327327,
+    "lng": 141.09887944106,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-39",
+    "sourceId": "1-39",
+    "name": "鈴沢66番地1の消火栓",
+    "lat": 38.9907047246839,
+    "lng": 141.114766546627,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-40",
+    "sourceId": "1-40",
+    "name": "柳の御所の消火栓",
+    "lat": 38.9967481328833,
+    "lng": 141.113865324395,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-46",
+    "sourceId": "1-46",
+    "name": "泉屋25番地1の消火栓",
+    "lat": 38.9865205710652,
+    "lng": 141.118016301768,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-47",
+    "sourceId": "1-47",
+    "name": "柳の御所56番地11の消火栓",
+    "lat": 38.9953648848982,
+    "lng": 141.114702425579,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-48",
+    "sourceId": "1-48",
+    "name": "志羅山136番地3の消火栓",
+    "lat": 38.9880470470449,
+    "lng": 141.113764539205,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-49",
+    "sourceId": "1-49",
+    "name": "泉屋92番地の消火栓",
+    "lat": 38.9900718873984,
+    "lng": 141.117103752654,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-50",
+    "sourceId": "1-50",
+    "name": "倉町67番地34の消火栓",
+    "lat": 38.9836079125024,
+    "lng": 141.107774566186,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-51",
+    "sourceId": "1-51",
+    "name": "田面54番地24の消火栓",
+    "lat": 38.9813441705136,
+    "lng": 141.109164848986,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-52",
+    "sourceId": "1-52",
+    "name": "大沢113番地9の消火栓",
+    "lat": 38.9866548287336,
+    "lng": 141.097786289459,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-53",
+    "sourceId": "1-53",
+    "name": "花立166番地2の消火栓",
+    "lat": 38.9913438179813,
+    "lng": 141.115786495492,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-54",
+    "sourceId": "1-54",
+    "name": "花立41番地8の消火栓",
+    "lat": 38.9949030025534,
+    "lng": 141.112097297552,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-55",
+    "sourceId": "1-55",
+    "name": "伽羅楽108番地1の消火栓",
+    "lat": 38.9922699366565,
+    "lng": 141.121174256992,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_1-56",
+    "sourceId": "1-56",
+    "name": "柳の御所26番地3の消火栓",
+    "lat": 38.995455279879,
+    "lng": 141.11346022386,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_2-1",
     "sourceId": "2-1",
-    "name": "中尊寺通り入口消火栓",
-    "lat": 38.9823,
-    "lng": 141.1122,
+    "name": "瀬原5番地7の消火栓",
+    "lat": 39.01152074064,
+    "lng": 141.112249119643,
     "type": "ground",
     "status": "active"
   },
   {
-    "id": "hydrant_0004",
+    "id": "hydrant_2-2",
     "sourceId": "2-2",
-    "name": "観自在王院跡付近消火栓",
-    "lat": 38.9815,
-    "lng": 141.1112,
+    "name": "瀬原181番地1の消火栓",
+    "lat": 39.0135420999715,
+    "lng": 141.11531059921,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_2-3",
+    "sourceId": "2-3",
+    "name": "森下121番地1の消火栓",
+    "lat": 39.0166929234294,
+    "lng": 141.114221777108,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_2-4",
+    "sourceId": "2-4",
+    "name": "森下21番地1の消火栓",
+    "lat": 39.0160932600889,
+    "lng": 141.112601557005,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_2-5",
+    "sourceId": "2-5",
+    "name": "瀬原の消火栓",
+    "lat": 39.0136504300663,
+    "lng": 141.113162121,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-1",
+    "sourceId": "3-1",
+    "name": "宿41番地7の消火栓",
+    "lat": 38.9629546080774,
+    "lng": 141.117097983893,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-2",
+    "sourceId": "3-2",
+    "name": "新井田28番地3の消火栓",
+    "lat": 38.9802837025911,
+    "lng": 141.114687031278,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-3",
+    "sourceId": "3-3",
+    "name": "上野台の消火栓",
+    "lat": 38.9791556822907,
+    "lng": 141.116465335839,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-4",
+    "sourceId": "3-4",
+    "name": "三日町9番地6の消火栓",
+    "lat": 38.9792953826271,
+    "lng": 141.119152909275,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-5",
+    "sourceId": "3-5",
+    "name": "祇園8番地の消火栓",
+    "lat": 38.9775854443288,
+    "lng": 141.116208323275,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-6",
+    "sourceId": "3-6",
+    "name": "三日町77番地3の消火栓",
+    "lat": 38.9751103901021,
+    "lng": 141.11737481273,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-7",
+    "sourceId": "3-7",
+    "name": "佐野原17番地1の消火栓",
+    "lat": 38.9724630296821,
+    "lng": 141.118552785831,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-8",
+    "sourceId": "3-8",
+    "name": "佐野80番地4の消火栓",
+    "lat": 38.9703864003181,
+    "lng": 141.120236449359,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-9",
+    "sourceId": "3-9",
+    "name": "宿21番地3の消火栓",
+    "lat": 38.9651632442097,
+    "lng": 141.123829638697,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-10",
+    "sourceId": "3-10",
+    "name": "塩沢125番地1の消火栓",
+    "lat": 38.9636047581677,
+    "lng": 141.125757086891,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-11",
+    "sourceId": "3-11",
+    "name": "大佐49番地の消火栓",
+    "lat": 38.9590229009261,
+    "lng": 141.12800742993,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-12",
+    "sourceId": "3-12",
+    "name": "正法128番地の消火栓",
+    "lat": 38.9599615420693,
+    "lng": 141.126218413569,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-13",
+    "sourceId": "3-13",
+    "name": "正法87番地4の消火栓",
+    "lat": 38.9610866538468,
+    "lng": 141.124363015341,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-14",
+    "sourceId": "3-14",
+    "name": "大平24番地1の消火栓",
+    "lat": 38.9593432466252,
+    "lng": 141.117902179676,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-15",
+    "sourceId": "3-15",
+    "name": "樋の沢5番地の消火栓",
+    "lat": 38.9622380652802,
+    "lng": 141.120722977231,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-16",
+    "sourceId": "3-16",
+    "name": "高田前112番地の消火栓",
+    "lat": 38.9665465929018,
+    "lng": 141.118200745276,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-17",
+    "sourceId": "3-17",
+    "name": "樋渡42番地1の消火栓",
+    "lat": 38.9814355322743,
+    "lng": 141.113420695696,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-18",
+    "sourceId": "3-18",
+    "name": "高田33番地2の消火栓",
+    "lat": 38.9695588253556,
+    "lng": 141.116788558259,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-19",
+    "sourceId": "3-19",
+    "name": "高田前112番地の消火栓",
+    "lat": 38.9671513717093,
+    "lng": 141.118833746623,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-20",
+    "sourceId": "3-20",
+    "name": "大佐73番地3の消火栓",
+    "lat": 38.9574074715168,
+    "lng": 141.124870177314,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-21",
+    "sourceId": "3-21",
+    "name": "佐野原59番地1の消火栓",
+    "lat": 38.9715895247573,
+    "lng": 141.114919564331,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-22",
+    "sourceId": "3-22",
+    "name": "高田107番地の消火栓",
+    "lat": 38.9687813905352,
+    "lng": 141.119158851514,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-23",
+    "sourceId": "3-23",
+    "name": "高田前105番地1の消火栓",
+    "lat": 38.96594196065,
+    "lng": 141.119820227568,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-24",
+    "sourceId": "3-24",
+    "name": "上野台108番地5の消火栓",
+    "lat": 38.9813006202766,
+    "lng": 141.118179207083,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-25",
+    "sourceId": "3-25",
+    "name": "上野台108番地5の消火栓",
+    "lat": 38.98132147046,
+    "lng": 141.119466667451,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-26",
+    "sourceId": "3-26",
+    "name": "上野台108番地5の消火栓",
+    "lat": 38.9815966923055,
+    "lng": 141.118613724957,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_番号なし",
+    "sourceId": "番号なし",
+    "name": "樋渡53番地2の消火栓",
+    "lat": 38.9809426087332,
+    "lng": 141.116197508006,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-27",
+    "sourceId": "3-27",
+    "name": "新井田39番地5の消火栓",
+    "lat": 38.9792649854094,
+    "lng": 141.111346603501,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-28",
+    "sourceId": "3-28",
+    "name": "佐野60番地の消火栓",
+    "lat": 38.9692874469768,
+    "lng": 141.121226057586,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_3-29",
+    "sourceId": "3-29",
+    "name": "樋の沢51番地の消火栓",
+    "lat": 38.9625730363528,
+    "lng": 141.122778187606,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-1",
+    "sourceId": "4-1",
+    "name": "毛越126番地の消火栓",
+    "lat": 38.982095871623,
+    "lng": 141.104673489458,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-2",
+    "sourceId": "4-2",
+    "name": "毛越41番地1の消火栓",
+    "lat": 38.9797177892984,
+    "lng": 141.104845455224,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-3",
+    "sourceId": "4-3",
+    "name": "更の上80番地4の消火栓",
+    "lat": 38.9751951429162,
+    "lng": 141.100384320149,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-4",
+    "sourceId": "4-4",
+    "name": "善阿弥28番地の消火栓",
+    "lat": 38.9778899995381,
+    "lng": 141.094172548221,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-5",
+    "sourceId": "4-5",
+    "name": "要害166番地の消火栓",
+    "lat": 38.9763001470198,
+    "lng": 141.086188172995,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-6",
+    "sourceId": "4-6",
+    "name": "西風52番地8の消火栓",
+    "lat": 38.9712135466659,
+    "lng": 141.083785864857,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-7",
+    "sourceId": "4-7",
+    "name": "山岸60番地の消火栓",
+    "lat": 38.974172436916,
+    "lng": 141.078346491313,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-8",
+    "sourceId": "4-8",
+    "name": "髢石51番地の消火栓",
+    "lat": 38.9701427901506,
+    "lng": 141.069534906151,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-9",
+    "sourceId": "4-9",
+    "name": "八日講105番地2の消火栓",
+    "lat": 38.9754026675958,
+    "lng": 141.096924165088,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-10",
+    "sourceId": "4-10",
+    "name": "金堀沢94番地の消火栓",
+    "lat": 38.9737182831766,
+    "lng": 141.088825964331,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-11",
+    "sourceId": "4-11",
+    "name": "片岡69番地の消火栓",
+    "lat": 38.9718763004319,
+    "lng": 141.109280839278,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-12",
+    "sourceId": "4-12",
+    "name": "小金沢10番地の消火栓",
+    "lat": 38.9719465070837,
+    "lng": 141.102880521497,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-13",
+    "sourceId": "4-13",
+    "name": "新井田104番地2の消火栓",
+    "lat": 38.9747787509452,
+    "lng": 141.109318208513,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-14",
+    "sourceId": "4-14",
+    "name": "片岡79番地の消火栓",
+    "lat": 38.9705254799379,
+    "lng": 141.107934546623,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-15",
+    "sourceId": "4-15",
+    "name": "北沢70番地の消火栓",
+    "lat": 38.9703500939495,
+    "lng": 141.060230277822,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-16",
+    "sourceId": "4-16",
+    "name": "北沢16番地の消火栓",
+    "lat": 38.9680603523932,
+    "lng": 141.058894537718,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-17",
+    "sourceId": "4-17",
+    "name": "毛越136番地の消火栓",
+    "lat": 38.9820310816523,
+    "lng": 141.106535738697,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-18",
+    "sourceId": "4-18",
+    "name": "日照田44番地の消火栓",
+    "lat": 38.97804925419,
+    "lng": 141.099122935495,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_4-19",
+    "sourceId": "4-19",
+    "name": "熊野前49番地の消火栓",
+    "lat": 38.9754995549001,
+    "lng": 141.082569069896,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_5-1",
+    "sourceId": "5-1",
+    "name": "衣関37番地の消火栓",
+    "lat": 38.9978757214433,
+    "lng": 141.108825978496,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_5-2",
+    "sourceId": "5-2",
+    "name": "衣関219番地2の消火栓",
+    "lat": 39.0026770346176,
+    "lng": 141.105988680352,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_5-4",
+    "sourceId": "5-4",
+    "name": "坂下27番地3の消火栓",
+    "lat": 39.0000286864221,
+    "lng": 141.10821681585,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_5-5",
+    "sourceId": "5-5",
+    "name": "衣関3番地1の消火栓",
+    "lat": 38.9974400581035,
+    "lng": 141.109986575378,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_5-6",
+    "sourceId": "5-6",
+    "name": "坂下の消火栓",
+    "lat": 39.0010694677349,
+    "lng": 141.106241083358,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_5-7",
+    "sourceId": "5-7",
+    "name": "衣関2番地5の消火栓",
+    "lat": 38.9960979122655,
+    "lng": 141.110104805478,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_5-8",
+    "sourceId": "5-8",
+    "name": "衣関18番地69の消火栓",
+    "lat": 38.9936620212309,
+    "lng": 141.105178007499,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_5-9",
+    "sourceId": "5-9",
+    "name": "衣関18番地32の消火栓",
+    "lat": 38.9930699768563,
+    "lng": 141.104051479678,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_6-1",
+    "sourceId": "6-1",
+    "name": "東郷42番地1の消火栓",
+    "lat": 39.0003647825722,
+    "lng": 141.085309733641,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_6-2",
+    "sourceId": "6-2",
+    "name": "東郷91番地の消火栓",
+    "lat": 39.0009891147222,
+    "lng": 141.08194844477,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_6-3",
+    "sourceId": "6-3",
+    "name": "広滝40番地の消火栓",
+    "lat": 38.9966674137524,
+    "lng": 141.066234090806,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_6-4",
+    "sourceId": "6-4",
+    "name": "広滝134番地の消火栓",
+    "lat": 38.9948579488672,
+    "lng": 141.059161614078,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_6-5",
+    "sourceId": "6-5",
+    "name": "南沢149番地の消火栓",
+    "lat": 38.9858199903363,
+    "lng": 141.066393794008,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_6-6",
+    "sourceId": "6-6",
+    "name": "馬場50番地の消火栓",
+    "lat": 38.991608870276,
+    "lng": 141.045309392661,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_6-7",
+    "sourceId": "6-7",
+    "name": "南郷128番地2の消火栓",
+    "lat": 38.999197564372,
+    "lng": 141.071844625715,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_6-8",
+    "sourceId": "6-8",
+    "name": "東郷91番地の消火栓",
+    "lat": 39.0009891147222,
+    "lng": 141.08194844477,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-1",
+    "sourceId": "7-1",
+    "name": "長島字矢崎3番地の消火栓",
+    "lat": 38.9957011152728,
+    "lng": 141.136335505867,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-2",
+    "sourceId": "7-2",
+    "name": "長島字新田116番地の消火栓",
+    "lat": 38.9982888899326,
+    "lng": 141.135414385534,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-3",
+    "sourceId": "7-3",
+    "name": "長島字桜木77番地の消火栓",
+    "lat": 38.9980843384383,
+    "lng": 141.154214110369,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-4",
+    "sourceId": "7-4",
+    "name": "長島字砂子沢158番地の消火栓",
+    "lat": 38.9982576051892,
+    "lng": 141.147255360115,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-5",
+    "sourceId": "7-5",
+    "name": "長島字砂子沢1番地1の消火栓",
+    "lat": 38.9950639486104,
+    "lng": 141.143224930015,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-6",
+    "sourceId": "7-6",
+    "name": "長島字野田64番地2の消火栓",
+    "lat": 38.994028793188,
+    "lng": 141.145355162477,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-7",
+    "sourceId": "7-7",
+    "name": "長島字野田81番地の消火栓",
+    "lat": 38.9929596749004,
+    "lng": 141.143855333641,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-8",
+    "sourceId": "7-8",
+    "name": "長島字境田37番地の消火栓",
+    "lat": 38.9919724806187,
+    "lng": 141.140618671751,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-9",
+    "sourceId": "7-9",
+    "name": "長島字杉27番地の消火栓",
+    "lat": 38.9905230900053,
+    "lng": 141.142501516587,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-10",
+    "sourceId": "7-10",
+    "name": "長島字舘岡29番地の消火栓",
+    "lat": 38.9859787814317,
+    "lng": 141.142001569896,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-11",
+    "sourceId": "7-11",
+    "name": "長島字新田61番地1の消火栓",
+    "lat": 38.996927024645,
+    "lng": 141.139696748479,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-12",
+    "sourceId": "7-12",
+    "name": "長島字矢崎41番地17の消火栓",
+    "lat": 38.9942823157897,
+    "lng": 141.137853489459,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-13",
+    "sourceId": "7-13",
+    "name": "長島字桜木60番地4の消火栓",
+    "lat": 38.9999227505053,
+    "lng": 141.154301085242,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-14",
+    "sourceId": "7-14",
+    "name": "長島字俄坂21番地3の消火栓",
+    "lat": 38.9992627080955,
+    "lng": 141.154643424328,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-15",
+    "sourceId": "7-15",
+    "name": "長島字半行28番地3の消火栓",
+    "lat": 38.9997770266575,
+    "lng": 141.158526099241,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-16",
+    "sourceId": "7-16",
+    "name": "長島字半行69番地の消火栓",
+    "lat": 39.0000033768507,
+    "lng": 141.160278850334,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-17",
+    "sourceId": "7-17",
+    "name": "長島字石合52番地の消火栓",
+    "lat": 39.000209617612,
+    "lng": 141.148214790807,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-18",
+    "sourceId": "7-18",
+    "name": "長島字砂子沢57番地の消火栓",
+    "lat": 38.9983552316515,
+    "lng": 141.153026150334,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-19",
+    "sourceId": "7-19",
+    "name": "長島字桜木26番地の消火栓",
+    "lat": 38.996265659943,
+    "lng": 141.153598133134,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-20",
+    "sourceId": "7-20",
+    "name": "長島字砂子沢79番地の消火栓",
+    "lat": 38.9993157890397,
+    "lng": 141.151003202443,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-21",
+    "sourceId": "7-21",
+    "name": "長島字半行13番地の消火栓",
+    "lat": 38.997827985752,
+    "lng": 141.159384398694,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-22",
+    "sourceId": "7-22",
+    "name": "長島字俄坂44番地の消火栓",
+    "lat": 38.9990877050967,
+    "lng": 141.156300685242,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-23",
+    "sourceId": "7-23",
+    "name": "長島字俄坂18番地1の消火栓",
+    "lat": 38.9983029736884,
+    "lng": 141.155269974787,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-24",
+    "sourceId": "7-24",
+    "name": "長島字深山95番地342の消火栓",
+    "lat": 39.0103374824239,
+    "lng": 141.168395216949,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-25",
+    "sourceId": "7-25",
+    "name": "長島字砂子沢53番地の消火栓",
+    "lat": 38.9976393542346,
+    "lng": 141.152480300671,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-26",
+    "sourceId": "7-26",
+    "name": "長島字束稲40番地の消火栓",
+    "lat": 39.0010210870215,
+    "lng": 141.171413231279,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-27",
+    "sourceId": "7-27",
+    "name": "長島字束稲27番地の消火栓",
+    "lat": 39.0026670582933,
+    "lng": 141.170584869389,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-28",
+    "sourceId": "7-28",
+    "name": "長島字深山95番地の消火栓",
+    "lat": 39.0033075841511,
+    "lng": 141.172414761887,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-29",
+    "sourceId": "7-29",
+    "name": "長島字小倉12番地の消火栓",
+    "lat": 38.9975533551276,
+    "lng": 141.176358472259,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-30",
+    "sourceId": "7-30",
+    "name": "長島字左違67番地の消火栓",
+    "lat": 38.9986702854648,
+    "lng": 141.166999681025,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-31",
+    "sourceId": "7-31",
+    "name": "長島字砂子沢20番地の消火栓",
+    "lat": 38.9960462369527,
+    "lng": 141.148145448987,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-32",
+    "sourceId": "7-32",
+    "name": "長島字砂子沢64番地1の消火栓",
+    "lat": 38.9959470983152,
+    "lng": 141.151353752696,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_7-33",
+    "sourceId": "7-33",
+    "name": "長島字大平51番地の消火栓",
+    "lat": 39.0024604775469,
+    "lng": 141.167125527531,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-1",
+    "sourceId": "8-1",
+    "name": "長島字山王102番地6の消火栓",
+    "lat": 38.9889292541814,
+    "lng": 141.146999520824,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-2",
+    "sourceId": "8-2",
+    "name": "長島字中鈴峯121番地の消火栓",
+    "lat": 38.9920117767889,
+    "lng": 141.156093721456,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-3",
+    "sourceId": "8-3",
+    "name": "長島字下田77番地の消火栓",
+    "lat": 38.9921913370884,
+    "lng": 141.160933848986,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-4",
+    "sourceId": "8-4",
+    "name": "長島字大槻田2番地65の消火栓",
+    "lat": 38.9876220908407,
+    "lng": 141.154644779678,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-5",
+    "sourceId": "8-5",
+    "name": "長島字佐野30番地の消火栓",
+    "lat": 38.9816720862296,
+    "lng": 141.14759941214,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-6",
+    "sourceId": "8-6",
+    "name": "長島字東岳20番地の消火栓",
+    "lat": 38.9917774740887,
+    "lng": 141.168324034988,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-7",
+    "sourceId": "8-7",
+    "name": "長島字西風29番地の消火栓",
+    "lat": 38.9877063213214,
+    "lng": 141.170725445277,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-8",
+    "sourceId": "8-8",
+    "name": "長島字東岳103番地の消火栓",
+    "lat": 38.9912430723587,
+    "lng": 141.174018706659,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-9",
+    "sourceId": "8-9",
+    "name": "長島字下長根51番地の消火栓",
+    "lat": 38.9793999348521,
+    "lng": 141.155931400587,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-10",
+    "sourceId": "8-10",
+    "name": "長島字中村35番地3の消火栓",
+    "lat": 38.9940468317786,
+    "lng": 141.166616756996,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-11",
+    "sourceId": "8-11",
+    "name": "長島字赤伏14番地2の消火栓",
+    "lat": 38.9868706232748,
+    "lng": 141.149833815933,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-12",
+    "sourceId": "8-12",
+    "name": "長島字須崎50番地の消火栓",
+    "lat": 38.9807764252174,
+    "lng": 141.150353583387,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-13",
+    "sourceId": "8-13",
+    "name": "長島字山王35番地3の消火栓",
+    "lat": 38.9905031106953,
+    "lng": 141.146039598733,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-14",
+    "sourceId": "8-14",
+    "name": "長島字山谷21番地の消火栓",
+    "lat": 38.9891768108518,
+    "lng": 141.150745209861,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-15",
+    "sourceId": "8-15",
+    "name": "長島字平石沢63番地の消火栓",
+    "lat": 38.9921847960536,
+    "lng": 141.153435979844,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-16",
+    "sourceId": "8-16",
+    "name": "長島字中鈴峯34番地の消火栓",
+    "lat": 38.9951507912516,
+    "lng": 141.161265173606,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_8-17",
+    "sourceId": "8-17",
+    "name": "長島字大槻田の消火栓",
+    "lat": 38.9900019213223,
+    "lng": 141.156610621167,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-1",
+    "sourceId": "9-1",
+    "name": "長島字生江田26番地1の消火栓",
+    "lat": 39.0010511538246,
+    "lng": 141.136234084061,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-2",
+    "sourceId": "9-2",
+    "name": "長島字生江田83番地の消火栓",
+    "lat": 39.0012011107361,
+    "lng": 141.139050256913,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-3",
+    "sourceId": "9-3",
+    "name": "長島字竜ケ坂11番地の消火栓",
+    "lat": 39.0024278877905,
+    "lng": 141.137445564333,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-4",
+    "sourceId": "9-4",
+    "name": "長島字竜ケ坂84番地の消火栓",
+    "lat": 39.0035571815888,
+    "lng": 141.140262177316,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-5",
+    "sourceId": "9-5",
+    "name": "長島字竜ケ坂57番地の消火栓",
+    "lat": 39.0044722041027,
+    "lng": 141.136464664333,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-6",
+    "sourceId": "9-6",
+    "name": "長島字滝の沢41番地の消火栓",
+    "lat": 39.0063505415409,
+    "lng": 141.137545860706,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-7",
+    "sourceId": "9-7",
+    "name": "長島字滝の沢72番地の消火栓",
+    "lat": 39.0077821328109,
+    "lng": 141.135711775969,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-8",
+    "sourceId": "9-8",
+    "name": "長島字二反田16番地の消火栓",
+    "lat": 39.0113559246296,
+    "lng": 141.136405431953,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-9",
+    "sourceId": "9-9",
+    "name": "長島字二反田40番地の消火栓",
+    "lat": 39.0131380414936,
+    "lng": 141.137728647973,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-10",
+    "sourceId": "9-10",
+    "name": "長島字赤羽根69番地の消火栓",
+    "lat": 39.014336475973,
+    "lng": 141.140948296205,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-11",
+    "sourceId": "9-11",
+    "name": "長島字月舘45番地1の消火栓",
+    "lat": 39.0180187226162,
+    "lng": 141.136771227063,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-12",
+    "sourceId": "9-12",
+    "name": "長島字生江田3番地の消火栓",
+    "lat": 38.9995744208243,
+    "lng": 141.13594214106,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-13",
+    "sourceId": "9-13",
+    "name": "長島字前林6番地の消火栓",
+    "lat": 39.0118982096506,
+    "lng": 141.139410564333,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-14",
+    "sourceId": "9-14",
+    "name": "長島字月舘159番地の消火栓",
+    "lat": 39.0152335619564,
+    "lng": 141.135832650842,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-15",
+    "sourceId": "9-15",
+    "name": "長島字二反田114番地の消火栓",
+    "lat": 39.0100948556918,
+    "lng": 141.137822541061,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-16",
+    "sourceId": "9-16",
+    "name": "長島字滝の沢187番地1の消火栓",
+    "lat": 39.0087983589252,
+    "lng": 141.138330866188,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_9-17",
+    "sourceId": "9-17",
+    "name": "長島字滝の沢112番地1の消火栓",
+    "lat": 39.0075952802051,
+    "lng": 141.14375816568,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-1",
+    "sourceId": "中-1",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9995107152984,
+    "lng": 141.106126686646,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-2",
+    "sourceId": "中-2",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9998296403682,
+    "lng": 141.106365403256,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-3",
+    "sourceId": "中-3",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9998108801097,
+    "lng": 141.105456134372,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-4",
+    "sourceId": "中-4",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9999380328834,
+    "lng": 141.105112811658,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-5",
+    "sourceId": "中-5",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0007509713997,
+    "lng": 141.103819986891,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-6",
+    "sourceId": "中-6",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0008666580519,
+    "lng": 141.103618821221,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-7",
+    "sourceId": "中-7",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0010104844362,
+    "lng": 141.102822205139,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-8",
+    "sourceId": "中-8",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0012731231494,
+    "lng": 141.101951828312,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-9",
+    "sourceId": "中-9",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0018286216654,
+    "lng": 141.102152993993,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-10",
+    "sourceId": "中-10",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0015753649077,
+    "lng": 141.103077015003,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-11",
+    "sourceId": "中-11",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0019411799313,
+    "lng": 141.102351477467,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-12",
+    "sourceId": "中-12",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0024299725637,
+    "lng": 141.102417191591,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-13",
+    "sourceId": "中-13",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0027593064082,
+    "lng": 141.102808794119,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-14",
+    "sourceId": "中-14",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0037681423353,
+    "lng": 141.103656372163,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-15",
+    "sourceId": "中-15",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0017171054432,
+    "lng": 141.100979527516,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-16",
+    "sourceId": "中-16",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0012168435285,
+    "lng": 141.100649615797,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-17",
+    "sourceId": "中-17",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0018088197438,
+    "lng": 141.100263377687,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-18",
+    "sourceId": "中-18",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0027415891247,
+    "lng": 141.100221803591,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-19",
+    "sourceId": "中-19",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0032699792834,
+    "lng": 141.09972693602,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-20",
+    "sourceId": "中-20",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0023893268223,
+    "lng": 141.099548569106,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-21",
+    "sourceId": "中-21",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0018932384851,
+    "lng": 141.09941982307,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-22",
+    "sourceId": "中-22",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0014200753382,
+    "lng": 141.099092593567,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-23",
+    "sourceId": "中-23",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.000663424626,
+    "lng": 141.09849177876,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-24",
+    "sourceId": "中-24",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9949059440493,
+    "lng": 141.0958176161,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-25",
+    "sourceId": "中-25",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.0009239801606,
+    "lng": 141.100432356143,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-26",
+    "sourceId": "中-26",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9973865958832,
+    "lng": 141.106326510519,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-27",
+    "sourceId": "中-27",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9998025421975,
+    "lng": 141.099442620994,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-28",
+    "sourceId": "中-28",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9993731392833,
+    "lng": 141.098096152035,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-29",
+    "sourceId": "中-29",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9987832271926,
+    "lng": 141.098680873618,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-30",
+    "sourceId": "中-30",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9977201222971,
+    "lng": 141.097320993605,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-31",
+    "sourceId": "中-31",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 38.9966444940474,
+    "lng": 141.096162279274,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_中-32",
+    "sourceId": "中-32",
+    "name": "衣関中尊寺内の消火栓",
+    "lat": 39.001021948795,
+    "lng": 141.101682265452,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_毛-1",
+    "sourceId": "毛-1",
+    "name": "大沢毛越寺内の消火栓",
+    "lat": 38.9870058844285,
+    "lng": 141.108484726491,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_毛-2",
+    "sourceId": "毛-2",
+    "name": "大沢毛越寺内の消火栓",
+    "lat": 38.9871184662727,
+    "lng": 141.107733707944,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_毛-3",
+    "sourceId": "毛-3",
+    "name": "大沢毛越寺内の消火栓",
+    "lat": 38.9872852538608,
+    "lng": 141.107312601115,
+    "type": "ground",
+    "status": "active"
+  },
+  {
+    "id": "hydrant_毛-4",
+    "sourceId": "毛-4",
+    "name": "大沢毛越寺内の消火栓",
+    "lat": 38.9884277382891,
+    "lng": 141.109251838258,
     "type": "ground",
     "status": "active"
   }

@@ -22,7 +22,7 @@ export const defaultGameConfig: GameConfig = {
   inspectRadiusMeters: 2.0,
   territoryBoundaryMarginMeters: 1.0,
   hintDelaySec: 20,
-  defaultMapCenter: { lat: 38.9869, lng: 141.117 },
+  defaultMapCenter: { lat: 38.9899314, lng: 141.1152492 },
   defaultMapZoom: 16,
   reportFormUrl: 'https://example.com/report',
   enableHint: true

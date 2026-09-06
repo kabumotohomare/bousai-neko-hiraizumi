@@ -29,6 +29,7 @@ interface AppActions {
   inspectHydrant: (hydrantId: string) => void;
   goToMap: () => void;
   replayPatrol: () => void;
+  failScene: (cause?: unknown) => void;
 }
 
 const initialState: AppState = {
@@ -184,6 +185,17 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       currentScreen: 'map',
       currentSession: null,
       error: null
+    });
+  },
+
+  failScene: (cause?: unknown) => {
+    set({
+      currentScreen: 'error',
+      error: {
+        code: 'E3001',
+        message: '3D空間の初期化に失敗しました。',
+        cause
+      }
     });
   },
 

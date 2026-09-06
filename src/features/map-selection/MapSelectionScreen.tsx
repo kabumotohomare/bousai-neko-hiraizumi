@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
+import { CatSelectionMap } from '../../components/map/CatSelectionMap';
 import { useAppStore } from '../../app/store/useAppStore';
 
 export function MapSelectionScreen() {
   const cats = useAppStore((state) => state.cats);
   const selectedCatId = useAppStore((state) => state.selectedCatId);
+  const gameConfig = useAppStore((state) => state.gameConfig);
   const selectCat = useAppStore((state) => state.selectCat);
   const startPatrol = useAppStore((state) => state.startPatrol);
 
@@ -17,9 +19,13 @@ export function MapSelectionScreen() {
       <section className="card stack">
         <h1 className="title">2D猫えらび</h1>
         <p className="subtitle">猫を選んで、縄張りを確認してから見回りを始めます。</p>
-        <div className="map-placeholder">
-          Leaflet マップ実装予定エリア。現在はスキャフォールドです。
-        </div>
+        <CatSelectionMap
+          cats={cats}
+          selectedCatId={selectedCatId}
+          center={gameConfig.defaultMapCenter}
+          zoom={gameConfig.defaultMapZoom}
+          onSelectCat={selectCat}
+        />
       </section>
 
       <section className="card stack">
@@ -34,10 +40,15 @@ export function MapSelectionScreen() {
                 className={`cat-item ${selected ? 'selected' : ''}`}
                 onClick={() => selectCat(cat.id)}
               >
-                <strong>{cat.name}</strong>
-                <div>{cat.displayAreaName}</div>
-                <div>{cat.info}</div>
-                <div>縄張り半径: {cat.radius}m</div>
+                {cat.photoUrl ? (
+                  <img className="cat-item__photo" src={cat.photoUrl} alt="" />
+                ) : null}
+                <span className="cat-item__body">
+                  <strong>{cat.name}</strong>
+                  <span>{cat.displayAreaName}</span>
+                  <span>縄張り半径: {cat.radius}m</span>
+                  <span className="cat-item__credit">（名づけ主：{cat.namedBy}）</span>
+                </span>
               </button>
             );
           })}
@@ -51,7 +62,8 @@ export function MapSelectionScreen() {
             <p className="subtitle">
               {selectedCat.name} / {selectedCat.displayAreaName}
             </p>
-            <p className="subtitle">{selectedCat.info}</p>
+            <p className="subtitle">縄張り半径: {selectedCat.radius}m</p>
+            <p className="subtitle">（名づけ主：{selectedCat.namedBy}）</p>
           </>
         ) : (
           <p className="subtitle">まだ猫が選ばれていません。</p>

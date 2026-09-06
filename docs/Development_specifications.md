@@ -373,8 +373,9 @@ interface PatrolSession {
     "center": { "lat": 38.987472, "lng": 141.115946 },
     "radius": 300,
     "spawn": { "lat": 38.987500, "lng": 141.115900 },
-    "info": "志羅山地区でよく見られる黒猫。",
-    "color": "black",
+    "photoUrl": "/images/cats/shirayama.png",
+    "namedBy": "Code for hiraizumi",
+    "territoryColor": "#4f46e5",
     "lastUpdated": "2026-08-25",
     "version": 1
   }
@@ -541,7 +542,9 @@ z = -1 * (lat - originLat) * metersPerLat;
       "displayAreaName": "志羅山地区",
       "center": { "lat": 38.987472, "lng": 141.115946 },
       "radius": 300,
-      "info": "志羅山地区でよく見られる黒猫。"
+      "photoUrl": "/images/cats/shirayama.png",
+      "namedBy": "Code for hiraizumi",
+      "territoryColor": "#4f46e5"
     }
   ]
 }
@@ -662,8 +665,9 @@ CREATE TABLE cats (
   id VARCHAR(50) PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   display_area_name VARCHAR(100) NOT NULL,
-  info TEXT NOT NULL DEFAULT '',
-  color VARCHAR(30),
+  photo_url TEXT,
+  named_by VARCHAR(100) NOT NULL DEFAULT '',
+  territory_color CHAR(7) NOT NULL DEFAULT '#4f46e5',
   status VARCHAR(20) NOT NULL DEFAULT 'unlocked',
   center_lat DOUBLE PRECISION NOT NULL,
   center_lng DOUBLE PRECISION NOT NULL,
