@@ -98,15 +98,22 @@ export const CatSchema = z.object({
   status: z.enum(['unlocked', 'locked']),
   center: z.object({ lat: z.number(), lng: z.number() }),
   radius: z.number(),
-  spawn: z.object({ lat: z.number(), lng: z.number() }),
-  info: z.string(),
-  color: z.string(),
-  lastUpdated: z.string(),
-  version: z.number()
+ spawn: z.object({ lat: z.number(), lng: z.number() }),
+ photoUrl: z.string().optional(),
+ namedBy: z.string(),
+ territoryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+ lastUpdated: z.string(),
+ version: z.number()
 });
 
 export type Cat = z.infer<typeof CatSchema>;
 ```
+
+補足:
+
+- 実在の猫の写真を掲載するため、住み処を特定させる紹介文（`info`）は持たせない。画面上は地域名・縄張り・名づけ主だけを示す
+- `territoryColor` は毛色ではなく地図上で縄張りを見分けるための表示色。`#rrggbb` 形式で `cats.json` に直接書く
+- `namedBy` は必須。猫を追加するときにクレジットを書き忘れないようにする
 
 ### 4.2 `hydrants.json` スキーマ
 

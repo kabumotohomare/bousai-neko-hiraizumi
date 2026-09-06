@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../../app/store/useAppStore';
+import { PatrolScene } from '../../components/three/PatrolScene';
 import { distance2d, latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
 
 export function PatrolScreen() {
@@ -11,6 +12,7 @@ export function PatrolScreen() {
   const tickPatrol = useAppStore((state) => state.tickPatrol);
   const inspectHydrant = useAppStore((state) => state.inspectHydrant);
   const goToMap = useAppStore((state) => state.goToMap);
+  const failScene = useAppStore((state) => state.failScene);
   const lastInspectAtRef = useRef(0);
 
   const selectedCat = useMemo(() => {
@@ -95,13 +97,18 @@ export function PatrolScreen() {
       </section>
 
       <section className="card stack">
-        <h1 className="title">3Dみまわり（初期スキャフォールド）</h1>
+        <h1 className="title">3Dみまわり</h1>
         <p className="subtitle">
           {selectedCat.name} / {selectedCat.displayAreaName}
         </p>
-        <div className="scene-placeholder">
-          Three.js シーン実装予定エリア。現時点ではデータ導線とゲーム状態管理を優先しています。
-        </div>
+        <p className="subtitle">見た目確認中です。移動はまだできません。</p>
+        <PatrolScene
+          cat={selectedCat}
+          hydrants={nearbyHydrants}
+          origin={gameConfig.defaultMapCenter}
+          inspectedHydrantIds={currentSession.inspectedHydrantIds}
+          onFatalError={failScene}
+        />
       </section>
 
       <section className="card stack">
