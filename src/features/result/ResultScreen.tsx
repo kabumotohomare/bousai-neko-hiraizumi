@@ -21,7 +21,8 @@ export function ResultScreen() {
   }
 
   const count = currentSession.inspectedHydrantIds.length;
-  const resultMessage = count === 0 ? messages.resultLow : count <= 2 ? messages.resultMid : messages.resultHigh;
+  const resultMessage =
+    count === 0 ? messages.resultLow : count <= 2 ? messages.resultMid : messages.resultHigh;
 
   return (
     <main className="app-shell stack">
@@ -42,7 +43,13 @@ export function ResultScreen() {
         <button className="secondary-button" onClick={() => goToMap()}>
           べつのねこで遊ぶ
         </button>
-        <a className="secondary-button" href={gameConfig.reportFormUrl} target="_blank" rel="noreferrer" style={{ display: 'grid', placeItems: 'center', textDecoration: 'none' }}>
+        <a
+          className="secondary-button"
+          href={gameConfig.reportFormUrl}
+          target="_blank"
+          rel="noreferrer"
+          style={{ display: 'grid', placeItems: 'center', textDecoration: 'none' }}
+        >
           ねこの もくげきほうこくをする
         </a>
       </section>

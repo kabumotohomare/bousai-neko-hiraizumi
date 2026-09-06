@@ -41,9 +41,10 @@ export function PatrolScreen() {
       return null;
     }
 
-    return nearbyHydrants.find(
-      (hydrant) => !currentSession.inspectedHydrantIds.includes(hydrant.id)
-    ) ?? null;
+    return (
+      nearbyHydrants.find((hydrant) => !currentSession.inspectedHydrantIds.includes(hydrant.id)) ??
+      null
+    );
   }, [currentSession, nearbyHydrants]);
 
   useEffect(() => {
@@ -95,7 +96,9 @@ export function PatrolScreen() {
 
       <section className="card stack">
         <h1 className="title">3Dみまわり（初期スキャフォールド）</h1>
-        <p className="subtitle">{selectedCat.name} / {selectedCat.displayAreaName}</p>
+        <p className="subtitle">
+          {selectedCat.name} / {selectedCat.displayAreaName}
+        </p>
         <div className="scene-placeholder">
           Three.js シーン実装予定エリア。現時点ではデータ導線とゲーム状態管理を優先しています。
         </div>

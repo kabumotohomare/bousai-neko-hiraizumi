@@ -1,4 +1,8 @@
-import { defaultLocalProgress, LocalProgress, LocalProgressSchema } from '../../domain/session/model';
+import {
+  defaultLocalProgress,
+  LocalProgress,
+  LocalProgressSchema
+} from '../../domain/session/model';
 
 const STORAGE_KEY = 'bousaiNeko.progress';
 

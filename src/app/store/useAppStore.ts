@@ -157,7 +157,9 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     }
 
     const inspectedHydrantIds = [...state.currentSession.inspectedHydrantIds, hydrantId];
-    const globalInspected = Array.from(new Set([...state.localProgress.inspectedHydrantIds, hydrantId]));
+    const globalInspected = Array.from(
+      new Set([...state.localProgress.inspectedHydrantIds, hydrantId])
+    );
 
     const nextProgress: LocalProgress = {
       ...state.localProgress,

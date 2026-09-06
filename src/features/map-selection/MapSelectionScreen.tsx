@@ -48,7 +48,9 @@ export function MapSelectionScreen() {
         <h2 className="title">選択中の猫</h2>
         {selectedCat ? (
           <>
-            <p className="subtitle">{selectedCat.name} / {selectedCat.displayAreaName}</p>
+            <p className="subtitle">
+              {selectedCat.name} / {selectedCat.displayAreaName}
+            </p>
             <p className="subtitle">{selectedCat.info}</p>
           </>
         ) : (

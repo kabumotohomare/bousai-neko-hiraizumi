@@ -3,7 +3,10 @@ dist
 .vite
 coverage
 playwright-report
-pnpm-lock.yaml
+test-results
+blob-report
+playwright/.cache
+*.tsbuildinfo
 .DS_Store
 .env
 .env.*

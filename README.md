@@ -5,6 +5,7 @@
 この初期構成には以下を含みます。
 
 - Vite + React + TypeScript + Zustand のベース構成
+- ESLint / Prettier / Playwright の開発環境
 - `/public/data/` 配下のモックJSON
 - Zod によるデータバリデーション
 - `localStorage` の保存処理
@@ -57,6 +58,20 @@ pnpm check
 
 ```bash
 pnpm test
+```
+
+### Lint / Format
+
+```bash
+pnpm lint
+pnpm format:check
+```
+
+### E2E（初回は Playwright ブラウザの導入が必要）
+
+```bash
+pnpm exec playwright install chromium
+pnpm test:e2e
 ```
 
 ---
@@ -122,20 +137,23 @@ docs/
 3. 消火栓近接判定の3D連動
 4. HUD 改善
 5. 音・演出追加
-6. Playwright E2E 整備
+6. Playwright E2E（スモークは整備済み。本編シナリオは今後）
 7. 管理API / DB 側の整備
 
 ---
 
 ## 主要スクリプト
 
-| コマンド | 内容 |
-|---|---|
-| `pnpm dev` | 開発サーバ起動 |
-| `pnpm build` | 本番ビルド |
-| `pnpm preview` | ビルド確認 |
-| `pnpm check` | TypeScript 型チェック |
-| `pnpm test` | Vitest 実行 |
+| コマンド            | 内容                  |
+| ------------------- | --------------------- |
+| `pnpm dev`          | 開発サーバ起動        |
+| `pnpm build`        | 本番ビルド            |
+| `pnpm preview`      | ビルド確認            |
+| `pnpm check`        | TypeScript 型チェック |
+| `pnpm lint`         | ESLint                |
+| `pnpm format:check` | Prettier チェック     |
+| `pnpm test`         | Vitest 実行           |
+| `pnpm test:e2e`     | Playwright E2E        |
 
 ---
 
