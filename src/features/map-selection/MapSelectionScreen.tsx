@@ -17,13 +17,14 @@ export function MapSelectionScreen() {
   return (
     <main className="app-shell stack">
       <section className="card stack">
-        <h1 className="title">2D猫えらび</h1>
+        <h1 className="title">猫をえらぶ</h1>
         <p className="subtitle">猫を選んで、縄張りを確認してから見回りを始めます。</p>
         <CatSelectionMap
           cats={cats}
           selectedCatId={selectedCatId}
           center={gameConfig.defaultMapCenter}
           zoom={gameConfig.defaultMapZoom}
+          mapBounds={gameConfig.mapBounds}
           onSelectCat={selectCat}
         />
       </section>

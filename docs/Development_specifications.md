@@ -411,6 +411,10 @@ interface PatrolSession {
   "boundaryMessageCooldownSec": 3,
   "defaultMapCenter": { "lat": 38.9869, "lng": 141.1170 },
   "defaultMapZoom": 16,
+  "mapBounds": {
+    "southWest": { "lat": 38.983, "lng": 141.108 },
+    "northEast": { "lat": 38.996, "lng": 141.125 }
+  },
   "reportFormUrl": "https://example.com/report",
   "enableHint": true,
   "enableSfx": true

@@ -141,10 +141,14 @@ export const GameConfigSchema = z.object({
   inspectRadiusMeters: z.number().default(2.0),
   territoryBoundaryMarginMeters: z.number().default(1.0),
   hintDelaySec: z.number().default(20),
-  defaultMapCenter: z.object({ lat: z.number(), lng: z.number() }),
-  defaultMapZoom: z.number().default(16),
-  reportFormUrl: z.string().url(),
-  enableHint: z.boolean().default(true)
+ defaultMapCenter: z.object({ lat: z.number(), lng: z.number() }),
+ defaultMapZoom: z.number().default(16),
+ mapBounds: z.object({
+  southWest: z.object({ lat: z.number(), lng: z.number() }),
+  northEast: z.object({ lat: z.number(), lng: z.number() })
+ }),
+ reportFormUrl: z.string().url(),
+ enableHint: z.boolean().default(true)
 });
 
 export type GameConfig = z.infer<typeof GameConfigSchema>;

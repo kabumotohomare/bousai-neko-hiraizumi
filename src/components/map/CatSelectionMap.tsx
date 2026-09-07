@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Cat } from '../../domain/cat/model';
+import { GameConfig } from '../../domain/common/config';
 
 const HTML_ESCAPES: Record<string, string> = {
   '&': '&amp;',
@@ -42,11 +43,35 @@ function applyCircleStyle(circle: L.Circle, cat: Cat, selected: boolean): void {
   });
 }
 
+function toTownBounds(mapBounds: GameConfig['mapBounds']): L.LatLngBounds {
+  return L.latLngBounds(
+    [mapBounds.southWest.lat, mapBounds.southWest.lng],
+    [mapBounds.northEast.lat, mapBounds.northEast.lng]
+  );
+}
+
+function clampMapToTown(map: L.Map, townBounds: L.LatLngBounds): void {
+  map.invalidateSize();
+  map.setMaxBounds(townBounds);
+
+  // 画面全体が町の矩形に収まるズームより外側へは引けない。
+  const minZoom = map.getBoundsZoom(townBounds, true);
+  if (!Number.isFinite(minZoom)) {
+    return;
+  }
+
+  map.setMinZoom(minZoom);
+  if (map.getZoom() < minZoom) {
+    map.setZoom(minZoom);
+  }
+}
+
 interface CatSelectionMapProps {
   cats: Cat[];
   selectedCatId: string | null;
   center: { lat: number; lng: number };
   zoom: number;
+  mapBounds: GameConfig['mapBounds'];
   onSelectCat: (catId: string) => void;
 }
 
@@ -55,6 +80,7 @@ export function CatSelectionMap({
   selectedCatId,
   center,
   zoom,
+  mapBounds,
   onSelectCat
 }: CatSelectionMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -68,9 +94,13 @@ export function CatSelectionMap({
       return;
     }
 
+    const townBounds = toTownBounds(mapBounds);
     const map = L.map(container, {
       center: [center.lat, center.lng],
-      zoom
+      zoom,
+      maxBounds: townBounds,
+      maxBoundsViscosity: 1.0,
+      maxZoom: 19
     });
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -79,11 +109,13 @@ export function CatSelectionMap({
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
+    clampMapToTown(map, townBounds);
+
     mapRef.current = map;
     setMapReady(true);
 
     // 地図領域はカードのレイアウト後に確定するため、サイズ変化を追って再計算する。
-    const observer = new ResizeObserver(() => map.invalidateSize());
+    const observer = new ResizeObserver(() => clampMapToTown(map, townBounds));
     observer.observe(container);
 
     return () => {
@@ -92,7 +124,7 @@ export function CatSelectionMap({
       mapRef.current = null;
       setMapReady(false);
     };
-  }, [center.lat, center.lng, zoom]);
+  }, [center.lat, center.lng, mapBounds, zoom]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -122,10 +154,11 @@ export function CatSelectionMap({
       bounds = bounds ? bounds.extend(catBounds) : catBounds;
     });
 
-    // すべての縄張り円が画面に収まる範囲に合わせる。
+    // すべての縄張り円が画面に収まる範囲に合わせる。町外へは minZoom が止める。
     if (bounds) {
       map.fitBounds(bounds, { padding: [28, 28] });
     }
+    clampMapToTown(map, toTownBounds(mapBounds));
 
     return () => {
       layers.forEach(({ circle, marker }) => {
@@ -134,7 +167,7 @@ export function CatSelectionMap({
       });
       layers.clear();
     };
-  }, [cats, mapReady, onSelectCat]);
+  }, [cats, mapBounds, mapReady, onSelectCat]);
 
   useEffect(() => {
     const layers = layersRef.current;

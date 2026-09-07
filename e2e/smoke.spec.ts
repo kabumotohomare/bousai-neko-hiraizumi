@@ -13,6 +13,26 @@ test('shows the Leaflet map with a pin per cat', async ({ page }) => {
   await expect(page.locator('path.leaflet-interactive')).toHaveCount(2);
 });
 
+test('the selection map cannot zoom out past Hiraizumi', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  await expect(page.locator('.leaflet-tile-loaded').first()).toBeVisible();
+  await expect(page.locator('.cat-pin')).toHaveCount(2);
+
+  const zoomOut = page.locator('.leaflet-control-zoom-out');
+  for (let i = 0; i < 12; i += 1) {
+    if (await zoomOut.getAttribute('class').then((value) => value?.includes('leaflet-disabled'))) {
+      break;
+    }
+    await zoomOut.click();
+  }
+
+  await expect(zoomOut).toHaveClass(/leaflet-disabled/);
+  await expect(page.locator('.leaflet-control-zoom-in')).not.toHaveClass(/leaflet-disabled/);
+  await expect(page.locator('.cat-pin')).toHaveCount(2);
+});
+
 test('selecting a cat on the map enables the start button', async ({ page }) => {
   await page.goto('/');
 

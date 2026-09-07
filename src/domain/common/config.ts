@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+const LatLngSchema = z.object({ lat: z.number(), lng: z.number() });
+
+export const MapBoundsSchema = z.object({
+  southWest: LatLngSchema,
+  northEast: LatLngSchema
+});
+
 export const GameConfigSchema = z.object({
   version: z.number(),
   gameDurationSec: z.number().default(90),
@@ -7,8 +14,9 @@ export const GameConfigSchema = z.object({
   inspectRadiusMeters: z.number().default(2.0),
   territoryBoundaryMarginMeters: z.number().default(1.0),
   hintDelaySec: z.number().default(20),
-  defaultMapCenter: z.object({ lat: z.number(), lng: z.number() }),
+  defaultMapCenter: LatLngSchema,
   defaultMapZoom: z.number().default(16),
+  mapBounds: MapBoundsSchema,
   reportFormUrl: z.string().url(),
   enableHint: z.boolean().default(true)
 });
@@ -24,6 +32,10 @@ export const defaultGameConfig: GameConfig = {
   hintDelaySec: 20,
   defaultMapCenter: { lat: 38.9899314, lng: 141.1152492 },
   defaultMapZoom: 16,
+  mapBounds: {
+    southWest: { lat: 38.983, lng: 141.108 },
+    northEast: { lat: 38.996, lng: 141.125 }
+  },
   reportFormUrl: 'https://example.com/report',
   enableHint: true
 };
