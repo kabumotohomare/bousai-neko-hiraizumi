@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { bootAppData, normalizeBootError } from '../bootstrap/bootApp';
+import { Building } from '../../domain/building/model';
 import { Cat } from '../../domain/cat/model';
 import { defaultGameConfig, GameConfig } from '../../domain/common/config';
 import { AppError } from '../../domain/common/error';
@@ -14,6 +15,7 @@ export interface AppState {
   selectedCatId: string | null;
   cats: Cat[];
   hydrants: Hydrant[];
+  buildings: Building[];
   gameConfig: GameConfig;
   messages: Messages;
   localProgress: LocalProgress;
@@ -38,6 +40,7 @@ const initialState: AppState = {
   selectedCatId: null,
   cats: [],
   hydrants: [],
+  buildings: [],
   gameConfig: defaultGameConfig,
   messages: defaultMessages,
   localProgress: defaultLocalProgress,
@@ -52,13 +55,14 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     set({ bootStatus: 'loading', currentScreen: 'loading', error: null });
 
     try {
-      const { cats, hydrants, gameConfig, messages, localProgress } = await bootAppData();
+      const { cats, hydrants, buildings, gameConfig, messages, localProgress } = await bootAppData();
 
       set({
         bootStatus: 'ready',
         currentScreen: 'map',
         cats,
         hydrants,
+        buildings,
         gameConfig,
         messages,
         localProgress,

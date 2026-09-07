@@ -1,11 +1,16 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppStore } from '../../app/store/useAppStore';
+import { PatrolMinimap } from '../../components/map/PatrolMinimap';
 import { PatrolScene } from '../../components/three/PatrolScene';
+import { VirtualStick } from '../../components/ui/VirtualStick';
+import { PlayerPose } from '../../domain/session/playerInput';
 import { distance2d, latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
+import { usePlayerInput } from './usePlayerInput';
 
 export function PatrolScreen() {
   const cats = useAppStore((state) => state.cats);
   const hydrants = useAppStore((state) => state.hydrants);
+  const buildings = useAppStore((state) => state.buildings);
   const gameConfig = useAppStore((state) => state.gameConfig);
   const currentSession = useAppStore((state) => state.currentSession);
   const messages = useAppStore((state) => state.messages);
@@ -14,6 +19,12 @@ export function PatrolScreen() {
   const goToMap = useAppStore((state) => state.goToMap);
   const failScene = useAppStore((state) => state.failScene);
   const lastInspectAtRef = useRef(0);
+  const lastBoundaryAtRef = useRef(0);
+  const [inspectableId, setInspectableId] = useState<string | null>(null);
+  const [boundaryVisible, setBoundaryVisible] = useState(false);
+  const [inspectFlash, setInspectFlash] = useState(false);
+  const [playerPose, setPlayerPose] = useState<PlayerPose | null>(null);
+  const { inputRef, setStick } = usePlayerInput();
 
   const selectedCat = useMemo(() => {
     if (!currentSession) {
@@ -34,20 +45,28 @@ export function PatrolScreen() {
       .filter((hydrant) => hydrant.status === 'active')
       .filter((hydrant) => {
         const hydrantWorld = latLngToWorldPosition(hydrant.lat, hydrant.lng, origin);
-        return distance2d(catWorld, hydrantWorld) <= selectedCat.radius + 30;
+        return distance2d(catWorld, hydrantWorld) <= selectedCat.radius;
       });
   }, [gameConfig.defaultMapCenter, hydrants, selectedCat]);
 
-  const nextInspectable = useMemo(() => {
-    if (!currentSession) {
-      return null;
+  const onInspectableChange = useCallback((hydrantId: string | null) => {
+    setInspectableId(hydrantId);
+  }, []);
+
+  const onPlayerPose = useCallback((pose: PlayerPose) => {
+    setPlayerPose(pose);
+  }, []);
+
+  const onBoundary = useCallback(() => {
+    const now = Date.now();
+    if (now - lastBoundaryAtRef.current < 3000) {
+      return;
     }
 
-    return (
-      nearbyHydrants.find((hydrant) => !currentSession.inspectedHydrantIds.includes(hydrant.id)) ??
-      null
-    );
-  }, [currentSession, nearbyHydrants]);
+    lastBoundaryAtRef.current = now;
+    setBoundaryVisible(true);
+    window.setTimeout(() => setBoundaryVisible(false), 1500);
+  }, []);
 
   useEffect(() => {
     if (!currentSession || currentSession.finished) {
@@ -65,8 +84,11 @@ export function PatrolScreen() {
     return null;
   }
 
+  const canInspect =
+    Boolean(inspectableId) && currentSession.remainingSec > 0 && !currentSession.finished;
+
   const handleInspect = () => {
-    if (!nextInspectable || currentSession.remainingSec <= 0) {
+    if (!inspectableId || currentSession.remainingSec <= 0) {
       return;
     }
 
@@ -76,64 +98,72 @@ export function PatrolScreen() {
     }
 
     lastInspectAtRef.current = now;
-    inspectHydrant(nextInspectable.id);
+    inspectHydrant(inspectableId);
+    setInspectFlash(true);
+    window.setTimeout(() => setInspectFlash(false), 800);
   };
 
   return (
-    <main className="app-shell stack">
-      <section className="hud">
-        <div className="card">
-          <div>残り時間</div>
-          <strong>{currentSession.remainingSec}s</strong>
-        </div>
-        <div className="card">
-          <div>点検数</div>
-          <strong>{currentSession.inspectedHydrantIds.length}</strong>
-        </div>
-        <div className="card">
-          <div>スコア</div>
-          <strong>{currentSession.score}</strong>
-        </div>
-      </section>
+    <main className="patrol-screen">
+      <PatrolScene
+        cat={selectedCat}
+        hydrants={nearbyHydrants}
+        buildings={buildings}
+        origin={gameConfig.defaultMapCenter}
+        mapBounds={gameConfig.mapBounds}
+        moveSpeedMps={gameConfig.playerMoveSpeedMps}
+        inspectRadiusMeters={gameConfig.inspectRadiusMeters}
+        inspectedHydrantIds={currentSession.inspectedHydrantIds}
+        inputRef={inputRef}
+        onInspectableChange={onInspectableChange}
+        onPlayerPose={onPlayerPose}
+        onBoundary={onBoundary}
+        onFatalError={failScene}
+      />
 
-      <section className="card stack">
-        <h1 className="title">3Dみまわり</h1>
-        <p className="subtitle">
-          {selectedCat.name} / {selectedCat.displayAreaName}
-        </p>
-        <p className="subtitle">見た目確認中です。移動はまだできません。</p>
-        <PatrolScene
+      <header className="patrol-hud">
+        <div className="patrol-hud__chip">
+          残り {currentSession.remainingSec}s
+        </div>
+        <div className="patrol-hud__chip">
+          点検 {currentSession.inspectedHydrantIds.length} / {nearbyHydrants.length}
+        </div>
+        <div className="patrol-hud__chip">スコア {currentSession.score}</div>
+        <button className="patrol-hud__quit" type="button" onClick={() => goToMap()}>
+          × やめる
+        </button>
+      </header>
+
+      {playerPose ? (
+        <PatrolMinimap
           cat={selectedCat}
           hydrants={nearbyHydrants}
-          origin={gameConfig.defaultMapCenter}
           inspectedHydrantIds={currentSession.inspectedHydrantIds}
-          onFatalError={failScene}
+          origin={gameConfig.defaultMapCenter}
+          mapBounds={gameConfig.mapBounds}
+          pose={playerPose}
         />
-      </section>
+      ) : null}
+      {boundaryVisible ? <p className="patrol-toast">{messages.boundary}</p> : null}
+      {inspectFlash ? <p className="patrol-toast patrol-toast--inspect">{messages.inspectSuccess}</p> : null}
 
-      <section className="card stack">
-        <h2 className="title">見回り対象</h2>
-        <p className="subtitle">近傍の消火栓候補: {nearbyHydrants.length}件</p>
-        <div className="hydrant-list">
-          {nearbyHydrants.map((hydrant) => {
-            const inspected = currentSession.inspectedHydrantIds.includes(hydrant.id);
-            return (
-              <div key={hydrant.id} className={`hydrant-item ${inspected ? 'selected' : ''}`}>
-                <strong>{hydrant.name}</strong>
-                <div>{hydrant.id}</div>
-                <div>{inspected ? '点検済み' : '未点検'}</div>
-              </div>
-            );
-          })}
-        </div>
-        <button className="primary-button" disabled={!nextInspectable} onClick={handleInspect}>
+      <div className="patrol-whisker" aria-hidden="true">
+        <span className="patrol-whisker__line patrol-whisker__line--left" />
+        <span className="patrol-whisker__nose" />
+        <span className="patrol-whisker__line patrol-whisker__line--right" />
+      </div>
+
+      <div className="patrol-controls">
+        <VirtualStick onChange={setStick} />
+        <button
+          className="patrol-inspect"
+          type="button"
+          disabled={!canInspect}
+          onClick={handleInspect}
+        >
           てんけんする
         </button>
-        <p className="subtitle">{nextInspectable ? messages.inspectSuccess : messages.timeUp}</p>
-        <button className="secondary-button" onClick={() => goToMap()}>
-          ねこえらびにもどる
-        </button>
-      </section>
+      </div>
     </main>
   );
 }

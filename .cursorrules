@@ -33,10 +33,10 @@ src/
     result/        # S04: おさんぽ完了（リザルト）
     error/         # S05: エラー表示ダイアログ
   components/      # 共通UIコンポーネント (ui/, map/, three/)
-  domain/          # エンティティ定義・純粋関数 (cat, hydrant, session)
+  domain/          # エンティティ定義・純粋関数 (cat, hydrant, building, session)
   services/        # API/JSON通信、storage、座標変換ロジック
 public/
-  data/            # 静的配信データ (cats.json, hydrants.json, game-config.json, messages.json)
+  data/            # 静的配信データ (cats.json, hydrants.json, buildings.json, game-config.json, messages.json)
 ```
 
 ---

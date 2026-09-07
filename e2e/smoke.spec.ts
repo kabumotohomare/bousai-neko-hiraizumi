@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test('boots and shows the cat selection screen', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: '2D猫えらび' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '猫をえらぶ' })).toBeVisible();
 });
 
 test('shows the Leaflet map with a pin per cat', async ({ page }) => {
@@ -57,11 +57,11 @@ test('starting a patrol shows the new screen from the top', async ({ page }) => 
 
   await start.click();
 
-  await expect(page.getByText('残り時間')).toBeVisible();
+  await expect(page.getByText(/残り \d+s/)).toBeVisible();
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });
 
-test('patrol scene loads the sample building', async ({ page }) => {
+test('patrol overlay is ready for movement', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   await page.locator('.cat-item').first().click();
@@ -71,4 +71,17 @@ test('patrol scene loads the sample building', async ({ page }) => {
     timeout: 10_000
   });
   await expect(page.locator('.scene-canvas canvas')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'てんけんする' })).toBeVisible();
+  await expect(page.locator('.virtual-stick')).toBeVisible();
+  await expect(page.getByRole('button', { name: '× やめる' })).toBeVisible();
+  await expect(page.locator('.patrol-minimap')).toBeVisible();
+  await expect(page.locator('.patrol-minimap .leaflet-tile-loaded').first()).toBeVisible();
+  await expect(page.locator('.minimap-player__arrow')).toBeVisible();
+
+  const minimap = page.locator('.patrol-minimap');
+  const beforeLat = await minimap.getAttribute('data-player-lat');
+  expect(beforeLat).toBeTruthy();
+  await page.keyboard.down('w');
+  await expect.poll(async () => minimap.getAttribute('data-player-lat')).not.toBe(beforeLat);
+  await page.keyboard.up('w');
 });

@@ -20,6 +20,9 @@ export function normalizeBootError(error: unknown): AppError {
     if (error.message.includes('hydrants.json')) {
       return { code: 'E1003', message: '消火栓データの読み込みに失敗しました。', cause: error };
     }
+    if (error.message.includes('buildings.json')) {
+      return { code: 'E1004', message: '建物データの読み込みに失敗しました。', cause: error };
+    }
     if (error.message.includes('game-config.json')) {
       return { code: 'E1001', message: 'ゲーム設定の読み込みに失敗しました。', cause: error };
     }

@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Cat } from '../../domain/cat/model';
 import { GameConfig } from '../../domain/common/config';
+import { clampMapToTown, toTownBounds } from './townBounds';
 
 const HTML_ESCAPES: Record<string, string> = {
   '&': '&amp;',
@@ -41,29 +42,6 @@ function applyCircleStyle(circle: L.Circle, cat: Cat, selected: boolean): void {
     fillOpacity: selected ? 0.18 : 0.09,
     dashArray: selected ? undefined : '6 6'
   });
-}
-
-function toTownBounds(mapBounds: GameConfig['mapBounds']): L.LatLngBounds {
-  return L.latLngBounds(
-    [mapBounds.southWest.lat, mapBounds.southWest.lng],
-    [mapBounds.northEast.lat, mapBounds.northEast.lng]
-  );
-}
-
-function clampMapToTown(map: L.Map, townBounds: L.LatLngBounds): void {
-  map.invalidateSize();
-  map.setMaxBounds(townBounds);
-
-  // 画面全体が町の矩形に収まるズームより外側へは引けない。
-  const minZoom = map.getBoundsZoom(townBounds, true);
-  if (!Number.isFinite(minZoom)) {
-    return;
-  }
-
-  map.setMinZoom(minZoom);
-  if (map.getZoom() < minZoom) {
-    map.setZoom(minZoom);
-  }
 }
 
 interface CatSelectionMapProps {

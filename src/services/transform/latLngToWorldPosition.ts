@@ -12,8 +12,27 @@ export function latLngToWorldPosition(
   return { x, z };
 }
 
+export function worldPositionToLatLng(
+  x: number,
+  z: number,
+  origin: { lat: number; lng: number }
+): { lat: number; lng: number } {
+  const metersPerLat = 111320;
+  const metersPerLng = 111320 * Math.cos((origin.lat * Math.PI) / 180);
+
+  return {
+    lat: origin.lat - z / metersPerLat,
+    lng: origin.lng + x / metersPerLng
+  };
+}
+
 export function distance2d(a: { x: number; z: number }, b: { x: number; z: number }): number {
   const dx = a.x - b.x;
   const dz = a.z - b.z;
   return Math.sqrt(dx * dx + dz * dz);
+}
+
+// 北=0°・時計回りの方位角を、正面が -Z（北）のモデルの rotation.y に変換する。
+export function headingDegToRotationY(headingDeg: number): number {
+  return -((headingDeg * Math.PI) / 180);
 }

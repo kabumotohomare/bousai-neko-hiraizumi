@@ -1,3 +1,4 @@
+import { BuildingsSchema } from '../../domain/building/model';
 import { CatsSchema } from '../../domain/cat/model';
 import { GameConfigSchema } from '../../domain/common/config';
 import { MessagesSchema } from '../../domain/common/messages';
@@ -5,9 +6,10 @@ import { HydrantsSchema } from '../../domain/hydrant/model';
 import { fetchJson } from './fetchJson';
 
 export async function loadGameData() {
-  const [catsRaw, hydrantsRaw, gameConfigRaw, messagesRaw] = await Promise.all([
+  const [catsRaw, hydrantsRaw, buildingsRaw, gameConfigRaw, messagesRaw] = await Promise.all([
     fetchJson<unknown>('/data/cats.json'),
     fetchJson<unknown>('/data/hydrants.json'),
+    fetchJson<unknown>('/data/buildings.json'),
     fetchJson<unknown>('/data/game-config.json'),
     fetchJson<unknown>('/data/messages.json')
   ]);
@@ -15,6 +17,7 @@ export async function loadGameData() {
   return {
     cats: CatsSchema.parse(catsRaw),
     hydrants: HydrantsSchema.parse(hydrantsRaw),
+    buildings: BuildingsSchema.parse(buildingsRaw),
     gameConfig: GameConfigSchema.parse(gameConfigRaw),
     messages: MessagesSchema.parse(messagesRaw)
   };
