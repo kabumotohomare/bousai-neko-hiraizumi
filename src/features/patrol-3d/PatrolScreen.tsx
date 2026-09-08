@@ -11,6 +11,7 @@ export function PatrolScreen() {
   const cats = useAppStore((state) => state.cats);
   const hydrants = useAppStore((state) => state.hydrants);
   const buildings = useAppStore((state) => state.buildings);
+  const roads = useAppStore((state) => state.roads);
   const gameConfig = useAppStore((state) => state.gameConfig);
   const currentSession = useAppStore((state) => state.currentSession);
   const messages = useAppStore((state) => state.messages);
@@ -48,6 +49,23 @@ export function PatrolScreen() {
         return distance2d(catWorld, hydrantWorld) <= selectedCat.radius;
       });
   }, [gameConfig.defaultMapCenter, hydrants, selectedCat]);
+
+  const nearbyRoads = useMemo(() => {
+    if (!selectedCat) {
+      return [];
+    }
+
+    const origin = gameConfig.defaultMapCenter;
+    const catWorld = latLngToWorldPosition(selectedCat.center.lat, selectedCat.center.lng, origin);
+    const maxDist = selectedCat.radius + 30;
+
+    return roads.filter((road) =>
+      road.path.some((point) => {
+        const world = latLngToWorldPosition(point.lat, point.lng, origin);
+        return distance2d(catWorld, world) <= maxDist;
+      })
+    );
+  }, [gameConfig.defaultMapCenter, roads, selectedCat]);
 
   const onInspectableChange = useCallback((hydrantId: string | null) => {
     setInspectableId(hydrantId);
@@ -109,6 +127,7 @@ export function PatrolScreen() {
         cat={selectedCat}
         hydrants={nearbyHydrants}
         buildings={buildings}
+        roads={nearbyRoads}
         origin={gameConfig.defaultMapCenter}
         mapBounds={gameConfig.mapBounds}
         moveSpeedMps={gameConfig.playerMoveSpeedMps}

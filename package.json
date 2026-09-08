@@ -14,6 +14,7 @@
     "preview": "vite preview",
     "check": "tsc --noEmit -p tsconfig.app.json",
     "data:hydrants": "node --experimental-strip-types scripts/generate-hydrants.mjs",
+    "data:roads": "node --experimental-strip-types scripts/generate-roads.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

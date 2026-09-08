@@ -186,7 +186,7 @@ button {
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid #dbe5f1;
-  background: #b9d4ea;
+  background: #a9d0f5;
 }
 
 .scene-canvas canvas {
@@ -211,7 +211,7 @@ button {
   inset: 0;
   z-index: 20;
   overflow: hidden;
-  background: #b9d4ea;
+  background: #a9d0f5;
   touch-action: none;
 }
 

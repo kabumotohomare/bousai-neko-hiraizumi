@@ -1,5 +1,15 @@
 [
   {
+    "id": "hiraizumi_town",
+    "kind": "landmark",
+    "name": "平泉町",
+    "lat": 38.9899314,
+    "lng": 141.1152492,
+    "headingDeg": 0,
+    "placement": "town",
+    "modelUrl": "/models/buildings/hiraizumi-town.glb"
+  },
+  {
     "id": "bldg_sample_388_114",
     "kind": "landmark",
     "name": "sample",

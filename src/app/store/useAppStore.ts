@@ -6,6 +6,7 @@ import { defaultGameConfig, GameConfig } from '../../domain/common/config';
 import { AppError } from '../../domain/common/error';
 import { defaultMessages, Messages } from '../../domain/common/messages';
 import { Hydrant } from '../../domain/hydrant/model';
+import { Road } from '../../domain/road/model';
 import { defaultLocalProgress, LocalProgress, PatrolSession } from '../../domain/session/model';
 import { saveLocalProgress } from '../../services/storage/localProgress';
 
@@ -16,6 +17,7 @@ export interface AppState {
   cats: Cat[];
   hydrants: Hydrant[];
   buildings: Building[];
+  roads: Road[];
   gameConfig: GameConfig;
   messages: Messages;
   localProgress: LocalProgress;
@@ -41,6 +43,7 @@ const initialState: AppState = {
   cats: [],
   hydrants: [],
   buildings: [],
+  roads: [],
   gameConfig: defaultGameConfig,
   messages: defaultMessages,
   localProgress: defaultLocalProgress,
@@ -55,7 +58,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     set({ bootStatus: 'loading', currentScreen: 'loading', error: null });
 
     try {
-      const { cats, hydrants, buildings, gameConfig, messages, localProgress } = await bootAppData();
+      const { cats, hydrants, buildings, roads, gameConfig, messages, localProgress } = await bootAppData();
 
       set({
         bootStatus: 'ready',
@@ -63,6 +66,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         cats,
         hydrants,
         buildings,
+        roads,
         gameConfig,
         messages,
         localProgress,
