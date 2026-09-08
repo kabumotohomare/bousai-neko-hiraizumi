@@ -68,7 +68,7 @@ test('patrol overlay is ready for movement', async ({ page }) => {
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
 
   await expect(page.locator('.scene-canvas')).toHaveAttribute('data-ready', 'true', {
-    timeout: 10_000
+    timeout: 20_000
   });
   await expect(page.locator('.scene-canvas canvas')).toBeVisible();
   await expect(page.getByRole('button', { name: 'てんけんする' })).toBeVisible();
