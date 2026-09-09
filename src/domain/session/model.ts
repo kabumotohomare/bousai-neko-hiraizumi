@@ -8,6 +8,8 @@ export interface PatrolSession {
   inspectedHydrantIds: string[];
   lastHintAt?: string;
   finished: boolean;
+  paused: boolean;
+  dashSpeedMps: number;
 }
 
 export const LocalProgressSchema = z.object({

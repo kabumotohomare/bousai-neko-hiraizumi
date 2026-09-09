@@ -5,10 +5,13 @@ import { Cat } from '../../domain/cat/model';
 import { defaultGameConfig, GameConfig } from '../../domain/common/config';
 import { AppError } from '../../domain/common/error';
 import { defaultMessages, Messages } from '../../domain/common/messages';
+import { isHydrantInTerritory } from '../../domain/hydrant/inTerritory';
 import { Hydrant } from '../../domain/hydrant/model';
 import { Road } from '../../domain/road/model';
 import { defaultLocalProgress, LocalProgress, PatrolSession } from '../../domain/session/model';
+import { estimatePatrolPathMeters, requiredDashSpeedMps } from '../../domain/session/patrolPath';
 import { saveLocalProgress } from '../../services/storage/localProgress';
+import { latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
 
 export interface AppState {
   bootStatus: 'idle' | 'loading' | 'ready' | 'error';
@@ -31,6 +34,8 @@ interface AppActions {
   startPatrol: () => void;
   tickPatrol: () => void;
   inspectHydrant: (hydrantId: string) => void;
+  pausePatrol: () => void;
+  resumePatrol: () => void;
   goToMap: () => void;
   replayPatrol: () => void;
   failScene: (cause?: unknown) => void;
@@ -115,14 +120,16 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         remainingSec: state.gameConfig.gameDurationSec,
         score: 0,
         inspectedHydrantIds: [],
-        finished: false
+        finished: false,
+        paused: false,
+        dashSpeedMps: resolveDashSpeedMps(state)
       }
     });
   },
 
   tickPatrol: () => {
     const state = get();
-    if (!state.currentSession || state.currentScreen !== 'patrol') {
+    if (!state.currentSession || state.currentScreen !== 'patrol' || state.currentSession.paused) {
       return;
     }
 
@@ -157,7 +164,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
 
   inspectHydrant: (hydrantId: string) => {
     const state = get();
-    if (!state.currentSession || state.currentSession.finished) {
+    if (!state.currentSession || state.currentSession.finished || state.currentSession.paused) {
       return;
     }
 
@@ -188,6 +195,34 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     });
   },
 
+  pausePatrol: () => {
+    const state = get();
+    if (!state.currentSession || state.currentSession.finished || state.currentSession.paused) {
+      return;
+    }
+
+    set({
+      currentSession: {
+        ...state.currentSession,
+        paused: true
+      }
+    });
+  },
+
+  resumePatrol: () => {
+    const state = get();
+    if (!state.currentSession || state.currentSession.finished || !state.currentSession.paused) {
+      return;
+    }
+
+    set({
+      currentSession: {
+        ...state.currentSession,
+        paused: false
+      }
+    });
+  },
+
   goToMap: () => {
     set({
       currentScreen: 'map',
@@ -212,3 +247,31 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     startPatrol();
   }
 }));
+
+function resolveDashSpeedMps(state: AppState): number {
+  const fallback = state.gameConfig.dashSpeedMinMps;
+  const cat = state.cats.find((item) => item.id === state.selectedCatId);
+  if (!cat) {
+    return fallback;
+  }
+
+  try {
+    const origin = state.gameConfig.defaultMapCenter;
+    const catWorld = latLngToWorldPosition(cat.center.lat, cat.center.lng, origin);
+    const spawnWorld = latLngToWorldPosition(cat.spawn.lat, cat.spawn.lng, origin);
+    const points = state.hydrants
+      .filter((hydrant) => hydrant.status === 'active')
+      .map((hydrant) => latLngToWorldPosition(hydrant.lat, hydrant.lng, origin))
+      .filter((hydrantWorld) => isHydrantInTerritory(hydrantWorld, catWorld, cat.radius));
+    const pathMeters = estimatePatrolPathMeters(spawnWorld, points);
+    return requiredDashSpeedMps({
+      pathMeters,
+      targetClearSec: state.gameConfig.targetClearSec,
+      pathDetourFactor: state.gameConfig.pathDetourFactor,
+      minMps: state.gameConfig.dashSpeedMinMps,
+      maxMps: state.gameConfig.dashSpeedMaxMps
+    });
+  } catch {
+    return fallback;
+  }
+}
