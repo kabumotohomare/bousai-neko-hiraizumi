@@ -1,16 +1,20 @@
 import { MutableRefObject, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Building } from '../../domain/building/model';
 import { Cat } from '../../domain/cat/model';
 import { resolveTerritoryMove } from '../../domain/cat/territory';
 import { GameConfig } from '../../domain/common/config';
 import { findInspectableHydrantId } from '../../domain/hydrant/inspect';
 import { Hydrant } from '../../domain/hydrant/model';
+import { Road } from '../../domain/road/model';
 import {
   headingDegToRotationY,
   latLngToWorldPosition
 } from '../../services/transform/latLngToWorldPosition';
+import { toRoadRibbon } from '../../services/transform/toRoadRibbon';
+import { toTownModelTransform } from '../../services/transform/townModelPlacement';
 import { PlayerInput, PlayerPose, readPlayerAxes } from '../../domain/session/playerInput';
 
 const CAMERA_HEIGHT_M = 0.45;
@@ -18,11 +22,16 @@ const CAMERA_FOV = 60;
 const TURN_SPEED_RAD_PER_SEC = 2.4;
 const INSPECTED_COLOR = '#16a34a';
 const UNINSPECTED_COLOR = '#dc2626';
+const SKY_COLOR = '#a9d0f5';
+const ROAD_Y = 0.025;
+const SIDEWALK_M = 1.8;
+const GRASS_TILE_M = 8;
 
 interface PatrolSceneProps {
   cat: Cat;
   hydrants: Hydrant[];
   buildings: Building[];
+  roads: Road[];
   origin: { lat: number; lng: number };
   mapBounds: GameConfig['mapBounds'];
   moveSpeedMps: number;
@@ -47,6 +56,54 @@ function disposeObject(root: THREE.Object3D): void {
       material.dispose();
     }
   });
+}
+
+function placeTownModel(root: THREE.Object3D, origin: { lat: number; lng: number }): void {
+  root.updateMatrixWorld(true);
+
+  const mapnikBoxes: { minX: number; maxX: number; minZ: number; maxZ: number }[] = [];
+  root.traverse((child) => {
+    if (!child.name.includes('MAPNIK') || !(child instanceof THREE.Mesh)) {
+      return;
+    }
+    const box = new THREE.Box3().setFromObject(child);
+    mapnikBoxes.push({
+      minX: box.min.x,
+      maxX: box.max.x,
+      minZ: box.min.z,
+      maxZ: box.max.z
+    });
+    child.visible = false;
+  });
+
+  root.traverse((child) => {
+    if (!(child instanceof THREE.Mesh) || !child.visible) {
+      return;
+    }
+
+    const sourceMaterials = Array.isArray(child.material) ? child.material : [child.material];
+    const lamberts = sourceMaterials.map((material) => {
+      const map = 'map' in material ? material.map : null;
+      if (map) {
+        map.colorSpace = THREE.SRGBColorSpace;
+      }
+      const color = 'color' in material && material.color instanceof THREE.Color ? material.color : new THREE.Color('#c9c2b6');
+      const lambert = new THREE.MeshLambertMaterial({ map, color });
+      material.dispose();
+      return lambert;
+    });
+    child.material = lamberts.length === 1 ? lamberts[0] : lamberts;
+  });
+
+  const mapnikBox = mapnikBoxes[0];
+  if (mapnikBox) {
+    const transform = toTownModelTransform(mapnikBox, origin);
+    root.scale.set(transform.scaleX, 1, transform.scaleZ);
+    root.position.set(transform.x, 0.02, transform.z);
+    return;
+  }
+
+  root.position.set(0, 0.02, 0);
 }
 
 function placeObjectOnGround(root: THREE.Object3D, x: number, z: number): void {
@@ -106,6 +163,117 @@ function loadGltf(url: string): Promise<THREE.Group> {
   });
 }
 
+function createGrassTexture(): THREE.CanvasTexture {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('地面テクスチャを生成できませんでした。');
+  }
+
+  ctx.fillStyle = '#87a36b';
+  ctx.fillRect(0, 0, size, size);
+  for (let i = 0; i < 420; i += 1) {
+    ctx.fillStyle = i % 3 === 0 ? '#739056' : '#97b578';
+    ctx.fillRect(Math.random() * size, Math.random() * size, 1 + Math.random() * 2, 1 + Math.random() * 2);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  return texture;
+}
+
+function createRoadTexture(): THREE.CanvasTexture {
+  const width = 64;
+  const height = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('道路テクスチャを生成できませんでした。');
+  }
+
+  const sidewalk = '#d8d5ce';
+  const paver = '#ece9e2';
+  const asphalt = '#3f3f3f';
+  const asphaltGrain = '#323232';
+  const line = '#f5f5f5';
+
+  ctx.fillStyle = sidewalk;
+  ctx.fillRect(0, 0, width, height);
+  for (let x = 0; x < width; x += 8) {
+    ctx.fillStyle = paver;
+    ctx.fillRect(x, 0, 1, height);
+  }
+  for (let y = 0; y < height; y += 10) {
+    ctx.fillStyle = paver;
+    ctx.fillRect(0, y, width, 1);
+  }
+
+  ctx.fillStyle = asphalt;
+  ctx.fillRect(14, 0, 36, height);
+  for (let i = 0; i < 180; i += 1) {
+    ctx.fillStyle = asphaltGrain;
+    ctx.fillRect(14 + Math.random() * 36, Math.random() * height, 1, 1);
+  }
+
+  ctx.fillStyle = line;
+  ctx.fillRect(14, 0, 2, height);
+  ctx.fillRect(48, 0, 2, height);
+  for (let y = 10; y < height; y += 32) {
+    ctx.fillRect(31, y, 2, 16);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  return texture;
+}
+
+function createRoadMesh(roads: Road[], origin: { lat: number; lng: number }, texture: THREE.Texture): THREE.Mesh | null {
+  const geometries: THREE.BufferGeometry[] = [];
+
+  for (const road of roads) {
+    const worldPath = road.path.map((point) => latLngToWorldPosition(point.lat, point.lng, origin));
+    const ribbon = toRoadRibbon(worldPath, road.width + SIDEWALK_M * 2, ROAD_Y);
+    if (ribbon.indices.length === 0) {
+      continue;
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(ribbon.positions, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(ribbon.uvs, 2));
+    geometry.setIndex(ribbon.indices);
+    geometries.push(geometry);
+  }
+
+  if (geometries.length === 0) {
+    return null;
+  }
+
+  const merged = mergeGeometries(geometries, false);
+  for (const geometry of geometries) {
+    geometry.dispose();
+  }
+  if (!merged) {
+    return null;
+  }
+
+  merged.computeVertexNormals();
+  return new THREE.Mesh(
+    merged,
+    new THREE.MeshLambertMaterial({ map: texture })
+  );
+}
+
 function applyCamera(camera: THREE.PerspectiveCamera, x: number, z: number, heading: number): void {
   camera.position.set(x, CAMERA_HEIGHT_M, z);
   // lookAt のあと rotation.z を消すと、南向きなどで Euler がひっくり返り上下が逆になる。
@@ -117,6 +285,7 @@ export function PatrolScene({
   cat,
   hydrants,
   buildings,
+  roads,
   origin,
   mapBounds,
   moveSpeedMps,
@@ -158,7 +327,8 @@ export function PatrolScene({
     hydrantMaterials.clear();
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#b9d4ea');
+    scene.background = new THREE.Color(SKY_COLOR);
+    scene.fog = new THREE.Fog(SKY_COLOR, cat.radius * 0.8, cat.radius + 80);
 
     const camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, 0.1, 800);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -166,8 +336,8 @@ export function PatrolScene({
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
 
-    const hemi = new THREE.HemisphereLight('#e8f2ff', '#8f9a6e', 1.15);
-    const sun = new THREE.DirectionalLight('#fff4d6', 0.55);
+    const hemi = new THREE.HemisphereLight('#e7f3ff', '#6e7d5c', 1.2);
+    const sun = new THREE.DirectionalLight('#fff6e4', 0.7);
     sun.position.set(40, 60, 20);
     scene.add(hemi, sun);
 
@@ -177,14 +347,23 @@ export function PatrolScene({
     const northEast = latLngToWorldPosition(mapBounds.northEast.lat, mapBounds.northEast.lng, origin);
     const groundWidth = Math.max(Math.abs(northEast.x - southWest.x), cat.radius * 2 + 16);
     const groundDepth = Math.max(Math.abs(northEast.z - southWest.z), cat.radius * 2 + 16);
+    const grassTexture = createGrassTexture();
+    grassTexture.repeat.set(groundWidth / GRASS_TILE_M, groundDepth / GRASS_TILE_M);
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(groundWidth, groundDepth),
-      new THREE.MeshLambertMaterial({ color: '#c5cc9c' })
+      new THREE.PlaneGeometry(groundWidth, groundDepth, 8, 8),
+      new THREE.MeshLambertMaterial({ map: grassTexture })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.set((southWest.x + northEast.x) / 2, 0, (southWest.z + northEast.z) / 2);
     scene.add(ground);
     disposable.add(ground);
+
+    const roadTexture = createRoadTexture();
+    const roadMesh = createRoadMesh(roads, origin, roadTexture);
+    if (roadMesh) {
+      scene.add(roadMesh);
+      disposable.add(roadMesh);
+    }
 
     const ring = createTerritoryRing(cat.radius, cat.territoryColor);
     ring.position.set(catWorld.x, ring.position.y, catWorld.z);
@@ -219,9 +398,15 @@ export function PatrolScene({
       disposable.add(box);
     }
 
-    const landmarks = buildings.filter(
-      (building) => building.kind === 'landmark' && building.modelUrl && inPlayRadius(building.lat, building.lng)
-    );
+    const landmarks = buildings.filter((building) => {
+      if (building.kind !== 'landmark' || !building.modelUrl) {
+        return false;
+      }
+      if (building.placement === 'town') {
+        return true;
+      }
+      return inPlayRadius(building.lat, building.lng);
+    });
 
     const player = { x: spawn.x, z: spawn.z, heading: 0 };
     if (hydrantPoints.length > 0) {
@@ -312,9 +497,13 @@ export function PatrolScene({
               return;
             }
 
-            const pos = latLngToWorldPosition(building.lat, building.lng, origin);
-            model.rotation.y = headingDegToRotationY(building.headingDeg);
-            placeObjectOnGround(model, pos.x, pos.z);
+            if (building.placement === 'town') {
+              placeTownModel(model, origin);
+            } else {
+              const pos = latLngToWorldPosition(building.lat, building.lng, origin);
+              model.rotation.y = headingDegToRotationY(building.headingDeg);
+              placeObjectOnGround(model, pos.x, pos.z);
+            }
             scene.add(model);
             disposable.add(model);
           })
@@ -348,6 +537,8 @@ export function PatrolScene({
         disposeObject(object);
       }
 
+      grassTexture.dispose();
+      roadTexture.dispose();
       renderer.dispose();
       renderer.domElement.remove();
     };
@@ -355,6 +546,7 @@ export function PatrolScene({
     buildings,
     cat,
     hydrants,
+    roads,
     inputRef,
     inspectRadiusMeters,
     mapBounds,

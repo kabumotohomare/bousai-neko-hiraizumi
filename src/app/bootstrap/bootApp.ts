@@ -23,6 +23,9 @@ export function normalizeBootError(error: unknown): AppError {
     if (error.message.includes('buildings.json')) {
       return { code: 'E1004', message: '建物データの読み込みに失敗しました。', cause: error };
     }
+    if (error.message.includes('roads.json')) {
+      return { code: 'E1005', message: '道路データの読み込みに失敗しました。', cause: error };
+    }
     if (error.message.includes('game-config.json')) {
       return { code: 'E1001', message: 'ゲーム設定の読み込みに失敗しました。', cause: error };
     }

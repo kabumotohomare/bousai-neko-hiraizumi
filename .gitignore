@@ -10,3 +10,4 @@ playwright/.cache
 .DS_Store
 .env
 .env.*
+data/raw/osm-map.xml
