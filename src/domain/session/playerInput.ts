@@ -3,6 +3,7 @@ export interface PlayerInput {
   stickTurn: number;
   keyForward: number;
   keyTurn: number;
+  dash: boolean;
 }
 
 export interface PlayerPose {

@@ -6,13 +6,28 @@ export function usePlayerInput() {
     stickForward: 0,
     stickTurn: 0,
     keyForward: 0,
-    keyTurn: 0
+    keyTurn: 0,
+    dash: false
   });
+  const touchDashRef = useRef(false);
+  const shiftDashRef = useRef(false);
+
+  const applyDash = useCallback(() => {
+    inputRef.current.dash = touchDashRef.current || shiftDashRef.current;
+  }, []);
 
   const setStick = useCallback((forward: number, turn: number) => {
     inputRef.current.stickForward = forward;
     inputRef.current.stickTurn = turn;
   }, []);
+
+  const setDash = useCallback(
+    (dash: boolean) => {
+      touchDashRef.current = dash;
+      applyDash();
+    },
+    [applyDash]
+  );
 
   useEffect(() => {
     const pressed = new Set<string>();
@@ -26,6 +41,8 @@ export function usePlayerInput() {
         (pressed.has('KeyA') || pressed.has('ArrowLeft') ? -1 : 0);
       inputRef.current.keyForward = Math.max(-1, Math.min(1, forward));
       inputRef.current.keyTurn = Math.max(-1, Math.min(1, turn));
+      shiftDashRef.current = pressed.has('ShiftLeft') || pressed.has('ShiftRight');
+      applyDash();
     };
 
     const onDown = (event: KeyboardEvent) => {
@@ -55,7 +72,7 @@ export function usePlayerInput() {
       window.removeEventListener('keydown', onDown);
       window.removeEventListener('keyup', onUp);
     };
-  }, []);
+  }, [applyDash]);
 
-  return { inputRef, setStick };
+  return { inputRef, setStick, setDash };
 }

@@ -73,7 +73,7 @@ test('patrol overlay is ready for movement', async ({ page }) => {
   await expect(page.locator('.scene-canvas canvas')).toBeVisible();
   await expect(page.getByRole('button', { name: 'てんけんする' })).toBeVisible();
   await expect(page.locator('.virtual-stick')).toBeVisible();
-  await expect(page.getByRole('button', { name: '× やめる' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'ポーズ' })).toBeVisible();
   await expect(page.locator('.patrol-minimap')).toBeVisible();
   await expect(page.locator('.patrol-minimap .leaflet-tile-loaded').first()).toBeVisible();
   await expect(page.locator('.minimap-player__arrow')).toBeVisible();
@@ -84,4 +84,159 @@ test('patrol overlay is ready for movement', async ({ page }) => {
   await page.keyboard.down('w');
   await expect.poll(async () => minimap.getAttribute('data-player-lat')).not.toBe(beforeLat);
   await page.keyboard.up('w');
+});
+
+test('cat pins stay aligned with their territory circles after a patrol round trip', async ({ page }) => {
+  // S03(みまわり)→S04(結果)→この選択画面、と経由した直後にピンの位置がずれる回帰バグの再現テスト。
+  // ゲーム時間を短縮してラウンドトリップを高速化する（実データファイルは変更しない）。
+  await page.route('**/data/game-config.json', async (route) => {
+    const response = await route.fetch();
+    const json = await response.json();
+    await route.fulfill({ response, json: { ...json, gameDurationSec: 2 } });
+  });
+
+  await page.setViewportSize({ width: 1854, height: 900 });
+  await page.goto('/');
+  await page.waitForSelector('.cat-pin');
+
+  const measureOffset = async () =>
+    page.evaluate(() => {
+      function centerOf(el: Element) {
+        const r = el.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      }
+      const circle = document.querySelector('path.leaflet-interactive[stroke="#4f46e5"]');
+      const photo = document.querySelector('img.cat-pin__photo[src*="shirayama"]');
+      if (!circle || !photo) {
+        return null;
+      }
+      const c = centerOf(circle);
+      const p = centerOf(photo);
+      return { dx: p.x - c.x, dy: p.y - c.y };
+    });
+
+  // 初回表示は fitBounds アニメーションの収束を待ってから計測する。
+  await expect.poll(async () => (await measureOffset())?.dx ?? 999, { timeout: 3000 }).toBeLessThan(5);
+
+  await page.locator('.cat-item').first().click();
+  await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
+  await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
+  await page.waitForSelector('text=おさんぽ完了', { timeout: 15_000 });
+  await page.getByRole('button', { name: 'べつのねこで遊ぶ' }).click();
+  await page.waitForSelector('.cat-pin');
+
+  // 修正前はここで移動後(fitBounds後)の位置に追従できず、円とピンがずれたままになっていた。
+  await expect.poll(async () => (await measureOffset())?.dx ?? 999, { timeout: 3000 }).toBeLessThan(5);
+  const after = await measureOffset();
+  expect(Math.abs(after!.dy)).toBeLessThan(5);
+});
+
+test('pausing stops the timer and movement, and resuming continues normally', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.locator('.cat-item').first().click();
+  await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
+
+  await expect(page.locator('.scene-canvas')).toHaveAttribute('data-ready', 'true', {
+    timeout: 20_000
+  });
+
+  const remainingText = () => page.getByText(/残り \d+s/).first().innerText();
+  await expect.poll(remainingText).toMatch(/残り \d+s/);
+
+  await page.getByRole('button', { name: 'ポーズ' }).click();
+
+  await expect(page.getByText('ポーズちゅう')).toBeVisible();
+
+  const pausedRemaining = await remainingText();
+  const minimap = page.locator('.patrol-minimap');
+  const pausedLat = await minimap.getAttribute('data-player-lat');
+
+  await page.keyboard.down('w');
+  await page.waitForTimeout(1200);
+  await page.keyboard.up('w');
+
+  expect(await remainingText()).toBe(pausedRemaining);
+  expect(await minimap.getAttribute('data-player-lat')).toBe(pausedLat);
+  await expect(page.getByRole('button', { name: 'てんけんする' })).toBeDisabled();
+
+  await page.getByRole('button', { name: 'つづきから' }).click();
+  await expect(page.getByText('ポーズちゅう')).not.toBeVisible();
+
+  await page.keyboard.down('w');
+  await expect.poll(async () => minimap.getAttribute('data-player-lat')).not.toBe(pausedLat);
+  await page.keyboard.up('w');
+});
+
+test('the cat cannot walk through a hydrant and reacts with a speech bubble', async ({ page }) => {
+  // 移動を速めて検証を高速化する（実データファイルは変更しない）。最寄りの消火栓まで約46m。
+  await page.route('**/data/game-config.json', async (route) => {
+    const response = await route.fetch();
+    const json = await response.json();
+    await route.fulfill({ response, json: { ...json, playerMoveSpeedMps: 12 } });
+  });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.locator('.cat-item').first().click();
+  await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
+  await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
+
+  const minimap = page.locator('.patrol-minimap');
+  // スポーン時は最寄りの消火栓の方を向いているので、まっすぐ前進すればぶつかる。
+  await page.keyboard.down('w');
+  await expect(page.locator('.patrol-speech')).toBeVisible({ timeout: 10_000 });
+  const line = await page.locator('.patrol-speech').innerText();
+  expect([
+    'あいたっ',
+    'いたいニャー',
+    'ぶつかったニャ',
+    'とおれないニャ',
+    'いたたたニャ',
+    'ここはムリだニャ',
+    'まえがふさがってるニャ',
+    'ニャッ、いたっ'
+  ]).toContain(line);
+
+  // ぶつかった後も壁(消火栓)に押し付け続けて、すり抜けないことを確認する。
+  // 最寄りの消火栓(hydrant_1-39)の中心からの距離が、当たり判定半径を下回らないことを見る
+  // （多少の滑り移動は許容するが、突き抜けはしない）。
+  const hydrant = { lat: 38.9907047246839, lng: 141.114766546627 };
+  const metersPerLat = 111320;
+  const metersPerLng = 111320 * Math.cos((hydrant.lat * Math.PI) / 180);
+  const distanceToHydrantMeters = async () => {
+    const lat = Number(await minimap.getAttribute('data-player-lat'));
+    const lng = Number(await minimap.getAttribute('data-player-lng'));
+    const dLat = (lat - hydrant.lat) * metersPerLat;
+    const dLng = (lng - hydrant.lng) * metersPerLng;
+    return Math.hypot(dLat, dLng);
+  };
+
+  expect(await distanceToHydrantMeters()).toBeGreaterThan(0.5);
+  await page.waitForTimeout(1000);
+  expect(await distanceToHydrantMeters()).toBeGreaterThan(0.5);
+  await page.keyboard.up('w');
+});
+
+test('every cat can move away from their own spawn point', async ({ page }) => {
+  // タキザワはスポーン座標が実際の建物メッシュの内側に重なっており、
+  // 「そのコライダーで移動を止める」実装だと永久に動けなくなっていた回帰バグの再現テスト。
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  for (const catName of ['シラヤマ', 'タキザワ']) {
+    await page.goto('/');
+    await page.locator('.cat-item', { hasText: catName }).click();
+    await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
+    await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
+
+    const minimap = page.locator('.patrol-minimap');
+    const spawnLat = await minimap.getAttribute('data-player-lat');
+
+    await page.keyboard.down('w');
+    await expect
+      .poll(async () => minimap.getAttribute('data-player-lat'), { timeout: 5_000 })
+      .not.toBe(spawnLat);
+    await page.keyboard.up('w');
+  }
 });

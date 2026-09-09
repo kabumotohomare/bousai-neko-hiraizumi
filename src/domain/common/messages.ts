@@ -6,7 +6,8 @@ export const MessagesSchema = z.object({
   inspectSuccess: z.string(),
   resultLow: z.string(),
   resultMid: z.string(),
-  resultHigh: z.string()
+  resultHigh: z.string(),
+  obstacleHit: z.array(z.string()).min(1)
 });
 
 export type Messages = z.infer<typeof MessagesSchema>;
@@ -17,5 +18,15 @@ export const defaultMessages: Messages = {
   inspectSuccess: 'てんけんできた！',
   resultLow: 'つぎはもっとたくさん見つけてみよう。',
   resultMid: 'この場所、ほんとうの町でもおぼえておこう。',
-  resultHigh: 'みんなの見回りが、町のあんしんにつながる。'
+  resultHigh: 'みんなの見回りが、町のあんしんにつながる。',
+  obstacleHit: [
+    'あいたっ',
+    'いたいニャー',
+    'ぶつかったニャ',
+    'とおれないニャ',
+    'いたたたニャ',
+    'ここはムリだニャ',
+    'まえがふさがってるニャ',
+    'ニャッ、いたっ'
+  ]
 };

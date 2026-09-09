@@ -138,7 +138,16 @@ export function CatSelectionMap({
     }
     clampMapToTown(map, toTownBounds(mapBounds));
 
+    // マーカーは追加した時点のズーム/中心を基準に描画されるため、
+    // 直後の fitBounds/clampMapToTown でビューが変わると位置がずれたまま残ることがある。
+    // fitBounds と clampMapToTown の setZoom が別々にビュー変更をトリガーし、moveend が
+    // 複数回に分かれて発火することがあるため、once ではなく on で毎回追従させる
+    // （resyncMarkers は setLatLng を呼び直すだけの軽量な処理なので繰り返しても問題ない）。
+    const resyncMarkers = () => layers.forEach(({ marker }) => marker.setLatLng(marker.getLatLng()));
+    map.on('moveend', resyncMarkers);
+
     return () => {
+      map.off('moveend', resyncMarkers);
       layers.forEach(({ circle, marker }) => {
         circle.remove();
         marker.remove();
