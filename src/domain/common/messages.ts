@@ -13,7 +13,7 @@ export const MessagesSchema = z.object({
 export type Messages = z.infer<typeof MessagesSchema>;
 
 export const defaultMessages: Messages = {
-  boundary: 'ここからそとは、ぼくのなわばりじゃない',
+  boundary: 'この先はなわばりじゃにゃい',
   timeUp: 'きょうはもうつかれた。みまわりはおわりだ。',
   inspectSuccess: 'てんけんできた！',
   resultLow: 'つぎはもっとたくさん見つけてみよう。',
