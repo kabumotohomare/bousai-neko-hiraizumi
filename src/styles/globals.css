@@ -550,3 +550,142 @@ button {
   border-bottom: 16px solid #ef4444;
   filter: drop-shadow(0 1px 1px rgba(23, 32, 51, 0.45));
 }
+
+/* S04 リザルト（シナリオ: 記録 → 鼻 → 足） */
+.result-screen {
+  align-content: start;
+}
+
+.result-screen > .card {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.result-cat {
+  font-weight: 600;
+  color: #172033;
+}
+
+.result-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result-step {
+  width: 100%;
+  min-height: 36px;
+  border-radius: 999px;
+  border: 1px solid #dbe5f1;
+  background: #f5f7fb;
+  color: #52607a;
+  cursor: pointer;
+}
+
+.result-step.is-done {
+  background: #e5edf9;
+  color: #172033;
+}
+
+.result-step.is-active {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+  font-weight: 700;
+}
+
+.result-slide__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.result-progress {
+  height: 12px;
+  border-radius: 999px;
+  background: #e5edf9;
+  overflow: hidden;
+}
+
+.result-progress__bar {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #ef4444;
+  transition: width 600ms ease-out;
+}
+
+.result-count {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.result-count strong {
+  font-size: 2rem;
+  color: #ef4444;
+}
+
+.result-count__sub {
+  margin-left: 8px;
+  font-size: 0.9rem;
+  color: #52607a;
+}
+
+.result-marks {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fcfdff;
+  border: 1px solid #dbe5f1;
+  color: #52607a;
+}
+
+.result-mark.is-known {
+  color: #172033;
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.result-mark__dot {
+  color: #ef4444;
+  font-size: 1.1rem;
+}
+
+.result-mark__tag {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.75rem;
+}
+
+.result-line {
+  margin: 4px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #172033;
+}
+
+.result-closing {
+  margin: 8px 0 0;
+  padding-top: 12px;
+  border-top: 1px dashed #dbe5f1;
+  color: #52607a;
+  line-height: 1.7;
+}

@@ -121,7 +121,10 @@ test('cat pins stay aligned with their territory circles after a patrol round tr
   await page.locator('.cat-item').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
-  await page.waitForSelector('text=おさんぽ完了', { timeout: 15_000 });
+  // S04 はシナリオ3スライド（記録→鼻→足）。行動ボタンは最後のスライドに出る。
+  await page.waitForSelector('text=ねこの 記録', { timeout: 15_000 });
+  await page.getByRole('button', { name: 'つぎへ' }).click();
+  await page.getByRole('button', { name: 'つぎへ' }).click();
   await page.getByRole('button', { name: 'べつのねこで遊ぶ' }).click();
   await page.waitForSelector('.cat-pin');
 

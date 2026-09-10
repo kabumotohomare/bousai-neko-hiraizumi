@@ -63,7 +63,8 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     set({ bootStatus: 'loading', currentScreen: 'loading', error: null });
 
     try {
-      const { cats, hydrants, buildings, roads, gameConfig, messages, localProgress } = await bootAppData();
+      const { cats, hydrants, buildings, roads, gameConfig, messages, localProgress } =
+        await bootAppData();
 
       set({
         bootStatus: 'ready',
@@ -122,7 +123,10 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         inspectedHydrantIds: [],
         finished: false,
         paused: false,
-        dashSpeedMps: resolveDashSpeedMps(state)
+        dashSpeedMps: resolveDashSpeedMps(state),
+        inspectedAtSec: [],
+        knownHydrantIdsAtStart: [...state.localProgress.inspectedHydrantIds],
+        previousRun: state.localProgress.lastRunByCat[state.selectedCatId] ?? null
       }
     });
   },
@@ -136,9 +140,20 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     const nextRemaining = state.currentSession.remainingSec - 1;
 
     if (nextRemaining <= 0) {
+      const finishedAt = new Date().toISOString();
+      const inspectedAtSec = state.currentSession.inspectedAtSec ?? [];
       const completedProgress: LocalProgress = {
         ...state.localProgress,
-        lastPlayedAt: new Date().toISOString()
+        lastPlayedAt: finishedAt,
+        lastRunByCat: {
+          ...state.localProgress.lastRunByCat,
+          [state.currentSession.catId]: {
+            inspected: state.currentSession.inspectedHydrantIds.length,
+            lastMarkSec:
+              inspectedAtSec.length > 0 ? inspectedAtSec[inspectedAtSec.length - 1] : null,
+            at: finishedAt
+          }
+        }
       };
       saveLocalProgress(completedProgress);
 
@@ -185,11 +200,14 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
 
     saveLocalProgress(nextProgress);
 
+    const elapsedSec = state.gameConfig.gameDurationSec - state.currentSession.remainingSec;
+
     set({
       localProgress: nextProgress,
       currentSession: {
         ...state.currentSession,
         inspectedHydrantIds,
+        inspectedAtSec: [...(state.currentSession.inspectedAtSec ?? []), elapsedSec],
         score: state.currentSession.score + 100
       }
     });

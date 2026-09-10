@@ -14,5 +14,35 @@
     "ここはムリだニャ",
     "まえがふさがってるニャ",
     "ニャッ、いたっ"
-  ]
+  ],
+  "scenario": {
+    "resultTitle": "ねこの 記録",
+    "resultIntro": "ねこの時間、おわり。きろくを ひらく。",
+    "slideLabels": ["記録", "鼻", "足"],
+    "nextSlide": "つぎへ",
+    "progressLabel": "このなわばりで 見つけた 赤いしるし",
+
+    "mapEmpty": "{alias}の 記録は、まだ しろい。",
+    "mapLow": "{alias}で、まだ しらない 赤が {missing}つ。",
+    "mapHigh": "記録の はんぶんより むこうが、見えた。まだ {missing}つ。",
+    "mapComplete": "{alias}の 記録は、できた。",
+    "mapGained": "きょう、記録に ふえた しるし: {gained}つ。",
+
+    "noseNearest": "いちばん近い「まだ」は、{direction} {distance}m。",
+    "noseHop": "{hop}の あとに まわると、ちかい。",
+    "noseComplete": "この なわばりに、しらない においは ない。",
+    "noseSleeping": "つぎの においは、{sleepingAlias}から。まだ、だれの 記録にも ない。",
+
+    "feetNone": "この からだでは、まだ 走れていない。",
+    "feetFirst": "この からだに、はじめて はいった。さいごの しるしまで {sec}秒。",
+    "feetFaster": "からだが、みちを おぼえた。さいごの しるしまで {sec}秒。",
+    "feetSame": "まえと おなじ 足。さいごの しるしまで {sec}秒。",
+    "feetSlower": "きょうは、まわりみちを した。さいごの しるしまで {sec}秒。",
+    "feetMoreMarks": "まえより {diff}つ おおく、しるしを 見た。",
+    "feetFewerMarks": "まえより {diff}つ すくない。しるしは、にげない。",
+    "feetPrev": "まえ: {prevInspected}つ、{prevSec}秒。",
+
+    "closingSleeping": "{sleepingName}は、まだ からだを まっている。まちの ひとが ねこを 見つけたら、はいれる。",
+    "closingOpen": "つぎの ねこの時間まで、記録は のこる。"
+  }
 }

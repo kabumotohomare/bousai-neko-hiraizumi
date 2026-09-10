@@ -4,6 +4,9 @@ export const CatSchema = z.object({
   id: z.string(),
   name: z.string(),
   displayAreaName: z.string(),
+  // リザルトのシナリオで使う、固有名詞を含まない縄張りの呼び名（例: 「ひがしの なわばり」）。
+  // 未設定なら「{name}の なわばり」で補う。
+  aliasName: z.string().optional(),
   status: z.enum(['unlocked', 'locked']),
   center: z.object({ lat: z.number(), lng: z.number() }),
   radius: z.number(),
