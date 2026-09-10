@@ -232,9 +232,9 @@ export function PatrolScreen() {
           pose={playerPose}
         />
       ) : null}
-      {boundaryVisible ? <p className="patrol-toast">{messages.boundary}</p> : null}
       {inspectFlash ? <p className="patrol-toast patrol-toast--inspect">{messages.inspectSuccess}</p> : null}
 
+      {boundaryVisible ? <p className="patrol-speech">{messages.boundary}</p> : null}
       {obstacleLine ? <p className="patrol-speech">{obstacleLine}</p> : null}
 
       <div className="patrol-whisker" aria-hidden="true">
