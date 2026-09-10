@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { PlayerInput } from '../../domain/session/playerInput';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  DASH_LATCH_GRACE_MS,
+  isStickMoving,
+  PlayerInput,
+  resolveDashHeld,
+  resolveDashLatch
+} from '../../domain/session/playerInput';
 
 export function usePlayerInput() {
   const inputRef = useRef<PlayerInput>({
@@ -11,19 +17,43 @@ export function usePlayerInput() {
   });
   const touchDashRef = useRef(false);
   const shiftDashRef = useRef(false);
+  const dashLatchRef = useRef(false);
+  const dashPointerIdRef = useRef<number | null>(null);
+  const lastTouchDashAtRef = useRef(0);
+  const [dashing, setDashing] = useState(false);
 
   const applyDash = useCallback(() => {
-    inputRef.current.dash = touchDashRef.current || shiftDashRef.current;
+    const next = resolveDashHeld(touchDashRef.current, shiftDashRef.current, dashLatchRef.current);
+    inputRef.current.dash = next;
+    setDashing((prev) => (prev === next ? prev : next));
   }, []);
 
-  const setStick = useCallback((forward: number, turn: number) => {
-    inputRef.current.stickForward = forward;
-    inputRef.current.stickTurn = turn;
-  }, []);
+  const setStick = useCallback(
+    (forward: number, turn: number) => {
+      inputRef.current.stickForward = forward;
+      inputRef.current.stickTurn = turn;
+      dashLatchRef.current = resolveDashLatch({
+        stickMoving: isStickMoving(forward, turn),
+        touchDash: touchDashRef.current,
+        msSinceTouchDash: performance.now() - lastTouchDashAtRef.current,
+        graceMs: DASH_LATCH_GRACE_MS
+      });
+      applyDash();
+    },
+    [applyDash]
+  );
 
   const setDash = useCallback(
-    (dash: boolean) => {
+    (dash: boolean, pointerId?: number) => {
       touchDashRef.current = dash;
+      if (dash) {
+        lastTouchDashAtRef.current = performance.now();
+        if (pointerId !== undefined) {
+          dashPointerIdRef.current = pointerId;
+        }
+      } else if (pointerId === undefined || dashPointerIdRef.current === pointerId) {
+        dashPointerIdRef.current = null;
+      }
       applyDash();
     },
     [applyDash]
@@ -66,13 +96,32 @@ export function usePlayerInput() {
       syncKeys();
     };
 
+    const onPointerEnd = (event: PointerEvent) => {
+      if (dashPointerIdRef.current !== event.pointerId) {
+        return;
+      }
+      dashPointerIdRef.current = null;
+      touchDashRef.current = false;
+      dashLatchRef.current = resolveDashLatch({
+        stickMoving: isStickMoving(inputRef.current.stickForward, inputRef.current.stickTurn),
+        touchDash: false,
+        msSinceTouchDash: performance.now() - lastTouchDashAtRef.current,
+        graceMs: DASH_LATCH_GRACE_MS
+      });
+      applyDash();
+    };
+
     window.addEventListener('keydown', onDown);
     window.addEventListener('keyup', onUp);
+    window.addEventListener('pointerup', onPointerEnd);
+    window.addEventListener('pointercancel', onPointerEnd);
     return () => {
       window.removeEventListener('keydown', onDown);
       window.removeEventListener('keyup', onUp);
+      window.removeEventListener('pointerup', onPointerEnd);
+      window.removeEventListener('pointercancel', onPointerEnd);
     };
   }, [applyDash]);
 
-  return { inputRef, setStick, setDash };
+  return { inputRef, setStick, setDash, dashing };
 }

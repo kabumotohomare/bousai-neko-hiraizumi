@@ -9,6 +9,7 @@ import { GameConfig } from '../../domain/common/config';
 import {
   circleCollider,
   Collider,
+  meshCollider,
   obbColliderFromFootprint,
   obbColliderFromPoints,
   resolveObstacleMove,
@@ -24,6 +25,7 @@ import {
 import { toRoadRibbon } from '../../services/transform/toRoadRibbon';
 import { toTownModelTransform } from '../../services/transform/townModelPlacement';
 import { PlayerInput, PlayerPose, readPlayerAxes } from '../../domain/session/playerInput';
+import { footprintOfMesh, placeObjectOnGround, worldXZPointsOfMesh } from './meshGeometry';
 
 const CAMERA_HEIGHT_M = 0.45;
 const CAMERA_FOV = 60;
@@ -50,6 +52,10 @@ const DEFAULT_BUILDING_WIDTH_M = 8;
 const DEFAULT_BUILDING_DEPTH_M = 8;
 const DEFAULT_BUILDING_HEIGHT_M = 6;
 const MAX_TOWN_BUILDING_SPAN_M = 60;
+// 一度点検対象として選ばれた消火栓は、この分だけ半径を広げて「維持」する。
+// タッチ操作でボタンを押そうとしている間にわずかに動いただけで選択が外れ、
+// 気づかず通り過ぎてしまう体験（H7）を緩和するための猶予。
+const INSPECT_EXIT_MARGIN_M = 0.6;
 
 interface PatrolSceneProps {
   cat: Cat;
@@ -138,27 +144,13 @@ function placeTownModel(root: THREE.Object3D, origin: { lat: number; lng: number
   root.updateMatrixWorld(true);
 }
 
-// メッシュの頂点をワールド座標のXZ平面へ投影した点群を返す。
-function worldXZPointsOfMesh(mesh: THREE.Mesh): Vec2[] {
-  const posAttr = mesh.geometry.getAttribute('position');
-  if (!posAttr) {
-    return [];
-  }
-
-  const v = new THREE.Vector3();
-  const points: Vec2[] = [];
-  for (let i = 0; i < posAttr.count; i += 1) {
-    v.fromBufferAttribute(posAttr, i).applyMatrix4(mesh.matrixWorld);
-    points.push({ x: v.x, z: v.z });
-  }
-  return points;
-}
-
 // 町全体の背景モデルは1個の巨大な箱としては扱わない（丸ごと当たり判定にすると遊べなくなる）。
 // その代わり、含まれる建物メッシュ単位（MAPNIKの地図タイルは除く）で当たり判定を作る。
-// 建物は道路に対して斜めに配置されていることが多く、世界軸並行のAABBだと
-// 回転した分だけ実際の建物より大きく張り出してしまい、「見えない壁」の原因になる。
-// そのため各メッシュの実頂点から向き付き最小矩形(OBB)を計算し、タイトな判定にする。
+// 建物メッシュの接地面の三角形をそのまま当たり判定に使う（meshCollider）。
+// 単一の外接矩形(OBB)だと、道路に対して斜めに配置された建物や、L字などの
+// 非凸な実際の建物形状に対して「形状全体を覆う矩形」になってしまい、
+// 本来は建物の外(凹んだ部分や隣の空き地)であるはずの場所まで塞いでしまう
+// （＝実機で報告された「何もない場所で見えない壁にぶつかる」不具合の原因）。
 // 地面や道路のような極端に大きいメッシュは誤検出を避けるため除外する。
 function collectTownBuildingColliders(
   root: THREE.Object3D,
@@ -182,27 +174,17 @@ function collectTownBuildingColliders(
       return;
     }
 
-    const points = worldXZPointsOfMesh(child);
-    if (points.length < 3) {
+    // メッシュの三角形をそのまま当たり判定に使う。単一のOBB(外接矩形)だと、
+    // 非凸(L字など)な実際の建物形状に対して形状全体を覆う矩形になってしまい、
+    // 本来は建物の外(凹んだ部分)であるはずの場所まで塞いでしまう(見えない壁)。
+    const footprint = footprintOfMesh(child);
+    if (footprint.triangles.length === 0) {
       return;
     }
 
-    colliders.push(obbColliderFromPoints(points));
+    colliders.push(meshCollider(footprint.triangles, footprint.edges));
   });
   return colliders;
-}
-
-function placeObjectOnGround(root: THREE.Object3D, x: number, z: number): void {
-  const box = new THREE.Box3().setFromObject(root);
-  const size = box.getSize(new THREE.Vector3());
-
-  if (size.y > 0 && (size.y < 2 || size.y > 25)) {
-    root.scale.multiplyScalar(10 / size.y);
-  }
-
-  const fitted = new THREE.Box3().setFromObject(root);
-  const center = fitted.getCenter(new THREE.Vector3());
-  root.position.set(x - (center.x - root.position.x), root.position.y - fitted.min.y, z - (center.z - root.position.z));
 }
 
 function createTerritoryRing(radius: number, color: string): THREE.Mesh {
@@ -654,7 +636,8 @@ export function PatrolScene({
           { x: player.x, z: player.z },
           hydrantPoints,
           inspectedRef.current,
-          inspectRadiusMeters
+          inspectRadiusMeters,
+          { previousInspectableId: lastInspectable, exitRadiusMeters: inspectRadiusMeters + INSPECT_EXIT_MARGIN_M }
         );
         if (inspectable !== lastInspectable) {
           lastInspectable = inspectable;
@@ -690,6 +673,12 @@ export function PatrolScene({
               const pos = latLngToWorldPosition(building.lat, building.lng, origin);
               model.rotation.y = headingDegToRotationY(building.headingDeg);
               placeObjectOnGround(model, pos.x, pos.z);
+              // placeObjectOnGround は最後に position を set するだけで matrixWorld
+              // には反映されない（placeTownModel と同じ理由。139行目のコメント参照）。
+              // ここで確定させないと、直後に読む child.matrixWorld が「配置前」の
+              // 姿勢のままになり、当たり判定(OBB)が実際の建物モデルの位置から
+              // 大きくズレる（＝原点付近など見当違いの場所に見えない壁ができる）。
+              model.updateMatrixWorld(true);
 
               const points: Vec2[] = [];
               model.traverse((child) => {

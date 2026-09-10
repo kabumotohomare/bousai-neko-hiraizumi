@@ -35,9 +35,8 @@ export function PatrolScreen() {
   const [obstacleLine, setObstacleLine] = useState<string | null>(null);
   const [playerPose, setPlayerPose] = useState<PlayerPose | null>(null);
   const [showDashButton, setShowDashButton] = useState(isCoarsePointer);
-  const [dashing, setDashing] = useState(false);
   const [stickMoving, setStickMoving] = useState(false);
-  const { inputRef, setStick, setDash } = usePlayerInput();
+  const { inputRef, setStick, setDash, dashing } = usePlayerInput();
 
   const handleStick = useCallback(
     (forward: number, turn: number) => {
@@ -141,17 +140,10 @@ export function PatrolScreen() {
     return () => window.removeEventListener('pointerdown', onPointerDown);
   }, []);
 
-  const releaseDash = useCallback(() => {
-    setDash(false);
-    setDashing(false);
-  }, [setDash]);
-
   const holdDash = useCallback(
     (event: ReactPointerEvent<HTMLButtonElement>) => {
       event.preventDefault();
-      event.currentTarget.setPointerCapture(event.pointerId);
-      setDash(true);
-      setDashing(true);
+      setDash(true, event.pointerId);
     },
     [setDash]
   );
@@ -264,9 +256,6 @@ export function PatrolScreen() {
             aria-label="はしる"
             aria-pressed={dashing}
             onPointerDown={holdDash}
-            onPointerUp={releaseDash}
-            onPointerCancel={releaseDash}
-            onLostPointerCapture={releaseDash}
             onContextMenu={(event) => event.preventDefault()}
           >
             <span className="patrol-dash__label">

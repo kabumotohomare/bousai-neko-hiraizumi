@@ -2,11 +2,69 @@ import { describe, expect, it } from 'vitest';
 import {
   circleCollider,
   convexHull2D,
+  meshCollider,
   minimumAreaRect,
   obbColliderFromFootprint,
   obbColliderFromPoints,
-  resolveObstacleMove
+  resolveObstacleMove,
+  Vec2
 } from './obstacle';
+
+// L字の建物footprint: X:[0,10]×Z:[0,10]の正方形から、右奥(X:[6,10]×Z:[6,10])の
+// 4x4を切り欠いた形。切り欠き部分は実際には屋外(通路や隣地)。
+function lShapedBuilding() {
+  const triangles: [Vec2, Vec2, Vec2][] = [
+    // 下側の帯(X:[0,10]×Z:[0,6])
+    [
+      { x: 0, z: 0 },
+      { x: 10, z: 0 },
+      { x: 10, z: 6 }
+    ],
+    [
+      { x: 0, z: 0 },
+      { x: 10, z: 6 },
+      { x: 0, z: 6 }
+    ],
+    // 左上の帯(X:[0,6]×Z:[6,10])
+    [
+      { x: 0, z: 6 },
+      { x: 6, z: 6 },
+      { x: 6, z: 10 }
+    ],
+    [
+      { x: 0, z: 6 },
+      { x: 6, z: 10 },
+      { x: 0, z: 10 }
+    ]
+  ];
+  const edges: [Vec2, Vec2][] = [
+    [
+      { x: 0, z: 0 },
+      { x: 10, z: 0 }
+    ],
+    [
+      { x: 10, z: 0 },
+      { x: 10, z: 6 }
+    ],
+    [
+      { x: 10, z: 6 },
+      { x: 6, z: 6 }
+    ],
+    [
+      { x: 6, z: 6 },
+      { x: 6, z: 10 }
+    ],
+    [
+      { x: 6, z: 10 },
+      { x: 0, z: 10 }
+    ],
+    [
+      { x: 0, z: 10 },
+      { x: 0, z: 0 }
+    ]
+  ];
+  return meshCollider(triangles, edges);
+}
 
 describe('obstacle collision', () => {
   const building = obbColliderFromFootprint({ x: 0, z: -5 }, 4, 4, 0);
@@ -36,6 +94,51 @@ describe('obstacle collision', () => {
     expect(sawCollision).toBe(true);
     // 抜け出した後は建物の外側にいる。
     expect(Math.abs(pos.x - 0)).toBeGreaterThanOrEqual(2 + 0.35 - 1e-6);
+  });
+
+  describe('honors player input to escape a bad spawn instead of forcing a fixed direction (regression: タキザワ spawn stuck moving backward)', () => {
+    it('moves the player in their own chosen escape direction, even when it is not the nearest edge', () => {
+      // building(半幅2+半径0.35=2.35, 中心(0,-5))の内側、X軸・Z軸どちらの辺からも
+      // 同じ距離(0.55m)にいる状態。旧実装はタイブレークで常にX軸方向へ押し出していたため、
+      // プレイヤーがZ軸方向(南)へ進もうとしても無視されてX方向へ動かされてしまっていた。
+      const previous = { x: -1.8, z: -6.8 };
+      const attempted = { x: -1.8, z: -7.0 }; // Z軸方向(南)への0.2mの入力
+
+      const result = resolveObstacleMove(previous, attempted, [building], 0.35);
+
+      // 入力どおりZ方向へ進めており、旧実装のようにX方向へ動かされていない。
+      expect(result.position.x).toBeCloseTo(previous.x, 6);
+      expect(result.position.z).toBeCloseTo(attempted.z, 6);
+    });
+
+    it('lets the player walk all the way out over several small steps in their own direction', () => {
+      let pos = { x: -1.8, z: -6.8 };
+      const step = 0.2;
+
+      for (let i = 0; i < 20; i += 1) {
+        const attempted = { x: pos.x, z: pos.z - step };
+        const result = resolveObstacleMove(pos, attempted, [building], 0.35);
+        pos = result.position;
+        if (!result.collided) {
+          break;
+        }
+      }
+
+      // 建物の外(Z軸方向)まで自力で歩いて出られている。
+      expect(pos.z).toBeLessThanOrEqual(-7.35 + 1e-6);
+    });
+
+    it('still forces the fixed push-out when the input moves deeper into the collider instead of escaping', () => {
+      const previous = { x: -1.8, z: -6.8 };
+      const attempted = { x: -1.7, z: -6.7 }; // 中心方向(食い込みが増える方向)への小さな入力
+
+      const result = resolveObstacleMove(previous, attempted, [building], 0.35);
+
+      expect(result.collided).toBe(true);
+      // 入力(中心方向)どおりには動いていない。強制的な押し出しに従っている。
+      expect(result.position).not.toEqual(attempted);
+      expect(Math.hypot(result.position.x - previous.x, result.position.z - previous.z)).toBeLessThanOrEqual(0.05 + 1e-9);
+    });
   });
 
   it('does not let the player slip through a wall via a marginal float-precision overlap (regression: sliding along a wall for a long time)', () => {
@@ -181,5 +284,148 @@ describe('obstacle collision', () => {
     // 建物からしっかり離れた位置なら通れる。
     const farAway = { x: 10 + 10 * cos, z: 10 + 10 * sin };
     expect(resolveObstacleMove({ x: 30, z: 10 }, farAway, [collider], 0).collided).toBe(false);
+  });
+});
+
+describe('mesh collider for non-convex (L-shaped) buildings (regression: invisible wall in an L-shaped building notch)', () => {
+  // 実機(タキザワの territory)で「何もない場所で見えない壁にぶつかる」と報告された症状の再現。
+  // 実際の建物メッシュはL字などの非凸形状を含むが、以前は単一のOBB(外接矩形)で
+  // 当たり判定を作っていたため、L字の凹んだ部分(実際には屋外)まで塞いでしまっていた。
+  it('does not block the concave notch that is actually open ground (H3)', () => {
+    const lBuilding = lShapedBuilding();
+    // (8, 8) はL字の切り欠き部分＝建物の外。
+    const inNotch = { x: 8, z: 8 };
+    const result = resolveObstacleMove({ x: 12, z: 8 }, inNotch, [lBuilding], 0.35);
+    expect(result.collided).toBe(false);
+    expect(result.position).toEqual(inNotch);
+  });
+
+  it('still blocks the solid part of the L-shaped building', () => {
+    const lBuilding = lShapedBuilding();
+    const inSolidPart = { x: 3, z: 3 };
+    const result = resolveObstacleMove({ x: 3, z: 12 }, inSolidPart, [lBuilding], 0.35);
+    expect(result.collided).toBe(true);
+  });
+
+  it('demonstrates the fix: the old single-OBB approach would have blocked the same notch point', () => {
+    // 修正前の実装がしていたこと: L字全体の頂点から単一のOBBを作ると、
+    // 切り欠き部分ごと覆う「その形状全体を覆う最小の矩形」になってしまう。
+    const allPoints: Vec2[] = [
+      { x: 0, z: 0 },
+      { x: 10, z: 0 },
+      { x: 10, z: 6 },
+      { x: 6, z: 6 },
+      { x: 6, z: 10 },
+      { x: 0, z: 10 }
+    ];
+    const oldStyleObb = obbColliderFromPoints(allPoints);
+    const inNotch = { x: 8, z: 8 };
+    const oldResult = resolveObstacleMove({ x: 12, z: 8 }, inNotch, [oldStyleObb], 0.35);
+    // 旧方式では、屋外であるはずの切り欠き部分でも「衝突」と誤判定していた。
+    expect(oldResult.collided).toBe(true);
+  });
+
+  it('pushes the player out of the solid part toward the nearest real edge, not through the notch', () => {
+    const lBuilding = lShapedBuilding();
+    const pos = { x: 3, z: 3 }; // 下側の帯の内側からスタート
+    const result = resolveObstacleMove(pos, pos, [lBuilding], 0.35);
+    expect(result.collided).toBe(true);
+    // 押し出し後もL字の輪郭のすぐ外側に留まる(遠くへワープしない)。
+    expect(Math.hypot(result.position.x - pos.x, result.position.z - pos.z)).toBeLessThanOrEqual(0.05 + 1e-9);
+  });
+
+  it('lets the player slide along an L-shaped wall on a diagonal approach', () => {
+    const lBuilding = lShapedBuilding();
+    // 下辺(Z=0)のすぐ外から、斜めに壁へ向かう。
+    const previous = { x: 5, z: -0.5 };
+    const attempted = { x: 5.5, z: 0.2 }; // Zだけ壁の内側に入ろうとする
+    const result = resolveObstacleMove(previous, attempted, [lBuilding], 0.35);
+    expect(result.collided).toBe(true);
+    // X方向にはスライドできる(Zは壁の外に留まる)。
+    expect(result.position.x).toBeCloseTo(attempted.x, 6);
+    expect(result.position.z).toBeLessThan(0);
+  });
+});
+
+const PLAYER_RADIUS = 0.35;
+const MAX_MOVE_STEP_M = 0.2;
+
+/** PatrolScene と同じ前方オフセット（heading=0 で -Z＝北）。 */
+function offsetForward(start: { x: number; z: number }, heading: number, distance: number) {
+  return {
+    x: start.x + Math.sin(heading) * distance,
+    z: start.z - Math.cos(heading) * distance
+  };
+}
+
+/** みまわり画面のダッシュ分割移動を、ドメインだけで再現する。 */
+function simulateSteppedMove(
+  start: { x: number; z: number },
+  heading: number,
+  distance: number,
+  colliders: ReturnType<typeof obbColliderFromFootprint>[]
+) {
+  let pos = { ...start };
+  let remaining = distance;
+  while (Math.abs(remaining) > 1e-9) {
+    const stepAbs = Math.min(Math.abs(remaining), MAX_MOVE_STEP_M);
+    const step = Math.sign(remaining) * stepAbs;
+    remaining -= step;
+    const previous = { ...pos };
+    const attempted = offsetForward(pos, heading, step);
+    const result = resolveObstacleMove(previous, attempted, colliders, PLAYER_RADIUS);
+    pos = result.position;
+    if (result.collided && pos.x === previous.x && pos.z === previous.z) {
+      break;
+    }
+  }
+  return pos;
+}
+
+describe('dash stepped move vs buildings (H1 / H2)', () => {
+  it('does not dash through an axis-aligned building in one 0.5m frame (H1)', () => {
+    const building = obbColliderFromFootprint({ x: 0, z: -5 }, 4, 4, 0);
+    // 建物の南面のすぐ外側から、北（建物の中）へ 0.5m＝ダッシュ1フレーム相当。
+    const start = { x: 0, z: -2.2 };
+    const end = simulateSteppedMove(start, 0, 0.5, [building]);
+    // 建物中心 z=-5 まで到達していたらすり抜け。
+    expect(end.z).toBeGreaterThan(-3.5);
+  });
+
+  it('does not keep dashing through after a push-out from inside (H1)', () => {
+    const building = obbColliderFromFootprint({ x: 0, z: -5 }, 4, 4, 0);
+    // 中心から北向きへダッシュ。押し出し後も残距離で奥へ進んではいけない。
+    const start = { x: 0, z: -5 };
+    const end = simulateSteppedMove(start, 0, 0.5, [building]);
+    const stillInside = Math.abs(end.x) < 2.35 && end.z < -2.65 && end.z > -7.35;
+    expect(stillInside).toBe(true);
+    // 押し出しで北へ少し動くのはよいが、建物の北側の外へワープしない。
+    expect(end.z).toBeGreaterThan(-7.35);
+    expect(end.z).toBeLessThan(-2.5);
+  });
+
+  it('does not world-axis-slide through a 45-degree building (H2)', () => {
+    const rotated = obbColliderFromFootprint({ x: 0, z: 0 }, 4, 4, Math.PI / 4);
+    // 斜め建物の角の外側から、建物を横切る向きへ 0.5m。
+    const start = { x: 0, z: 3.3 };
+    const end = simulateSteppedMove(start, 0, 0.5, [rotated]);
+    // すり抜けて北側 (z が小さく / 負) へ出ていないこと。
+    expect(end.z).toBeGreaterThan(2.4);
+  });
+
+  it('stops at a 45-degree building instead of dashing 8m through it (H2 long)', () => {
+    const rotated = obbColliderFromFootprint({ x: 0, z: 0 }, 4, 4, Math.PI / 4);
+    const start = { x: 0, z: 4 };
+    const end = simulateSteppedMove(start, 0, 8, [rotated]);
+    expect(end.z).toBeGreaterThan(2);
+    expect(end.z).toBeLessThan(4.01);
+  });
+
+  it('stops at an axis-aligned building instead of dashing 8m through it (H1 long)', () => {
+    const building = obbColliderFromFootprint({ x: 0, z: -5 }, 4, 4, 0);
+    const start = { x: 0, z: -2.2 };
+    const end = simulateSteppedMove(start, 0, 8, [building]);
+    expect(end.z).toBeGreaterThan(-3.5);
+    expect(end.z).toBeLessThan(-2.1);
   });
 });
