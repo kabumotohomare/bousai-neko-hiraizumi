@@ -253,7 +253,7 @@
       }
       @media (min-width: 720px) {
         .char-card {
-          grid-template-columns: 240px 1fr;
+          grid-template-columns: minmax(240px, 40%) 1fr;
         }
       }
       .char-card.is-sleeping {
@@ -272,8 +272,19 @@
         object-fit: cover;
         background: #161a26;
       }
-      .char-card.is-sleeping .portrait img {
+      /* キャラクターシート全体を見せる（透過PNG・黒背景に合わせて contain） */
+      .char-card .portrait img.sheet {
+        width: 100%;
+        max-width: 420px;
+        height: auto;
+        object-fit: contain;
+        background: transparent;
+      }
+      .char-card.is-sleeping .portrait img:not(.sheet) {
         filter: grayscale(1) brightness(0.85);
+      }
+      .char-card.is-sleeping {
+        filter: none;
       }
       .char-card .portrait .silhouette {
         display: grid;
@@ -744,8 +755,8 @@
         </div>
         <figure class="hero-figure">
           <span class="ring" aria-hidden="true"></span>
-          <!-- キャラクターイラスト（シラヤマ）。assets/shirayama.png を置くと表示される。 -->
-          <img src="assets/shirayama.png" alt="シラヤマ" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'silhouette',textContent:'シラヤマ（イラスト）'}))" />
+          <!-- キャラクターイラスト（シラヤマ）。顔の切り出し assets/shirayama-face.png -->
+          <img src="assets/shirayama-face.png" alt="シラヤマ" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'silhouette',textContent:'シラヤマ（イラスト）'}))" />
           <span class="hint">体を待っている人格 ── シラヤマ</span>
         </figure>
       </div>
@@ -829,7 +840,7 @@
 
         <div class="char-card is-sleeping">
           <div class="portrait">
-            <img src="assets/shirayama.png" alt="シラヤマ" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'silhouette',textContent:'シラヤマ（イラスト: assets/shirayama.png）'}))" />
+            <img class="sheet" src="assets/shirayama.png" alt="シラヤマ キャラクターシート" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'silhouette',textContent:'シラヤマ（イラスト: assets/shirayama.png）'}))" />
           </div>
           <div>
             <p class="name">シラヤマ<small>SHIRAYAMA</small></p>
