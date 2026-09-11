@@ -77,6 +77,8 @@ export interface ScenarioContext {
   previousRun: LastRun | null;
   /** まだ体（猫）が見つかっていない人格 = status: locked */
   sleepingCats: SleepingCat[];
+  /** 体を持つ他の人格のうち、なわばりの記録がまだ埋まっていないものがあるか */
+  otherTerritoriesUnfinished: boolean;
 }
 
 export interface BuildScenarioContextInput {
@@ -154,6 +156,22 @@ export function buildScenarioContext(input: BuildScenarioContextInput): Scenario
     .filter((item) => item.status === 'locked' && item.id !== cat.id)
     .map((item) => ({ id: item.id, name: item.name, alias: catAlias(item) }));
 
+  const activeHydrantWorlds = hydrants
+    .filter((hydrant) => hydrant.status === 'active')
+    .map((hydrant) => ({
+      id: hydrant.id,
+      world: latLngToWorldPosition(hydrant.lat, hydrant.lng, origin)
+    }));
+  const knownNow = new Set([...knownBefore, ...inspectedThisRun]);
+  const otherTerritoriesUnfinished = cats
+    .filter((item) => item.status === 'unlocked' && item.id !== cat.id)
+    .some((item) => {
+      const center = latLngToWorldPosition(item.center.lat, item.center.lng, origin);
+      return activeHydrantWorlds
+        .filter(({ world }) => isHydrantInTerritory(world, center, item.radius))
+        .some(({ id }) => !knownNow.has(id));
+    });
+
   return {
     catId: cat.id,
     catName: cat.name,
@@ -172,6 +190,7 @@ export function buildScenarioContext(input: BuildScenarioContextInput): Scenario
     secPerMark:
       lastMarkSec !== null && inspectedCount > 0 ? Math.round(lastMarkSec / inspectedCount) : null,
     previousRun: session.previousRun ?? null,
-    sleepingCats
+    sleepingCats,
+    otherTerritoriesUnfinished
   };
 }

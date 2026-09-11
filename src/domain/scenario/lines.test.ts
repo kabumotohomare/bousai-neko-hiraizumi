@@ -41,6 +41,7 @@ function ctx(overrides: Partial<ScenarioContext> = {}): ScenarioContext {
     secPerMark: null,
     previousRun: null,
     sleepingCats: [],
+    otherTerritoriesUnfinished: false,
     ...overrides
   };
 }
@@ -64,7 +65,7 @@ describe('resolveMapBranch', () => {
 });
 
 describe('resolveFeetBranch', () => {
-  const prev = { inspected: 4, lastMarkSec: 60, at: '' };
+  const prev = { inspected: 4, lastMarkSec: 60, bestLastMarkSec: 60, at: '' };
 
   it('is none without any inspection', () => {
     expect(resolveFeetBranch(ctx())).toBe('none');
@@ -77,10 +78,26 @@ describe('resolveFeetBranch', () => {
         ctx({
           inspectedCount: 2,
           lastMarkSec: 40,
-          previousRun: { inspected: 0, lastMarkSec: null, at: '' }
+          previousRun: { inspected: 0, lastMarkSec: null, bestLastMarkSec: null, at: '' }
         })
       )
     ).toBe('first');
+  });
+
+  it('is best when all marks are cleared faster than the previous best', () => {
+    expect(resolveFeetBranch(ctx({ inspectedCount: 4, lastMarkSec: 55, previousRun: prev }))).toBe(
+      'best'
+    );
+    // 最速との差が閾値未満なら best ではなく same
+    expect(resolveFeetBranch(ctx({ inspectedCount: 4, lastMarkSec: 59, previousRun: prev }))).toBe(
+      'same'
+    );
+    // 全部点検していなければ best にならない
+    expect(
+      resolveFeetBranch(
+        ctx({ inspectedCount: 3, lastMarkSec: 20, previousRun: { ...prev, inspected: 3 } })
+      )
+    ).toBe('faster');
   });
 
   it('compares mark counts before time', () => {
@@ -95,9 +112,12 @@ describe('resolveFeetBranch', () => {
   });
 
   it('compares time when mark counts match, with a 2s dead zone', () => {
-    expect(resolveFeetBranch(ctx({ inspectedCount: 4, lastMarkSec: 50, previousRun: prev }))).toBe(
-      'faster'
-    );
+    // 過去の最速（45秒）には届かないが、前回（60秒）より速い
+    expect(
+      resolveFeetBranch(
+        ctx({ inspectedCount: 4, lastMarkSec: 50, previousRun: { ...prev, bestLastMarkSec: 45 } })
+      )
+    ).toBe('faster');
     expect(resolveFeetBranch(ctx({ inspectedCount: 4, lastMarkSec: 59, previousRun: prev }))).toBe(
       'same'
     );
@@ -156,7 +176,7 @@ describe('selectLines', () => {
         nextHop: null,
         lastMarkSec: 66,
         secPerMark: 17,
-        previousRun: { inspected: 4, lastMarkSec: 75, at: '' },
+        previousRun: { inspected: 4, lastMarkSec: 75, bestLastMarkSec: 75, at: '' },
         sleepingCats: [{ id: 'cat_001', name: 'シラヤマ', alias: 'にしの なわばり' }]
       }),
       m
@@ -165,14 +185,21 @@ describe('selectLines', () => {
     expect(lines.mapLine).toBe('ひがしの なわばりの 記録は、できた。');
     expect(lines.noseLines).toEqual([
       'この なわばりに、しらない においは ない。',
-      'つぎの においは、にしの なわばりから。まだ、だれの 記録にも ない。'
+      'においは、にしの なわばりから。まだ、だれの 記録にも ない。'
     ]);
-    expect(lines.feetBranch).toBe('faster');
-    expect(lines.feetLine).toBe('からだが、みちを おぼえた。さいごの しるしまで 66秒。');
+    expect(lines.feetBranch).toBe('best');
+    expect(lines.feetLine).toBe('この からだの、いちばん はやい 足。66秒。');
     expect(lines.feetPrevLine).toBe('まえ: 4つ、75秒。');
+    expect(lines.closingBranch).toBe('sleeping');
     expect(lines.closingLine).toBe(
-      'シラヤマは、まだ からだを まっている。まちの ひとが ねこを 見つけたら、はいれる。'
+      'シラヤマは、からだを まっている。まちの ひとが ねこを みつけたら、はいれる。'
     );
+  });
+
+  it('closing: all awake but other territories unfinished', () => {
+    const lines = selectLines(ctx({ otherTerritoriesUnfinished: true }), m);
+    expect(lines.closingBranch).toBe('allAwake');
+    expect(lines.closingLine).toBe('べつの なわばりの 記録も、まだ しろい。');
   });
 
   it('single missing mark has no hop line', () => {

@@ -66,6 +66,10 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       const { cats, hydrants, buildings, roads, gameConfig, messages, localProgress } =
         await bootAppData();
 
+      // 前回選んだ猫が「からだを まっている」（locked）なら復元しない。
+      const lastCat = cats.find((cat) => cat.id === localProgress.lastSelectedCatId);
+      const selectedCatId = lastCat && lastCat.status === 'unlocked' ? lastCat.id : null;
+
       set({
         bootStatus: 'ready',
         currentScreen: 'map',
@@ -76,7 +80,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         gameConfig,
         messages,
         localProgress,
-        selectedCatId: localProgress.lastSelectedCatId,
+        selectedCatId,
         error: null
       });
     } catch (error) {
@@ -90,6 +94,12 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
 
   selectCat: (catId: string) => {
     const state = get();
+    const cat = state.cats.find((item) => item.id === catId);
+    // locked（からだを まっている人格）は選べない。UI 側でも案内するが、store 側でも守る。
+    if (!cat || cat.status !== 'unlocked') {
+      return;
+    }
+
     const nextProgress: LocalProgress = {
       ...state.localProgress,
       lastSelectedCatId: catId
@@ -142,15 +152,28 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     if (nextRemaining <= 0) {
       const finishedAt = new Date().toISOString();
       const inspectedAtSec = state.currentSession.inspectedAtSec ?? [];
+      const inspected = state.currentSession.inspectedHydrantIds.length;
+      const lastMarkSec =
+        inspectedAtSec.length > 0 ? inspectedAtSec[inspectedAtSec.length - 1] : null;
+      const total = countTerritoryHydrants(state, state.currentSession.catId);
+      const previousBest = state.currentSession.previousRun?.bestLastMarkSec ?? null;
+      // 全部点検した回だけ「いちばん はやい 足」の候補になる。
+      const clearedNow = total > 0 && inspected >= total && lastMarkSec !== null;
+      const bestLastMarkSec = clearedNow
+        ? previousBest === null
+          ? lastMarkSec
+          : Math.min(previousBest, lastMarkSec)
+        : previousBest;
+
       const completedProgress: LocalProgress = {
         ...state.localProgress,
         lastPlayedAt: finishedAt,
         lastRunByCat: {
           ...state.localProgress.lastRunByCat,
           [state.currentSession.catId]: {
-            inspected: state.currentSession.inspectedHydrantIds.length,
-            lastMarkSec:
-              inspectedAtSec.length > 0 ? inspectedAtSec[inspectedAtSec.length - 1] : null,
+            inspected,
+            lastMarkSec,
+            bestLastMarkSec,
             at: finishedAt
           }
         }
@@ -266,6 +289,27 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   }
 }));
 
+function territoryHydrantWorlds(state: AppState, cat: Cat): { x: number; z: number }[] {
+  const origin = state.gameConfig.defaultMapCenter;
+  const catWorld = latLngToWorldPosition(cat.center.lat, cat.center.lng, origin);
+  return state.hydrants
+    .filter((hydrant) => hydrant.status === 'active')
+    .map((hydrant) => latLngToWorldPosition(hydrant.lat, hydrant.lng, origin))
+    .filter((hydrantWorld) => isHydrantInTerritory(hydrantWorld, catWorld, cat.radius));
+}
+
+function countTerritoryHydrants(state: AppState, catId: string): number {
+  const cat = state.cats.find((item) => item.id === catId);
+  if (!cat) {
+    return 0;
+  }
+  try {
+    return territoryHydrantWorlds(state, cat).length;
+  } catch {
+    return 0;
+  }
+}
+
 function resolveDashSpeedMps(state: AppState): number {
   const fallback = state.gameConfig.dashSpeedMinMps;
   const cat = state.cats.find((item) => item.id === state.selectedCatId);
@@ -275,12 +319,8 @@ function resolveDashSpeedMps(state: AppState): number {
 
   try {
     const origin = state.gameConfig.defaultMapCenter;
-    const catWorld = latLngToWorldPosition(cat.center.lat, cat.center.lng, origin);
     const spawnWorld = latLngToWorldPosition(cat.spawn.lat, cat.spawn.lng, origin);
-    const points = state.hydrants
-      .filter((hydrant) => hydrant.status === 'active')
-      .map((hydrant) => latLngToWorldPosition(hydrant.lat, hydrant.lng, origin))
-      .filter((hydrantWorld) => isHydrantInTerritory(hydrantWorld, catWorld, cat.radius));
+    const points = territoryHydrantWorlds(state, cat);
     const pathMeters = estimatePatrolPathMeters(spawnWorld, points);
     return requiredDashSpeedMps({
       pathMeters,

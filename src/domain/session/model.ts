@@ -9,6 +9,8 @@ export const LastRunSchema = z.object({
   inspected: z.number(),
   /** 最後のしるしを点検したときの経過秒。1本も点検していなければ null */
   lastMarkSec: z.number().nullable(),
+  /** 全部点検した回のうち、最速の lastMarkSec。まだ全部点検していなければ null */
+  bestLastMarkSec: z.number().nullable().default(null),
   /** 記録した日時（ISO 8601） */
   at: z.string()
 });

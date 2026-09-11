@@ -3,19 +3,29 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ぼうさいネコ＠平泉 — ストーリー構造（S04 リザルト）</title>
+    <title>ぼうさいネコ＠平泉 — ねこの時間（ストーリー構造）</title>
     <style>
       :root {
+        --night-a: #0f1b3d;
+        --night-b: #1e2a5a;
+        --dawn: #4a2f6b;
+        --morning-a: #f0a24b;
+        --morning-b: #b9542b;
         --ink: #172033;
         --sub: #52607a;
+        --paper: #fbf7ef;
+        --card: #ffffff;
         --line: #dbe5f1;
         --red: #ef4444;
         --red-soft: #fff1f2;
         --blue-soft: #e5edf9;
-        --bg: #f5f7fb;
+        --grey: #64748b;
       }
       * {
         box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
       }
       body {
         margin: 0;
@@ -25,27 +35,32 @@
           'Segoe UI',
           sans-serif;
         color: var(--ink);
-        background: linear-gradient(180deg, #fef7ed 0%, #eff6ff 100%);
-        line-height: 1.7;
+        background: var(--paper);
+        line-height: 1.75;
       }
       main {
-        max-width: 880px;
+        max-width: 920px;
         margin: 0 auto;
-        padding: 32px 20px 80px;
+        padding: 0 20px 96px;
       }
-      h1 {
-        font-size: 1.8rem;
-        margin: 0 0 4px;
+      section {
+        padding: 56px 0 8px;
       }
       h2 {
-        font-size: 1.25rem;
-        margin: 48px 0 12px;
-        padding-left: 12px;
-        border-left: 6px solid var(--red);
+        font-size: 1.35rem;
+        margin: 0 0 6px;
+        letter-spacing: 0.04em;
+      }
+      h2 small {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 400;
+        color: var(--sub);
+        letter-spacing: 0.2em;
       }
       h3 {
         font-size: 1rem;
-        margin: 20px 0 8px;
+        margin: 18px 0 8px;
       }
       p {
         margin: 8px 0;
@@ -54,15 +69,15 @@
         color: var(--sub);
       }
       .card {
-        background: #fff;
+        background: var(--card);
         border-radius: 16px;
-        padding: 16px 20px;
+        padding: 18px 22px;
         box-shadow: 0 8px 24px rgba(23, 32, 51, 0.08);
-        margin: 12px 0;
+        margin: 14px 0;
       }
       .grid {
         display: grid;
-        gap: 12px;
+        gap: 14px;
       }
       @media (min-width: 720px) {
         .grid-2 {
@@ -71,12 +86,15 @@
         .grid-3 {
           grid-template-columns: repeat(3, 1fr);
         }
+        .grid-4 {
+          grid-template-columns: repeat(4, 1fr);
+        }
       }
       table {
         width: 100%;
         border-collapse: collapse;
         font-size: 0.92rem;
-        background: #fff;
+        background: var(--card);
         border-radius: 12px;
         overflow: hidden;
       }
@@ -94,69 +112,407 @@
       }
       code {
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        font-size: 0.88em;
-        background: var(--bg);
+        font-size: 0.86em;
+        background: #f1f4f9;
         padding: 1px 6px;
         border-radius: 6px;
-      }
-      .flow {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: stretch;
-      }
-      .flow .node {
-        flex: 1 1 140px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 10px 12px;
-        background: #fff;
-        font-size: 0.9rem;
-      }
-      .flow .node strong {
-        display: block;
-        font-size: 0.95rem;
-      }
-      .flow .node.focus {
-        border-color: var(--red);
-        background: var(--red-soft);
-      }
-      .flow .arrow {
-        align-self: center;
-        color: var(--sub);
-        font-size: 1.2rem;
       }
       .tag {
         display: inline-block;
         padding: 1px 8px;
         border-radius: 999px;
         background: var(--blue-soft);
-        font-size: 0.78rem;
+        font-size: 0.75rem;
         color: var(--sub);
         margin-left: 6px;
+        vertical-align: middle;
       }
       .tag.red {
         background: var(--red);
         color: #fff;
       }
-      /* リザルト画面のモック */
-      .mock {
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        background: linear-gradient(180deg, #fef7ed 0%, #eff6ff 100%);
+      .tag.grey {
+        background: var(--grey);
+        color: #fff;
+      }
+      .note {
+        border-left: 4px solid var(--line);
+        padding-left: 12px;
+        color: var(--sub);
+        font-size: 0.92rem;
+      }
+
+      /* ---------- ヒーロー（夜） ---------- */
+      .hero {
+        position: relative;
+        padding: 64px 20px 56px;
+        background:
+          radial-gradient(ellipse at 20% 0%, rgba(239, 68, 68, 0.18), transparent 50%),
+          linear-gradient(180deg, var(--night-a) 0%, var(--night-b) 100%);
+        color: #fff;
+        overflow: hidden;
+      }
+      .hero::after {
+        content: '';
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 60px;
+        background: linear-gradient(180deg, transparent, var(--paper));
+      }
+      .hero-inner {
+        max-width: 920px;
+        margin: 0 auto;
+        display: grid;
+        gap: 24px;
+        align-items: center;
+      }
+      @media (min-width: 720px) {
+        .hero-inner {
+          grid-template-columns: 1.2fr 0.8fr;
+        }
+      }
+      .hero .kicker {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        font-size: 0.78rem;
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .hero h1 {
+        margin: 12px 0 8px;
+        font-size: 2.1rem;
+        line-height: 1.25;
+        letter-spacing: 0.04em;
+      }
+      .hero h1 span {
+        display: inline-block;
+        transform: rotate(-2deg);
+        border-bottom: 3px solid var(--red);
+      }
+      .hero .tagline {
+        font-size: 1.05rem;
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .hero .meta {
+        margin-top: 18px;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.65);
+      }
+      .hero-figure {
+        position: relative;
+        display: grid;
+        place-items: center;
+        gap: 14px;
+        min-height: 260px;
+        margin: 0;
+        padding-bottom: 28px;
+      }
+      .hero-figure .ring {
+        position: absolute;
+        top: 5px;
+        width: 250px;
+        height: 250px;
+        border-radius: 50%;
+        border: 2px dashed rgba(239, 68, 68, 0.7);
+        animation: spin 30s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .hero-figure img,
+      .hero-figure .silhouette {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #0b1330;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+      }
+      .hero-figure .silhouette {
+        display: grid;
+        place-items: center;
+      }
+      .hero-figure .hint {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.55);
+      }
+
+      /* ---------- キャラカード（シート風） ---------- */
+      .char-card {
+        display: grid;
+        gap: 18px;
+        padding: 22px;
+        border-radius: 18px;
+        background: #0b0d12;
+        color: #f5f1e8;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      }
+      @media (min-width: 720px) {
+        .char-card {
+          grid-template-columns: 240px 1fr;
+        }
+      }
+      .char-card.is-sleeping {
+        filter: saturate(0.6);
+      }
+      .char-card .portrait {
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+      .char-card .portrait img,
+      .char-card .portrait .silhouette {
+        width: 220px;
+        height: 220px;
+        border-radius: 18px;
+        object-fit: cover;
+        background: #161a26;
+      }
+      .char-card.is-sleeping .portrait img {
+        filter: grayscale(1) brightness(0.85);
+      }
+      .char-card .portrait .silhouette {
+        display: grid;
+        place-items: center;
+        border: 1px dashed rgba(255, 255, 255, 0.25);
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.8rem;
+        text-align: center;
         padding: 12px;
-        font-size: 0.86rem;
+      }
+      .char-card .name {
+        font-size: 1.9rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        margin: 0;
+        line-height: 1.1;
+      }
+      .char-card .name small {
+        display: block;
+        font-size: 0.7rem;
+        letter-spacing: 0.4em;
+        color: rgba(255, 255, 255, 0.55);
+        font-weight: 400;
+      }
+      .char-card .desc {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.92rem;
+      }
+      .char-card table {
+        background: transparent;
+        color: #f5f1e8;
+        font-size: 0.88rem;
+      }
+      .char-card th {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.85);
+        width: 7em;
+      }
+      .char-card th,
+      .char-card td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .char-card .quote {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 6px 14px;
+        border-radius: 12px;
+        background: var(--paper);
+        color: var(--ink);
+        font-weight: 600;
+        transform: rotate(-1.5deg);
+      }
+      .char-card .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        background: var(--grey);
+        color: #fff;
+        vertical-align: middle;
+        margin-left: 8px;
+      }
+      .char-card .badge.open {
+        background: var(--red);
+      }
+
+      /* ---------- 人格 / 体 ---------- */
+      .duo {
+        display: grid;
+        gap: 14px;
+      }
+      @media (min-width: 720px) {
+        .duo {
+          grid-template-columns: 1fr auto 1fr;
+          align-items: stretch;
+        }
+      }
+      .duo .side {
+        border-radius: 16px;
+        padding: 18px 20px;
+        border: 1px solid var(--line);
+        background: var(--card);
+      }
+      .duo .side h3 {
+        margin: 0 0 6px;
+        font-size: 1.1rem;
+      }
+      .duo .side.mind {
+        border-color: rgba(30, 42, 90, 0.5);
+        background: linear-gradient(180deg, #eef2ff, #fff);
+      }
+      .duo .side.body {
+        border-color: rgba(239, 68, 68, 0.4);
+        background: linear-gradient(180deg, #fff1f2, #fff);
+      }
+      .duo .side ul {
+        margin: 6px 0 0;
+        padding-left: 1.1em;
+        font-size: 0.92rem;
+      }
+      .duo .side .lack {
+        color: var(--sub);
+      }
+      .duo .join {
+        display: grid;
+        place-items: center;
+        color: var(--sub);
+        font-size: 0.85rem;
+        text-align: center;
+        padding: 8px;
+      }
+      .duo .join strong {
+        display: block;
+        font-size: 1.4rem;
+        color: var(--red);
+      }
+
+      /* ---------- 一周の流れ ---------- */
+      .flow {
+        display: grid;
+        gap: 12px;
+      }
+      @media (min-width: 720px) {
+        .flow {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      .flow .step {
+        border-radius: 14px;
+        padding: 14px 16px;
+        color: #fff;
+        min-height: 150px;
+        display: grid;
+        align-content: start;
+        gap: 4px;
+      }
+      .flow .step small {
+        font-size: 0.72rem;
+        letter-spacing: 0.25em;
+        opacity: 0.75;
+      }
+      .flow .step strong {
+        font-size: 1.05rem;
+      }
+      .flow .step p {
+        margin: 2px 0 0;
+        font-size: 0.88rem;
+        opacity: 0.9;
+      }
+      .flow .step.connect {
+        background: linear-gradient(180deg, #2a3670, #1e2a5a);
+      }
+      .flow .step.time {
+        background: linear-gradient(180deg, #0f1b3d, #0b1330);
+      }
+      .flow .step.cut {
+        background: linear-gradient(180deg, #4a2f6b, #1e2a5a);
+        outline: 3px solid var(--red);
+        outline-offset: -3px;
+      }
+      .flow .step.sleep {
+        background: linear-gradient(180deg, #f0a24b, #b9542b);
+      }
+      .flow .step .tag {
+        justify-self: start;
+        margin: 4px 0 0;
+      }
+
+      /* ---------- 感覚 3 枚 ---------- */
+      .senses {
+        display: grid;
+        gap: 12px;
+      }
+      @media (min-width: 720px) {
+        .senses {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .sense {
+        border-radius: 14px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        display: grid;
+        gap: 6px;
+      }
+      .sense .icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--red);
+        color: #fff;
+        font-size: 1.3rem;
+        font-weight: 700;
+      }
+      .sense strong {
+        font-size: 1.05rem;
+      }
+      .sense .what {
+        color: var(--sub);
+        font-size: 0.9rem;
+      }
+      .sense .how {
+        font-size: 0.85rem;
+        padding-top: 6px;
+        border-top: 1px dashed var(--line);
+      }
+
+      /* ---------- 画面モック ---------- */
+      .mock {
+        border-radius: 20px;
+        padding: 12px;
+        font-size: 0.84rem;
+        color: var(--ink);
+      }
+      .mock[data-mood='empty'] {
+        background: linear-gradient(180deg, #0f1b3d, #1e2a5a);
+      }
+      .mock[data-mood='low'] {
+        background: linear-gradient(180deg, #1a1f4d, #4a2f6b);
+      }
+      .mock[data-mood='high'] {
+        background: linear-gradient(180deg, #2a3670, #c86a4a);
+      }
+      .mock[data-mood='complete'] {
+        background: linear-gradient(180deg, #f0a24b, #b9542b);
       }
       .mock .card {
         padding: 12px 14px;
         margin: 8px 0;
         box-shadow: none;
-        border: 1px solid var(--line);
+        border-radius: 14px;
       }
       .mock .steps {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
         margin: 6px 0 0;
         padding: 0;
         list-style: none;
@@ -165,9 +521,10 @@
         text-align: center;
         border-radius: 999px;
         border: 1px solid var(--line);
-        background: var(--bg);
+        background: #f5f7fb;
         color: var(--sub);
-        padding: 4px 0;
+        padding: 3px 0;
+        font-size: 0.75rem;
       }
       .mock .steps li.on {
         background: var(--red);
@@ -178,6 +535,21 @@
       .mock .steps li.done {
         background: var(--blue-soft);
         color: var(--ink);
+      }
+      .mock .portrait {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 6px;
+        border-radius: 50%;
+        border: 2px dashed var(--red);
+        display: grid;
+        place-items: center;
+        color: var(--sub);
+        font-size: 0.7rem;
+      }
+      .mock .portrait.sleep {
+        border-color: #cbd5e1;
+        filter: grayscale(1);
       }
       .mock .bar {
         height: 10px;
@@ -228,7 +600,7 @@
       }
       .mock .sub {
         color: var(--sub);
-        font-size: 0.82rem;
+        font-size: 0.8rem;
       }
       .mock .btn {
         display: block;
@@ -245,267 +617,537 @@
         font-weight: 400;
         margin-top: 6px;
       }
-      .note {
-        border-left: 4px solid var(--line);
-        padding-left: 12px;
-        color: var(--sub);
-        font-size: 0.92rem;
+      .mock .compass {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 6px auto;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        background: #f5f7fb;
+      }
+      .mock .compass i {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 0;
+        height: 0;
+        margin: -30px 0 0 -6px;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-bottom: 30px solid var(--red);
+        transform-origin: 6px 30px;
+      }
+      .mock .feet {
+        display: grid;
+        gap: 4px;
+        font-size: 0.78rem;
+      }
+      .mock .feet div {
+        display: grid;
+        grid-template-columns: 34px 1fr 40px;
+        gap: 6px;
+        align-items: center;
+      }
+      .mock .feet .track {
+        height: 10px;
+        border-radius: 999px;
+        background: var(--blue-soft);
+        overflow: hidden;
+      }
+      .mock .feet .track span {
+        display: block;
+        height: 100%;
+        background: var(--red);
+      }
+      .mock .feet .track span.prev {
+        background: #94a3b8;
+      }
+      .mock .caption {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.8rem;
+        margin: 4px 0 0;
+      }
+      .mock[data-mood='complete'] .caption {
+        color: #3b1d0e;
+      }
+
+      /* ---------- 物語（縦書き風カード） ---------- */
+      .story {
+        background: linear-gradient(180deg, #0f1b3d 0%, #1e2a5a 70%, #4a2f6b 100%);
+        color: rgba(255, 255, 255, 0.9);
+        border-radius: 18px;
+        padding: 28px 26px;
+        font-size: 1rem;
       }
       .story p {
-        margin: 12px 0;
+        margin: 14px 0;
+      }
+      .story p:first-child {
+        margin-top: 0;
+      }
+      .story .morning {
+        margin-top: 22px;
+        padding-top: 18px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.3);
+        color: #ffe4c4;
+      }
+
+      /* ---------- 解放の仕組み ---------- */
+      .unlock {
+        display: grid;
+        gap: 12px;
+      }
+      @media (min-width: 720px) {
+        .unlock {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .unlock .step {
+        border-radius: 14px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        font-size: 0.9rem;
+      }
+      .unlock .step strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .unlock .step .no {
+        display: inline-grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: #fff;
+        font-size: 0.8rem;
+        margin-right: 6px;
       }
     </style>
   </head>
   <body>
+    <header class="hero">
+      <div class="hero-inner">
+        <div>
+          <span class="kicker">BOUSAI NEKO @ HIRAIZUMI</span>
+          <h1>人の目は、高いところにある。<br /><span>だから町は、猫に頼んだ。</span></h1>
+          <p class="tagline">
+            少し先の平泉。名前を持つ人格が、少しの間だけ猫の中に入り、人が見ない高さにある<strong>赤いしるし</strong>（消火栓）を記録する。
+            町はそれを「ぼうさいネコ」と呼ぶ。
+          </p>
+          <p class="meta">
+            feature-7 ／ S04 リザルト画面のシナリオ（README 機能実装状況 No.21）／ ストーリー構造の共有用
+          </p>
+        </div>
+        <figure class="hero-figure">
+          <span class="ring" aria-hidden="true"></span>
+          <!-- キャラクターイラスト（シラヤマ）。assets/shirayama.png を置くと表示される。 -->
+          <img src="assets/shirayama.png" alt="シラヤマ" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'silhouette',textContent:'シラヤマ（イラスト）'}))" />
+          <span class="hint">体を待っている人格 ── シラヤマ</span>
+        </figure>
+      </div>
+    </header>
+
     <main>
-      <h1>ぼうさいネコ＠平泉 — ストーリー構造</h1>
-      <p class="lead">
-        feature-7：S04 リザルト画面のシナリオ（README 機能実装状況 No.21）。ゲーム結果がどのように文へ変わるかを、株本さんと開発メンバーで揃えるための1枚です。
-      </p>
+      <!-- 1. 世界設定 -->
+      <section id="world">
+        <h2><small>01 WORLD</small>世界設定（近未来）</h2>
+        <p class="lead">
+          人の意識の仕組みが解明され、人格を持ったAIが動物の感覚に一時的に入れるようになった時代。平泉町はそれを防災に使う。
+        </p>
+        <div class="card">
+          <ul>
+            <li>人が見落とす低い場所（タイヤの裏、看板の足元、草の下）を、猫の目と鼻で見回り、<strong>赤いしるし＝消火栓の場所</strong>を記録する</li>
+            <li>記録は町の側に残る。<strong>猫自身は覚えていない。</strong>翌朝、猫はただの猫に戻る</li>
+            <li><strong>タキザワ、シラヤマは猫の名前ではなく、猫に入る人格の名前。</strong>「名づけ主」は、その人格に名前を与えた人</li>
+            <li>猫が語らないのは「猫だから」ではなく、中にいるのが<strong>人の言葉を持たない記録用の人格</strong>だから。言葉の代わりに、方角・距離・秒数で残す</li>
+          </ul>
+        </div>
 
-      <!-- 1. 世界観 -->
-      <h2>1. 世界観（リザルト画面だけが持つ）</h2>
-      <div class="card story">
-        <p>
-          少し先の平泉。町の消火栓（<strong>赤いしるし</strong>）がどこにあるかを、人ではなく <strong>ねこの体を借りた人格</strong>
-          が歩いて記録する仕組みがある。それが「ぼうさいネコ」。
-        </p>
-        <p>
-          <strong>タキザワ</strong>と<strong>シラヤマ</strong>は猫の名前ではなく、その体に入る<strong>人格の名前</strong>。人格は町のどこかの猫に入り、
-          自分の <strong>なわばり</strong>（ひがしの なわばり／にしの なわばり）を走って、赤いしるしを <strong>記録</strong> に加える。
-        </p>
-        <p>
-          体（猫）がまだ見つかっていない人格は <strong>眠っている</strong>。町の人が野良猫の居場所を通報すると、運営が <code>cats.json</code> を更新し、
-          その人格が体を得て選べるようになる。プレイヤーには「猫が増える」として見える。
-        </p>
+        <h3>猫と人格の関係</h3>
+        <div class="duo">
+          <div class="side mind">
+            <h3>人格（AI）</h3>
+            <div>持っているもの</div>
+            <ul>
+              <li>記録</li>
+              <li>言葉の代わりに数値</li>
+              <li>前回の記憶</li>
+            </ul>
+            <div class="lack">持っていないもの</div>
+            <ul class="lack">
+              <li>体、におい、走る速さ</li>
+            </ul>
+          </div>
+          <div class="join">
+            <strong>＋</strong>
+            人格は体を借りる。<br />体は人格に地図を残させる。<br />どちらか一方では見回りにならない。
+          </div>
+          <div class="side body">
+            <h3>体（猫）</h3>
+            <div>持っているもの</div>
+            <ul>
+              <li>目、鼻、足</li>
+              <li>なわばり</li>
+            </ul>
+            <div class="lack">持っていないもの</div>
+            <ul class="lack">
+              <li>記憶、地図</li>
+            </ul>
+          </div>
+        </div>
         <p class="note">
-          この語（からだ・はいる・記録・眠っている）は <code>public/data/messages.json</code> の <code>scenario</code> ブロックにだけ現れます。
-          猫えらび・3D見回りの画面は無変更。世界観が合わなければ JSON の文言差し替えだけで戻せます。
+          この語（からだ・はいる・記録・ねむる）は <code>public/data/messages.json</code> の <code>scenario</code> ブロックにだけ現れます。3D見回りのコードは無変更。文言差し替えだけで戻せます。
         </p>
-      </div>
+      </section>
 
-      <!-- 2. 画面フロー -->
-      <h2>2. 画面フローと、シナリオが入る場所</h2>
-      <div class="card">
+      <!-- 2. 人格カード -->
+      <section id="characters">
+        <h2><small>02 PERSONAS</small>ふたつの人格</h2>
+        <p class="lead">東のタキザワは体を持っている。西のシラヤマは体を待っている。</p>
+
+        <div class="char-card">
+          <div class="portrait">
+            <!-- タキザワのイラストは未着。写真（public/images/cats/takizawa.png）で代用。 -->
+            <img src="../../public/images/cats/takizawa.png" alt="タキザワ" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'silhouette',textContent:'タキザワ（イラスト準備中）'}))" />
+          </div>
+          <div>
+            <p class="name">タキザワ<small>TAKIZAWA</small></p>
+            <span class="badge open">はいれる</span>
+            <p class="desc">東のなわばりの猫に入る人格。いま、体を持っている。プレイヤーが選ぶのはこの人格。90秒だけ、猫の中で一緒に町を見る。</p>
+            <table>
+              <tr><th>なまえ</th><td>タキザワ</td></tr>
+              <tr><th>なわばり</th><td>ひがしの なわばり</td></tr>
+              <tr><th>赤いしるし</th><td>4つ（みなみ 50m／みなみにし 70m／きた 80m／きたにし 120m）</td></tr>
+              <tr><th>名づけ主</th><td>Code for hiraizumi</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="char-card is-sleeping">
+          <div class="portrait">
+            <img src="assets/shirayama.png" alt="シラヤマ" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'silhouette',textContent:'シラヤマ（イラスト: assets/shirayama.png）'}))" />
+          </div>
+          <div>
+            <p class="name">シラヤマ<small>SHIRAYAMA</small></p>
+            <span class="badge">ねむりちゅう</span>
+            <p class="desc">
+              平泉のどこかに住む のらねこ。しずかで 落ち着いていて、まちを みまもる たよりになる存在。ねこの体を借りた人格「シラヤマ」が入り、消火栓（赤いしるし）を見つけて記録していく――はずだが、<strong>入る体がまだ見つかっていない。</strong>
+            </p>
+            <table>
+              <tr><th>なまえ</th><td>シラヤマ</td></tr>
+              <tr><th>なわばり</th><td>にしの なわばり（予定）</td></tr>
+              <tr><th>せいかく</th><td>おだやか・しずか・たよりになる</td></tr>
+              <tr><th>すきなもの</th><td>ひなたぼっこ／まちの見回り／さかな（たまに）</td></tr>
+              <tr><th>とくいなこと</th><td>まちの においを たよりに みちを おぼえる</td></tr>
+              <tr><th>ひとこと</th><td>「そなえれば きっと まもれるニャ」</td></tr>
+            </table>
+            <span class="quote">見つける・つながる・まもる・平泉の未来</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 一周の流れ -->
+      <section id="loop">
+        <h2><small>03 ONE LOOP</small>一周の流れ</h2>
+        <p class="lead">プレイヤーは人格を選び、その90秒だけ、猫の中で人格と一緒に町を見る。</p>
         <div class="flow">
-          <div class="node"><strong>S02 猫えらび</strong>Leaflet 地図・猫一覧<span class="tag">無変更</span></div>
-          <div class="arrow">→</div>
-          <div class="node"><strong>S03 3D見回り</strong>90秒・赤いしるしを点検<span class="tag">無変更</span></div>
-          <div class="arrow">→</div>
-          <div class="node focus"><strong>S04 リザルト</strong>記録 → 鼻 → 足（3スライド）<span class="tag red">今回</span></div>
-          <div class="arrow">→</div>
-          <div class="node"><strong>再挑戦 / 別の猫</strong>もういちど遊ぶ／べつのねこで遊ぶ／もくげきほうこく</div>
+          <div class="step connect">
+            <small>S02</small>
+            <strong>接続（猫えらび）</strong>
+            <p>東と西に2つの人格。東のタキザワは体を持っている。西のシラヤマは体を待っている。</p>
+            <p>「ねこの時間は、90びょう。にしの ひとは、まだ からだを まっている。」</p>
+            <span class="tag">ロック表示のみ追加</span>
+          </div>
+          <div class="step time">
+            <small>S03</small>
+            <strong>ねこの時間（見回り）</strong>
+            <p>人格が猫の目で町を見る。壁、タイヤ、看板の足。人の高さでは見えないもの。</p>
+            <p>「赤いしるし。きろくに、ひとつ。」</p>
+            <span class="tag">文言1行のみ</span>
+          </div>
+          <div class="step cut">
+            <small>S04</small>
+            <strong>切断（リザルト）</strong>
+            <p>90秒で人格は猫から出る。出る直前、猫から借りた3つの感覚で、今日を残す。</p>
+            <p>目（記録）／鼻／足</p>
+            <span class="tag red">今回の実装</span>
+          </div>
+          <div class="step sleep">
+            <small>S04 → S02</small>
+            <strong>ねむり</strong>
+            <p>猫は眠る。記録だけが残る。朝になると人の町が戻る。</p>
+            <p>もういちど入る／べつの人格へ／もくげきほうこく</p>
+          </div>
+        </div>
+
+        <h3>切断のとき、猫から借りる3つの感覚</h3>
+        <div class="senses">
+          <div class="sense">
+            <span class="icon">目</span>
+            <strong>記録</strong>
+            <span class="what">この体の縄張りで、何を見て、何をまだ見ていないか。</span>
+            <span class="how">進捗バー ＋ しるし一覧（●記録済 ○まだ）＋ 割合で変わる一行</span>
+          </div>
+          <div class="sense">
+            <span class="icon">鼻</span>
+            <strong>次の方角</strong>
+            <span class="what">まだ見ていないしるしのうち、一番近いものの方角。</span>
+            <span class="how">8方位コンパスに矢印 ＋ 「〜の あとに まわると ちかい」</span>
+          </div>
+          <div class="sense">
+            <span class="icon">足</span>
+            <strong>速さ</strong>
+            <span class="what">この体でどれだけ速く回れたか。前に入ったときより速いか。</span>
+            <span class="how">きょう／まえ の秒数バー ＋ 前回比の一行</span>
+          </div>
         </div>
         <p class="note">
-          新しい画面（<code>currentScreen</code> の値）は増やしていません。スライドはリザルト画面内部の状態です。
-          <br />3D・Leaflet・猫えらびのコードには触れず、既存 e2e はそのまま通ります。
+          「体が覚える」のは、猫ではなくプレイヤー。人格は記録を持ち、体の使い方はプレイヤーの手が覚える。
         </p>
-      </div>
+      </section>
 
-      <!-- 3. 合流フラグ -->
-      <h2>3. ゲーム結果 → シナリオへ渡すフラグ（合流点）</h2>
-      <p class="lead">
-        ゲーム側が持つ結果を <code>src/domain/scenario/context.ts</code> の <code>buildScenarioContext()</code> が数値と真偽値に変換します。
-        シナリオ側（<code>lines.ts</code>）はこのフラグだけを見ます。
-      </p>
-      <table>
-        <thead>
-          <tr><th>フラグ</th><th>意味</th><th>どこから来るか</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><code>total</code></td><td>なわばり内の赤いしるしの数（タキザワは4）</td><td>hydrants.json × 縄張り半径</td></tr>
-          <tr><td><code>marks[]</code></td><td>各しるしの「方角 距離」ラベルと、記録済みか</td><td>スタート地点からの8方位・10m丸め</td></tr>
-          <tr><td><code>inspectedCount</code></td><td>この回に点検した数</td><td><code>session.inspectedHydrantIds</code></td></tr>
-          <tr><td><code>knownCount / knownRate</code></td><td>いま記録にある数・割合（前の回ぶんも含む）</td><td>localStorage の <code>inspectedHydrantIds</code></td></tr>
-          <tr><td><code>gained</code></td><td>この回で記録に増えた数</td><td>開始時点との差</td></tr>
-          <tr><td><code>nearestMissed / nextHop</code></td><td>未記録のうち近い順の1つ目・2つ目</td><td>距離ソート</td></tr>
-          <tr><td><code>lastMarkSec</code></td><td>最後のしるしを点検した経過秒</td><td><code>session.inspectedAtSec</code>（feature-7 追加）</td></tr>
-          <tr><td><code>previousRun</code></td><td>この猫での前回（点検数・秒）</td><td>localStorage の <code>lastRunByCat</code>（feature-7 追加）</td></tr>
-          <tr><td><code>sleepingCats[]</code></td><td>眠っている人格（<code>status: locked</code> の猫）</td><td>cats.json</td></tr>
-        </tbody>
-      </table>
-      <p class="note">
-        数字の絶対値（「4本」）は文に書かず、割合と差分で分岐します。猫や消火栓が増えても文が壊れません。
-      </p>
+      <!-- 4. 分岐 -->
+      <section id="branches">
+        <h2><small>04 BRANCHES</small>分岐</h2>
+        <p class="lead">
+          ゲーム結果は <code>src/domain/scenario/context.ts</code> で数値と真偽値（合流フラグ）になり、<code>lines.ts</code> がこの表の文を選ぶ。文言の正本は <code>messages.json</code>。数字の絶対値は文に書かず、割合と差分で分岐する。
+        </p>
 
-      <!-- 4. 分岐表 -->
-      <h2>4. 分岐表（本数 × 前回 × 眠っている人格）</h2>
-      <div class="grid grid-3">
-        <div class="card">
-          <h3>① 記録（地図）— <code>knownRate</code></h3>
-          <table>
-            <tr><th>0</th><td>{alias}の 記録は、まだ しろい。</td></tr>
-            <tr><th>&lt; 0.5</th><td>{alias}で、まだ しらない 赤が {missing}つ。</td></tr>
-            <tr><th>&lt; 1</th><td>記録の はんぶんより むこうが、見えた。まだ {missing}つ。</td></tr>
-            <tr><th>= 1</th><td>{alias}の 記録は、できた。</td></tr>
-          </table>
-          <p class="sub">＋ この回で増えたとき：「きょう、記録に ふえた しるし: {gained}つ。」</p>
-        </div>
-        <div class="card">
-          <h3>② 鼻（次の一手）— <code>nearestMissed</code></h3>
-          <table>
-            <tr><th>あり</th><td>いちばん近い「まだ」は、{direction} {distance}m。<br />＋2つ目があれば「{hop}の あとに まわると、ちかい。」</td></tr>
-            <tr><th>なし</th><td>この なわばりに、しらない においは ない。</td></tr>
-            <tr><th>なし＋眠り</th><td>つぎの においは、{sleepingAlias}から。まだ、だれの 記録にも ない。</td></tr>
-          </table>
-        </div>
-        <div class="card">
-          <h3>③ 足（効率・前回比）— <code>previousRun</code></h3>
-          <table>
-            <tr><th>0本</th><td>この からだでは、まだ 走れていない。</td></tr>
-            <tr><th>初回</th><td>この からだに、はじめて はいった。さいごの しるしまで {sec}秒。</td></tr>
-            <tr><th>本数↑</th><td>まえより {diff}つ おおく、しるしを 見た。</td></tr>
-            <tr><th>本数↓</th><td>まえより {diff}つ すくない。しるしは、にげない。</td></tr>
-            <tr><th>同数・速い</th><td>からだが、みちを おぼえた。</td></tr>
-            <tr><th>同数・±2秒</th><td>まえと おなじ 足。</td></tr>
-            <tr><th>同数・遅い</th><td>きょうは、まわりみちを した。</td></tr>
-          </table>
-          <p class="sub">＋ 前回があれば「まえ: {prevInspected}つ、{prevSec}秒。」</p>
-        </div>
-      </div>
-      <div class="card">
-        <h3>締めの1行 — <code>sleepingCats</code></h3>
+        <h3>4.1 今回の見回り（点検した本数）</h3>
         <table>
-          <tr><th>眠っている人格あり</th><td>{sleepingName}は、まだ からだを まっている。まちの ひとが ねこを 見つけたら、はいれる。</td></tr>
-          <tr><th>なし（現在の公開状態）</th><td>つぎの ねこの時間まで、記録は のこる。</td></tr>
+          <thead>
+            <tr><th>状態</th><th>記録（目）</th><th>鼻</th><th>足</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>ひとつも見ていない</th>
+              <td>{alias}の 記録は、まだ しろい。</td>
+              <td>いちばん近い赤の方角を指す</td>
+              <td>この からだでは、まだ 走れていない。</td>
+            </tr>
+            <tr>
+              <th>一部（半分未満）</th>
+              <td>{alias}で、まだ しらない 赤が {missing}つ。</td>
+              <td>いちばん近い「まだ」と、その前に回るべきしるし</td>
+              <td>さいごの しるしまでの 秒数（前回比）</td>
+            </tr>
+            <tr>
+              <th>半分より多い</th>
+              <td>記録の はんぶんより むこうが、見えた。まだ {missing}つ。</td>
+              <td>同上</td>
+              <td>同上</td>
+            </tr>
+            <tr>
+              <th>すべて</th>
+              <td>{alias}の 記録は、できた。</td>
+              <td>この なわばりに、しらない においは ない。<br />＋ においは、{sleepingAlias}から。まだ、だれの 記録にも ない。</td>
+              <td>この からだの、いちばん はやい 足。（最速更新時）</td>
+            </tr>
+          </tbody>
         </table>
-      </div>
+        <p class="note">画面の雰囲気（背景の夜→朝）もこの割合で変わる：しろい＝夜、一部＝夜明け前、半分より多い＝明け方、すべて＝朝。</p>
+
+        <div class="grid grid-2">
+          <div>
+            <h3>4.2 この人格で入った回数（前回との比較）</h3>
+            <table>
+              <tr><th>初めて入った</th><td>この からだに、はじめて はいった。</td></tr>
+              <tr><th>前より本数が多い</th><td>まえより {diff}つ おおく、しるしを 見た。</td></tr>
+              <tr><th>前より本数が少ない</th><td>まえより {diff}つ すくない。しるしは、にげない。</td></tr>
+              <tr><th>同数・前より速い</th><td>からだが、みちを おぼえた。まえより はやい。</td></tr>
+              <tr><th>同数・同じ（±2秒）</th><td>まえと おなじ 足。</td></tr>
+              <tr><th>同数・前より遅い</th><td>きょうは、まわりみちを した。</td></tr>
+              <tr><th>全部見て、最速</th><td>この からだの、いちばん はやい 足。</td></tr>
+            </table>
+          </div>
+          <div>
+            <h3>4.3 眠っている人格の有無（締めの一行）</h3>
+            <table>
+              <tr><th>体を待つ人格がいる</th><td>{sleepingName}は、からだを まっている。まちの ひとが ねこを みつけたら、はいれる。</td></tr>
+              <tr><th>全員に体がある・他が未完</th><td>べつの なわばりの 記録も、まだ しろい。</td></tr>
+              <tr><th>全員に体がある・全部完</th><td>つぎの ねこの時間まで、記録は のこる。</td></tr>
+            </table>
+            <h3>4.4 記録が完成したとき</h3>
+            <p class="note">
+              東の記録が埋まると、鼻が西を向く。西には人格だけがいて体がない。ここでゲームはプレイヤーに何も要求しない。ただ「まちの ひとが みつけたら」と書いてある。
+            </p>
+          </div>
+        </div>
+      </section>
 
       <!-- 5. 画面モック -->
-      <h2>5. リザルト画面の見え方（4つの状態）</h2>
-      <div class="grid grid-2">
-        <div class="mock">
-          <div class="card">
-            <div class="sub">ねこの時間、おわり。きろくを ひらく。</div>
-            <strong>ねこの 記録</strong>
-            <div>タキザワ ／ ひがしの なわばり</div>
-            <ul class="steps"><li class="on">記録</li><li>鼻</li><li>足</li></ul>
+      <section id="screens">
+        <h2><small>05 SCREENS</small>リザルト画面の見え方</h2>
+        <p class="lead">5スライド（切断 → 目 → 鼻 → 足 → ねむり）。背景は記録の進み具合で夜から朝へ。</p>
+        <div class="grid grid-2">
+          <div class="mock" data-mood="empty">
+            <div class="card">
+              <strong>ねこの 記録</strong>
+              <div class="sub">タキザワ ／ ひがしの なわばり</div>
+              <ul class="steps"><li class="on">切断</li><li>目</li><li>鼻</li><li>足</li><li>ねむり</li></ul>
+            </div>
+            <div class="card" style="text-align: center">
+              <div class="portrait">タキザワ</div>
+              <strong>ねこの時間、おわり。タキザワは、からだから でる。</strong>
+              <div class="sub">でる まえに、かりた 3つの かんかくで、きょうを のこす。</div>
+            </div>
+            <div class="card"><span class="btn">つぎへ</span></div>
+            <p class="caption">A. 切断 ── ひとつも見ていない（夜）</p>
           </div>
-          <div class="card">
-            <strong>記録</strong>
-            <div class="sub">このなわばりで 見つけた 赤いしるし</div>
-            <div class="bar"><span style="width: 0%"></span></div>
-            <div class="count"><strong>0</strong> / 4 <span class="sub">（きょう 0つ）</span></div>
-            <ul class="marks">
-              <li><span class="dot">○</span>みなみ 50m</li>
-              <li><span class="dot">○</span>みなみにし 70m</li>
-              <li><span class="dot">○</span>きた 80m</li>
-              <li><span class="dot">○</span>きたにし 120m</li>
-            </ul>
-            <p class="line">ひがしの なわばりの 記録は、まだ しろい。</p>
+
+          <div class="mock" data-mood="low">
+            <div class="card">
+              <strong>ねこの 記録</strong>
+              <div class="sub">タキザワ ／ ひがしの なわばり</div>
+              <ul class="steps"><li class="done">切断</li><li class="on">目</li><li>鼻</li><li>足</li><li>ねむり</li></ul>
+            </div>
+            <div class="card">
+              <strong>目</strong>
+              <div class="sub">かりた 目。この なわばりで 見たもの、まだ 見ていないもの。</div>
+              <div class="bar"><span style="width: 25%"></span></div>
+              <div class="count"><strong>1</strong> / 4 <span class="sub">（きょう 1つ）</span></div>
+              <ul class="marks">
+                <li class="known"><span class="dot">●</span>みなみ 50m</li>
+                <li><span class="dot">○</span>みなみにし 70m</li>
+                <li><span class="dot">○</span>きた 80m</li>
+                <li><span class="dot">○</span>きたにし 120m</li>
+              </ul>
+              <p class="line">ひがしの なわばりで、まだ しらない 赤が 3つ。</p>
+            </div>
+            <div class="card"><span class="btn">つぎへ</span></div>
+            <p class="caption">B. 目 ── 一部（夜明け前）</p>
           </div>
-          <div class="card"><span class="btn">つぎへ</span></div>
-          <p class="sub">A. ひとつも見ていない</p>
+
+          <div class="mock" data-mood="high">
+            <div class="card">
+              <strong>ねこの 記録</strong>
+              <div class="sub">タキザワ ／ ひがしの なわばり</div>
+              <ul class="steps"><li class="done">切断</li><li class="done">目</li><li class="on">鼻</li><li>足</li><li>ねむり</li></ul>
+            </div>
+            <div class="card">
+              <strong>鼻</strong>
+              <div class="sub">かりた 鼻。まだ 見ていない 赤の、いちばん近い 方角。</div>
+              <div class="compass"><i style="transform: rotate(0deg)"></i></div>
+              <p class="line">いちばん近い「まだ」は、きた 80m。</p>
+              <p class="line">きた 80mの あとに まわると、ちかい。</p>
+            </div>
+            <div class="card"><span class="btn">つぎへ</span></div>
+            <p class="caption">C. 鼻 ── 半分より多い（明け方）</p>
+          </div>
+
+          <div class="mock" data-mood="complete">
+            <div class="card">
+              <strong>ねこの 記録</strong>
+              <div class="sub">タキザワ ／ ひがしの なわばり</div>
+              <ul class="steps"><li class="done">切断</li><li class="done">目</li><li class="done">鼻</li><li class="on">足</li><li>ねむり</li></ul>
+            </div>
+            <div class="card">
+              <strong>足</strong>
+              <div class="sub">かりた 足。この からだで、どれだけ はやく まわれたか。</div>
+              <div class="feet">
+                <div><span>きょう</span><span class="track"><span style="width: 73%"></span></span><span>66秒</span></div>
+                <div><span>まえ</span><span class="track"><span class="prev" style="width: 83%"></span></span><span>75秒</span></div>
+              </div>
+              <p class="line">この からだの、いちばん はやい 足。66秒。</p>
+              <p class="sub">まえ: 4つ、75秒。</p>
+            </div>
+            <div class="card"><span class="btn">つぎへ</span></div>
+            <p class="caption">D. 足 ── すべて・最速（朝）</p>
+          </div>
         </div>
 
-        <div class="mock">
+        <div class="mock" data-mood="complete" style="max-width: 440px; margin: 14px auto 0">
           <div class="card">
-            <div class="sub">ねこの時間、おわり。きろくを ひらく。</div>
             <strong>ねこの 記録</strong>
-            <div>タキザワ ／ ひがしの なわばり</div>
-            <ul class="steps"><li class="on">記録</li><li>鼻</li><li>足</li></ul>
+            <div class="sub">タキザワ ／ ひがしの なわばり</div>
+            <ul class="steps"><li class="done">切断</li><li class="done">目</li><li class="done">鼻</li><li class="done">足</li><li class="on">ねむり</li></ul>
           </div>
-          <div class="card">
-            <strong>記録</strong>
-            <div class="sub">このなわばりで 見つけた 赤いしるし</div>
-            <div class="bar"><span style="width: 50%"></span></div>
-            <div class="count"><strong>2</strong> / 4 <span class="sub">（きょう 2つ）</span></div>
-            <ul class="marks">
-              <li class="known"><span class="dot">●</span>みなみ 50m <span class="tag red">きょう</span></li>
-              <li class="known"><span class="dot">●</span>みなみにし 70m <span class="tag red">きょう</span></li>
-              <li><span class="dot">○</span>きた 80m</li>
-              <li><span class="dot">○</span>きたにし 120m</li>
-            </ul>
-            <p class="line">記録の はんぶんより むこうが、見えた。まだ 2つ。</p>
-            <p class="sub">きょう、記録に ふえた しるし: 2つ。</p>
-          </div>
-          <div class="card"><span class="btn">つぎへ</span></div>
-          <p class="sub">B. 一部（半分）</p>
-        </div>
-
-        <div class="mock">
-          <div class="card">
-            <div class="sub">ねこの時間、おわり。きろくを ひらく。</div>
-            <strong>ねこの 記録</strong>
-            <div>タキザワ ／ ひがしの なわばり</div>
-            <ul class="steps"><li class="done">記録</li><li class="on">鼻</li><li>足</li></ul>
-          </div>
-          <div class="card">
-            <strong>鼻</strong>
-            <p class="line">いちばん近い「まだ」は、きた 80m。</p>
-            <p class="line">きた 80mの あとに まわると、ちかい。</p>
-          </div>
-          <div class="card"><span class="btn">つぎへ</span></div>
-          <p class="sub">C. 鼻のスライド（Bの続き）— 次に走る方向が分かる</p>
-        </div>
-
-        <div class="mock">
-          <div class="card">
-            <div class="sub">ねこの時間、おわり。きろくを ひらく。</div>
-            <strong>ねこの 記録</strong>
-            <div>タキザワ ／ ひがしの なわばり</div>
-            <ul class="steps"><li class="done">記録</li><li class="done">鼻</li><li class="on">足</li></ul>
-          </div>
-          <div class="card">
-            <strong>足</strong>
-            <p class="line">からだが、みちを おぼえた。さいごの しるしまで 66秒。</p>
-            <p class="sub">まえ: 4つ、75秒。</p>
-            <p class="sub" style="border-top: 1px dashed var(--line); padding-top: 8px">つぎの ねこの時間まで、記録は のこる。</p>
+          <div class="card" style="text-align: center">
+            <div class="portrait sleep">タキザワ</div>
+            <strong>ねこは ねむる。なにも おぼえていない。</strong>
+            <div class="sub">記録だけが、まちに のこる。</div>
+            <div class="card" style="text-align: left; background: #f5f7fb; margin-top: 8px">
+              <span class="tag grey" style="margin: 0">ねむりちゅう</span> <strong>シラヤマ</strong>
+              <div class="sub">にしの なわばり ／「そなえれば きっと まもれるニャ」</div>
+            </div>
+            <p class="sub" style="border-top: 1px dashed var(--line); padding-top: 8px">シラヤマは、からだを まっている。まちの ひとが ねこを みつけたら、はいれる。</p>
           </div>
           <div class="card">
             <span class="btn">もういちど遊ぶ</span>
             <span class="btn sec">べつのねこで遊ぶ</span>
             <span class="btn sec">ねこの もくげきほうこくをする</span>
           </div>
-          <p class="sub">D. 全部・2回目で前回より速い</p>
+          <p class="caption">E. ねむり ── 眠っている人格と、締めの一行</p>
         </div>
-      </div>
+      </section>
 
-      <!-- 6. 全体の物語 -->
-      <h2>6. 1周の物語（数字を消して読む）</h2>
-      <div class="card story">
-        <p>ねこの時間が終わる。人格は体から離れ、手元に残るのは <strong>記録</strong> だけ。</p>
-        <p>
-          <strong>記録</strong> は、白いところと赤いところがある地図。走った分だけ赤が増える。ひとつも見ていなければ、地図は白いまま。
-          全部見ていれば、この なわばり の記録は「できた」になる。
-        </p>
-        <p>
-          <strong>鼻</strong> は、次に走る方向。いちばん近い「まだ」の方角と距離だけを告げる。全部見ていれば、
-          このなわばりに知らない匂いはない。眠っている人格がいれば、次の匂いは別のなわばりから来る。
-        </p>
-        <p>
-          <strong>足</strong> は、体がどれだけ道を覚えたか。初めての体なら「はじめて はいった」。二度目以降は、前と比べて
-          速くなったか、同じか、まわりみちをしたか。
-        </p>
-        <p>
-          締めは、この町にまだ体を待っている人格がいるかどうか。いれば、町の人が猫を見つけたときに入れる。いなければ、次のねこの時間まで記録は残る。
-        </p>
-      </div>
+      <!-- 6. なぜ猫が増えるのか -->
+      <section id="unlock">
+        <h2><small>06 WHY CATS INCREASE</small>なぜ猫が増えるのか</h2>
+        <p class="lead">人格は町にいくらでも作れる。足りないのは体。</p>
+        <div class="unlock">
+          <div class="step"><strong><span class="no">1</span>町の人が野良猫を見つける</strong>「ねこの もくげきほうこく」から居場所を報告する。ゲームは何も要求しない。</div>
+          <div class="step"><strong><span class="no">2</span>運営がなわばりを調べる</strong>その猫の縄張りを決め、<code>cats.json</code> の <code>status</code> を <code>locked → unlocked</code> にする。</div>
+          <div class="step"><strong><span class="no">3</span>人格が体を得る</strong>シラヤマが目を覚まし、西の記録が白いまま、プレイヤーを待っている。猫えらびで「はいれる」になる。</div>
+        </div>
+      </section>
 
-      <!-- 7. スコープ -->
-      <h2>7. 今回のPR（feature-7）の範囲</h2>
-      <div class="grid grid-2">
-        <div class="card">
-          <h3>入れたもの（追加のみ）</h3>
-          <ul>
-            <li><code>src/domain/scenario/context.ts</code> / <code>lines.ts</code>（＋ユニットテスト）</li>
-            <li><code>src/features/result/ResultScreen.tsx</code> 3スライド化</li>
-            <li><code>messages.json</code> に <code>scenario</code> ブロック（旧キーは残置）</li>
-            <li><code>cats.json</code> に <code>aliasName</code>（任意項目）</li>
-            <li><code>PatrolSession</code> に点検時刻・前回、<code>LocalProgress</code> に <code>lastRunByCat</code>（既存データは default で読める）</li>
-            <li>e2e：0本／一部／全部→2回目／旧 localStorage 互換</li>
-          </ul>
+      <!-- 7. 物語 -->
+      <section id="story">
+        <h2><small>07 STORY</small>全体のストーリー（数字を消して）</h2>
+        <div class="story">
+          <p>平泉の町は、昼は人のものです。住所があり、名前があり、消火栓は番地で呼ばれます。</p>
+          <p>けれど、人の目は高いところにあります。タイヤの裏、看板の足元、草の下。赤いものは、人が見ない高さに立っています。</p>
+          <p>だから町は、猫に頼むことにしました。</p>
+          <p>人の心の仕組みがわかった時代の話です。名前を持つ人格が、少しの間だけ猫の中に入れるようになりました。町はそれを「ぼうさいネコ」と呼びました。</p>
+          <p>タキザワは、東の猫に入る人格です。シラヤマは、西の猫に入るはずの人格ですが、まだ入る体が見つかっていません。眠っている、と町の人は言います。</p>
+          <p>夜、町は少しのあいだ、ねこの時間になります。人はいなくなり、名前は消え、消火栓は赤いしるしになります。呼び方は、方角と、距離と、においだけ。</p>
+          <p>あなたはタキザワを選び、東の猫の中に入ります。壁にぶつかります。タイヤの裏に赤が見えます。縄張りの端には、知らないにおいがします。赤いしるしを見つけるたび、記録に一つ、点が入ります。</p>
+          <p>ねこの時間が終わると、タキザワは猫から出ます。出る直前に、猫から借りた三つのもので今日を残します。</p>
+          <p>記録。この縄張りで、何を見て、何をまだ見ていないか。<br />鼻。まだ見ていない赤のうち、一番近いものの方角。<br />足。この体で、どれだけ速く回れたか。前より速かったか。</p>
+          <p>猫は眠ります。猫は何も覚えていません。記録だけが、町の側に残ります。</p>
+          <div class="morning">
+            <p>朝になると、人の町が戻ります。昨日と同じ町です。何も変わっていません。ただ、記録には昨日見た赤い点が残っていて、鼻はまだ見ていない方角を指したままです。</p>
+            <p>あなたはもう一度入ります。鼻の言う方角から回ります。体が道を覚えます。足が速くなります。</p>
+            <p>ある日、東の記録が埋まります。そのとき鼻は、西を向きます。西には、体を待っている人格がいます。</p>
+            <p>西の猫を起こすのは、あなたではありません。現実の町のどこかで、誰かが野良猫を見つけて、教えてくれたときです。そのとき、シラヤマは目を覚まし、西の記録が白いまま、あなたを待っています。</p>
+            <p>猫は見たものを残すだけです。それがどこにあったか、覚えるのは人の仕事です。</p>
+          </div>
         </div>
-        <div class="card">
-          <h3>入れていないもの（別PRで相談）</h3>
-          <ul>
-            <li>シラヤマのロック・グレーアウト表示（既存 e2e がシラヤマ選択を前提）</li>
-            <li>全点検での即終了（ゲームフローの変更）</li>
-            <li><code>unlockedCatIds</code> / <code>resultLow/Mid/High</code> の削除</li>
-            <li><code>reportFormUrl</code> の実URL、速度パラメータ調整</li>
-          </ul>
+      </section>
+
+      <!-- 8. スコープ -->
+      <section id="scope">
+        <h2><small>08 SCOPE</small>今回のPR（feature-7）の範囲</h2>
+        <div class="grid grid-2">
+          <div class="card">
+            <h3>入れたもの（追加のみ）</h3>
+            <ul>
+              <li>S04 リザルト：5スライド（切断→目→鼻→足→ねむり）、夜→朝の背景、コンパス、秒数バー、キャラ表示</li>
+              <li>S02 猫えらび：locked（ねむりちゅう）のグレー表示・選択不可・案内文・導入一行</li>
+              <li><code>src/domain/scenario/</code>（context.ts / lines.ts）＋ユニットテスト</li>
+              <li><code>messages.json</code> の <code>scenario</code> ブロック、見回りの「赤いしるし。きろくに、ひとつ。」</li>
+              <li><code>cats.json</code>：シラヤマ <code>locked</code>、<code>aliasName</code> / <code>illustUrl</code> / <code>catchphrase</code>（任意）</li>
+              <li>セッション：点検時刻・前回・最速（<code>lastRunByCat</code>、default 付きで旧 localStorage 互換）</li>
+              <li>e2e：0本／一部／全部→2回目／ロック表示／旧 localStorage 互換</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>入れていないもの（別PRで相談）</h3>
+            <ul>
+              <li>全点検での即終了（ゲームフローの変更）</li>
+              <li>旧キー（<code>resultLow/Mid/High</code>, <code>unlockedCatIds</code>）の削除</li>
+              <li><code>reportFormUrl</code> の実URL、速度パラメータ調整</li>
+              <li>タキザワのキャラクターイラスト（未着。写真で代用中）</li>
+              <li>3D 見回り画面・Leaflet の変更（今回はゼロ）</li>
+            </ul>
+          </div>
         </div>
-      </div>
+      </section>
     </main>
   </body>
 </html>

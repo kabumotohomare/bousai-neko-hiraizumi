@@ -69,24 +69,48 @@ test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
 });
 
+async function next(page: Page, times = 1) {
+  for (let i = 0; i < times; i += 1) {
+    await page.getByRole('button', { name: 'つぎへ' }).click();
+  }
+}
+
 test('0本: 記録は しろい、鼻は いちばん近い しるし、足は まだ 走れていない', async ({ page }) => {
   await patchData(page, 5);
   await startTakizawa(page);
   await waitForResult(page);
 
+  // 切断: 人格が体から出る。3つの感覚の説明
   await expect(page.getByText('タキザワ ／ ひがしの なわばり')).toBeVisible();
+  await expect(page.getByText('ねこの時間、おわり。タキザワは、からだから でる。')).toBeVisible();
+  await expect(page.locator('.result-senses li')).toHaveCount(3);
+  await expect(page.locator('.result-screen')).toHaveAttribute('data-mood', 'empty');
+
+  // 目（記録）
+  await next(page);
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
   await expect(page.locator('.result-mark')).toHaveCount(4);
   await expect(page.getByText('ひがしの なわばりの 記録は、まだ しろい。')).toBeVisible();
 
-  await page.getByRole('button', { name: 'つぎへ' }).click();
+  // 鼻
+  await next(page);
+  await expect(page.locator('.result-compass__arrow')).toHaveCount(1);
   await expect(page.getByText(/いちばん近い「まだ」は、みなみ 10m。/)).toBeVisible();
   await expect(page.getByText(/みなみ 10mの あとに まわると、ちかい。/)).toBeVisible();
 
-  await page.getByRole('button', { name: 'つぎへ' }).click();
+  // 足
+  await next(page);
   await expect(page.getByText('この からだでは、まだ 走れていない。')).toBeVisible();
-  await expect(page.getByText('つぎの ねこの時間まで、記録は のこる。')).toBeVisible();
+
+  // ねむり: シラヤマ（locked）が からだを まっている
+  await next(page);
+  await expect(page.getByText('ねこは ねむる。なにも おぼえていない。')).toBeVisible();
+  await expect(page.locator('.result-sleeping')).toContainText('シラヤマ');
+  await expect(
+    page.getByText('シラヤマは、からだを まっている。まちの ひとが ねこを みつけたら、はいれる。')
+  ).toBeVisible();
   await expect(page.getByRole('button', { name: 'もういちど遊ぶ' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'つぎへ' })).toHaveCount(0);
 });
 
 test('一部（1本）: 残りの数と きょう ふえた しるし が出る', async ({ page }) => {
@@ -95,16 +119,19 @@ test('一部（1本）: 残りの数と きょう ふえた しるし が出る'
   await walkAndInspect(page, 1);
   await waitForResult(page);
 
+  await expect(page.locator('.result-screen')).toHaveAttribute('data-mood', 'low');
+
+  await next(page);
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
   await expect(page.locator('.result-mark.is-known')).toHaveCount(1);
   await expect(page.getByText('ひがしの なわばりで、まだ しらない 赤が 3つ。')).toBeVisible();
   await expect(page.getByText('きょう、記録に ふえた しるし: 1つ。')).toBeVisible();
 
-  await page.getByRole('button', { name: 'つぎへ' }).click();
-  await page.getByRole('button', { name: 'つぎへ' }).click();
+  await next(page, 2);
   await expect(
     page.getByText(/この からだに、はじめて はいった。さいごの しるしまで \d+秒。/)
   ).toBeVisible();
+  await expect(page.locator('.result-feet__bar.is-now')).toBeVisible();
 });
 
 test('全部（4本）→ もういちど: 記録は できた、2回目は まえ と くらべる', async ({ page }) => {
@@ -114,46 +141,69 @@ test('全部（4本）→ もういちど: 記録は できた、2回目は ま�
   await walkAndInspect(page, 4);
   await waitForResult(page);
 
+  await expect(page.locator('.result-screen')).toHaveAttribute('data-mood', 'complete');
+
+  await next(page);
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '4');
   await expect(page.getByText('ひがしの なわばりの 記録は、できた。')).toBeVisible();
 
-  await page.getByRole('button', { name: 'つぎへ' }).click();
+  // 鼻: しらない においは ない → においは にしから（眠っている人格）
+  await next(page);
+  await expect(page.locator('.result-compass__arrow')).toHaveCount(0);
   await expect(page.getByText('この なわばりに、しらない においは ない。')).toBeVisible();
+  await expect(
+    page.getByText('においは、にしの なわばりから。まだ、だれの 記録にも ない。')
+  ).toBeVisible();
 
-  await page.getByRole('button', { name: 'つぎへ' }).click();
+  await next(page);
   await expect(page.getByText(/この からだに、はじめて はいった。/)).toBeVisible();
 
   // 2回目: 記録は残ったまま、足は前回比になる
+  await next(page);
   await page.getByRole('button', { name: 'もういちど遊ぶ' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
   await walkAndInspect(page, 4);
   await waitForResult(page);
 
+  await next(page);
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '4');
-  await page.getByRole('button', { name: 'つぎへ' }).click();
-  await page.getByRole('button', { name: 'つぎへ' }).click();
+  await next(page, 2);
   await expect(
     page.getByText(
-      /(からだが、みちを おぼえた|まえと おなじ 足|きょうは、まわりみちを した)。さいごの しるしまで \d+秒。/
+      /(この からだの、いちばん はやい 足|からだが、みちを おぼえた。まえより はやい|まえと おなじ 足|きょうは、まわりみちを した)。\d+秒。/
     )
   ).toBeVisible();
   await expect(page.getByText(/まえ: 4つ、\d+秒。/)).toBeVisible();
+  await expect(page.locator('.result-feet__bar.is-prev')).toBeVisible();
 });
 
-test('既存の localStorage（lastRunByCat なし）でも起動する', async ({ page }) => {
-  await page.addInitScript(() => {
+/** lastRunByCat を持たない旧形式の localStorage を書き込む */
+async function seedLegacyProgress(page: Page, lastSelectedCatId: string) {
+  await page.addInitScript((catId) => {
     localStorage.setItem(
       'bousaiNeko.progress',
       JSON.stringify({
         unlockedCatIds: ['cat_001'],
         inspectedHydrantIds: [],
         playedTutorial: false,
-        lastSelectedCatId: 'cat_002',
+        lastSelectedCatId: catId,
         lastPlayedAt: null
       })
     );
-  });
+  }, lastSelectedCatId);
+}
+
+test('既存の localStorage（lastRunByCat なし）でも起動する', async ({ page }) => {
+  await seedLegacyProgress(page, 'cat_002');
   await page.goto('/');
   await expect(page.getByRole('heading', { name: '猫をえらぶ' })).toBeVisible();
   await expect(page.locator('.cat-item.selected', { hasText: 'タキザワ' })).toBeVisible();
+});
+
+test('前回選択が locked の猫（シラヤマ）なら復元しない', async ({ page }) => {
+  await seedLegacyProgress(page, 'cat_001');
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: '猫をえらぶ' })).toBeVisible();
+  await expect(page.locator('.cat-item.selected')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'このねこでみまわりスタート' })).toBeDisabled();
 });

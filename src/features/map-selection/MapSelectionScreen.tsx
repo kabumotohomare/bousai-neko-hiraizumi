@@ -1,17 +1,44 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { CatSelectionMap } from '../../components/map/CatSelectionMap';
 import { useAppStore } from '../../app/store/useAppStore';
+import { fill } from '../../domain/scenario/lines';
 
+/**
+ * S02 猫えらび（接続）。
+ * unlocked = 体を持つ人格（はいれる）。locked = 体を待っている人格（ねむりちゅう）。
+ * locked はグレー表示で選べない。タップすると案内と通報リンクを出す。
+ */
 export function MapSelectionScreen() {
   const cats = useAppStore((state) => state.cats);
   const selectedCatId = useAppStore((state) => state.selectedCatId);
   const gameConfig = useAppStore((state) => state.gameConfig);
+  const messages = useAppStore((state) => state.messages);
   const selectCat = useAppStore((state) => state.selectCat);
   const startPatrol = useAppStore((state) => state.startPatrol);
+
+  const [lockedNote, setLockedNote] = useState<string | null>(null);
+  const s = messages.scenario;
 
   const selectedCat = useMemo(
     () => cats.find((cat) => cat.id === selectedCatId) ?? null,
     [cats, selectedCatId]
+  );
+  const sleepingCat = useMemo(() => cats.find((cat) => cat.status === 'locked') ?? null, [cats]);
+
+  const handleSelect = useCallback(
+    (catId: string) => {
+      const cat = cats.find((item) => item.id === catId);
+      if (!cat) {
+        return;
+      }
+      if (cat.status !== 'unlocked') {
+        setLockedNote(fill(s.selectLockedTap, { catName: cat.name }));
+        return;
+      }
+      setLockedNote(null);
+      selectCat(catId);
+    },
+    [cats, s.selectLockedTap, selectCat]
   );
 
   return (
@@ -19,13 +46,17 @@ export function MapSelectionScreen() {
       <section className="card stack">
         <h1 className="title">猫をえらぶ</h1>
         <p className="subtitle">猫を選んで、縄張りを確認してから見回りを始めます。</p>
+        <p className="select-intro">
+          {fill(s.selectIntro, { durationSec: gameConfig.gameDurationSec })}
+          {sleepingCat ? ` ${fill(s.selectSleeping, { sleepingName: sleepingCat.name })}` : ''}
+        </p>
         <CatSelectionMap
           cats={cats}
           selectedCatId={selectedCatId}
           center={gameConfig.defaultMapCenter}
           zoom={gameConfig.defaultMapZoom}
           mapBounds={gameConfig.mapBounds}
-          onSelectCat={selectCat}
+          onSelectCat={handleSelect}
         />
       </section>
 
@@ -34,26 +65,39 @@ export function MapSelectionScreen() {
         <div className="cat-list">
           {cats.map((cat) => {
             const selected = selectedCatId === cat.id;
+            const locked = cat.status !== 'unlocked';
             return (
               <button
                 key={cat.id}
                 type="button"
-                className={`cat-item ${selected ? 'selected' : ''}`}
-                onClick={() => selectCat(cat.id)}
+                className={`cat-item ${selected ? 'selected' : ''} ${locked ? 'cat-item--locked' : ''}`}
+                aria-disabled={locked || undefined}
+                onClick={() => handleSelect(cat.id)}
               >
                 {cat.photoUrl ? (
                   <img className="cat-item__photo" src={cat.photoUrl} alt="" />
                 ) : null}
                 <span className="cat-item__body">
+                  <span className={`cat-item__badge${locked ? '' : ' cat-item__badge--open'}`}>
+                    {locked ? s.sleepingBadge : s.selectConnectable}
+                  </span>
                   <strong>{cat.name}</strong>
-                  <span>{cat.displayAreaName}</span>
-                  <span>縄張り半径: {cat.radius}m</span>
+                  <span>{cat.aliasName ?? cat.displayAreaName}</span>
+                  {locked ? null : <span>縄張り半径: {cat.radius}m</span>}
                   <span className="cat-item__credit">（名づけ主：{cat.namedBy}）</span>
                 </span>
               </button>
             );
           })}
         </div>
+        {lockedNote ? (
+          <p className="select-locked-note" role="status">
+            {lockedNote}{' '}
+            <a href={gameConfig.reportFormUrl} target="_blank" rel="noreferrer">
+              ねこの もくげきほうこく
+            </a>
+          </p>
+        ) : null}
       </section>
 
       <section className="card stack">

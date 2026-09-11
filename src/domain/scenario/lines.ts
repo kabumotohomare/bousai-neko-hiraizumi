@@ -8,7 +8,8 @@ import { ScenarioContext } from './context';
 
 export type MapBranch = 'empty' | 'low' | 'high' | 'complete';
 export type FeetBranch =
-  'none' | 'first' | 'faster' | 'same' | 'slower' | 'moreMarks' | 'fewerMarks';
+  'none' | 'first' | 'best' | 'faster' | 'same' | 'slower' | 'moreMarks' | 'fewerMarks';
+export type ClosingBranch = 'sleeping' | 'allAwake' | 'open';
 
 export interface ScenarioLines {
   mapBranch: MapBranch;
@@ -20,6 +21,7 @@ export interface ScenarioLines {
   feetLine: string;
   /** 前回があるときだけ入る */
   feetPrevLine: string | null;
+  closingBranch: ClosingBranch;
   closingLine: string;
 }
 
@@ -43,6 +45,14 @@ export function resolveFeetBranch(ctx: ScenarioContext): FeetBranch {
   if (ctx.inspectedCount === 0 || ctx.lastMarkSec === null) return 'none';
   const prev = ctx.previousRun;
   if (!prev || prev.inspected === 0 || prev.lastMarkSec === null) return 'first';
+
+  // 全部点検して、これまでの最速をはっきり（閾値以上）上回ったら「いちばん はやい 足」
+  const clearedAll = ctx.total > 0 && ctx.inspectedCount >= ctx.total;
+  const prevBest = prev.bestLastMarkSec ?? null;
+  if (clearedAll && prevBest !== null && ctx.lastMarkSec <= prevBest - FEET_DIFF_THRESHOLD_SEC) {
+    return 'best';
+  }
+
   if (ctx.inspectedCount > prev.inspected) return 'moreMarks';
   if (ctx.inspectedCount < prev.inspected) return 'fewerMarks';
   const diff = ctx.lastMarkSec - prev.lastMarkSec;
@@ -51,10 +61,15 @@ export function resolveFeetBranch(ctx: ScenarioContext): FeetBranch {
   return 'same';
 }
 
-export function selectLines(ctx: ScenarioContext, m: ScenarioMessages): ScenarioLines {
-  const sleeping = ctx.sleepingCats[0] ?? null;
+export function resolveClosingBranch(ctx: ScenarioContext): ClosingBranch {
+  if (ctx.sleepingCats.length > 0) return 'sleeping';
+  if (ctx.otherTerritoriesUnfinished) return 'allAwake';
+  return 'open';
+}
 
-  const vars: Record<string, string | number> = {
+export function buildScenarioVars(ctx: ScenarioContext): Record<string, string | number> {
+  const sleeping = ctx.sleepingCats[0] ?? null;
+  return {
     alias: ctx.alias,
     catName: ctx.catName,
     total: ctx.total,
@@ -73,8 +88,13 @@ export function selectLines(ctx: ScenarioContext, m: ScenarioMessages): Scenario
     sleepingName: sleeping?.name ?? '',
     sleepingAlias: sleeping?.alias ?? ''
   };
+}
 
-  // 記録（地図）
+export function selectLines(ctx: ScenarioContext, m: ScenarioMessages): ScenarioLines {
+  const sleeping = ctx.sleepingCats[0] ?? null;
+  const vars = buildScenarioVars(ctx);
+
+  // 目（記録）
   const mapBranch = resolveMapBranch(ctx);
   const mapTemplate = {
     empty: m.mapEmpty,
@@ -111,6 +131,7 @@ export function selectLines(ctx: ScenarioContext, m: ScenarioMessages): Scenario
   const feetTemplate = {
     none: m.feetNone,
     first: m.feetFirst,
+    best: m.feetBest,
     faster: m.feetFaster,
     same: m.feetSame,
     slower: m.feetSlower,
@@ -122,7 +143,13 @@ export function selectLines(ctx: ScenarioContext, m: ScenarioMessages): Scenario
   const feetPrevLine = hasPrev ? fill(m.feetPrev, vars) : null;
 
   // 締め
-  const closingLine = fill(sleeping ? m.closingSleeping : m.closingOpen, vars);
+  const closingBranch = resolveClosingBranch(ctx);
+  const closingTemplate = {
+    sleeping: m.closingSleeping,
+    allAwake: m.closingAllAwake,
+    open: m.closingOpen
+  }[closingBranch];
+  const closingLine = fill(closingTemplate, vars);
 
   return {
     mapBranch,
@@ -132,6 +159,7 @@ export function selectLines(ctx: ScenarioContext, m: ScenarioMessages): Scenario
     feetBranch,
     feetLine,
     feetPrevLine,
+    closingBranch,
     closingLine
   };
 }

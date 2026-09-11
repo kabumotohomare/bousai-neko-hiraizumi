@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 async function startFirstCatPatrol(page: import('@playwright/test').Page) {
   await page.goto('/');
-  await page.locator('.cat-item').first().click();
+  await page.locator('.cat-item:not(.cat-item--locked)').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await expect(page.locator('.scene-canvas')).toHaveAttribute('data-ready', 'true', {
     timeout: 20_000

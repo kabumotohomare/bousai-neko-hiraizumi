@@ -208,8 +208,54 @@ describe('buildScenarioContext', () => {
     expect(ctx.sleepingCats).toEqual([{ id: 'cat_other', name: 'ほか', alias: 'にしの なわばり' }]);
   });
 
+  it('flags other awake territories whose record is not yet complete', () => {
+    // 東に 400m 離れた別の猫（unlocked）。その縄張りには 'far' だけが入る。
+    const farCenter = offset(400, 0);
+    const other = cat({
+      id: 'cat_other',
+      name: 'ほか',
+      status: 'unlocked',
+      center: farCenter,
+      spawn: farCenter,
+      radius: 50
+    });
+
+    const unfinished = buildScenarioContext({
+      cat: cat(),
+      cats: [cat(), other],
+      hydrants,
+      session: session(),
+      origin
+    });
+    expect(unfinished.otherTerritoriesUnfinished).toBe(true);
+
+    const finished = buildScenarioContext({
+      cat: cat(),
+      cats: [cat(), other],
+      hydrants,
+      session: session({ knownHydrantIdsAtStart: ['far'] }),
+      origin
+    });
+    expect(finished.otherTerritoriesUnfinished).toBe(false);
+
+    // locked の猫は対象外
+    const locked = buildScenarioContext({
+      cat: cat(),
+      cats: [cat(), { ...other, status: 'locked' }],
+      hydrants,
+      session: session(),
+      origin
+    });
+    expect(locked.otherTerritoriesUnfinished).toBe(false);
+  });
+
   it('carries the previous run through untouched', () => {
-    const previousRun = { inspected: 3, lastMarkSec: 70, at: '2026-01-01T00:00:00.000Z' };
+    const previousRun = {
+      inspected: 3,
+      lastMarkSec: 70,
+      bestLastMarkSec: null,
+      at: '2026-01-01T00:00:00.000Z'
+    };
     const ctx = buildScenarioContext({
       cat: cat(),
       cats: [cat()],

@@ -12,6 +12,10 @@ export const CatSchema = z.object({
   radius: z.number(),
   spawn: z.object({ lat: z.number(), lng: z.number() }),
   photoUrl: z.string().optional(),
+  // リザルト・LP 用のキャラクターイラスト（任意）。無ければ photoUrl を使う。
+  illustUrl: z.string().optional(),
+  // 名づけ主が添えた ひとこと（任意）。眠っている人格カードに出す。
+  catchphrase: z.string().optional(),
   // 猫が増えても名づけ主を書き忘れないよう必須にする。
   namedBy: z.string(),
   // 毛色ではなく、地図上で縄張りを見分けるための表示色。
