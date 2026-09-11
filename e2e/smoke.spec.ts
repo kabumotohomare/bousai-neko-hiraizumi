@@ -1,4 +1,14 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+/** 公開データでは locked の猫（シラヤマ）も選べるようにする。移動・物理の検証専用。 */
+async function unlockAllCats(page: Page) {
+  await page.route('**/data/cats.json', async (route) => {
+    const response = await route.fetch();
+    const cats = await response.json();
+    const patched = cats.map((c: Record<string, unknown>) => ({ ...c, status: 'unlocked' }));
+    await route.fulfill({ response, json: patched });
+  });
+}
 
 test('boots and shows the cat selection screen', async ({ page }) => {
   await page.goto('/');
@@ -39,17 +49,33 @@ test('selecting a cat on the map enables the start button', async ({ page }) => 
   const start = page.getByRole('button', { name: 'このねこでみまわりスタート' });
   await expect(start).toBeDisabled();
 
-  await page.locator('.cat-pin', { hasText: 'シラヤマ' }).click();
+  await page.locator('.cat-pin', { hasText: 'タキザワ' }).click();
 
   await expect(page.locator('.cat-pin--selected')).toHaveCount(1);
   await expect(start).toBeEnabled();
+});
+
+test('a sleeping (locked) cat is greyed out and cannot be selected', async ({ page }) => {
+  await page.goto('/');
+
+  const start = page.getByRole('button', { name: 'このねこでみまわりスタート' });
+  await expect(page.locator('.cat-pin--locked', { hasText: 'シラヤマ' })).toHaveCount(1);
+
+  await page.locator('.cat-pin', { hasText: 'シラヤマ' }).click();
+  await expect(page.locator('.cat-pin--selected')).toHaveCount(0);
+  await expect(start).toBeDisabled();
+
+  // aria-disabled のため Playwright の actionability を外してタップを再現する
+  await page.locator('.cat-item--locked', { hasText: 'シラヤマ' }).click({ force: true });
+  await expect(page.getByRole('status')).toContainText('からだを まっている');
+  await expect(start).toBeDisabled();
 });
 
 test('starting a patrol shows the new screen from the top', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 720 });
   await page.goto('/');
 
-  await page.locator('.cat-item').first().click();
+  await page.locator('.cat-item:not(.cat-item--locked)').first().click();
 
   const start = page.getByRole('button', { name: 'このねこでみまわりスタート' });
   await start.scrollIntoViewIfNeeded();
@@ -64,7 +90,7 @@ test('starting a patrol shows the new screen from the top', async ({ page }) => 
 test('patrol overlay is ready for movement', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.locator('.cat-item').first().click();
+  await page.locator('.cat-item:not(.cat-item--locked)').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
 
   await expect(page.locator('.scene-canvas')).toHaveAttribute('data-ready', 'true', {
@@ -86,7 +112,9 @@ test('patrol overlay is ready for movement', async ({ page }) => {
   await page.keyboard.up('w');
 });
 
-test('cat pins stay aligned with their territory circles after a patrol round trip', async ({ page }) => {
+test('cat pins stay aligned with their territory circles after a patrol round trip', async ({
+  page
+}) => {
   // S03(みまわり)→S04(結果)→この選択画面、と経由した直後にピンの位置がずれる回帰バグの再現テスト。
   // ゲーム時間を短縮してラウンドトリップを高速化する（実データファイルは変更しない）。
   await page.route('**/data/game-config.json', async (route) => {
@@ -105,8 +133,9 @@ test('cat pins stay aligned with their territory circles after a patrol round tr
         const r = el.getBoundingClientRect();
         return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
       }
-      const circle = document.querySelector('path.leaflet-interactive[stroke="#4f46e5"]');
-      const photo = document.querySelector('img.cat-pin__photo[src*="shirayama"]');
+      // タキザワ（unlocked）の円とピンで計測する。locked の猫の円はグレーに描かれる。
+      const circle = document.querySelector('path.leaflet-interactive[stroke="#ea580c"]');
+      const photo = document.querySelector('img.cat-pin__photo[src*="takizawa"]');
       if (!circle || !photo) {
         return null;
       }
@@ -116,32 +145,50 @@ test('cat pins stay aligned with their territory circles after a patrol round tr
     });
 
   // 初回表示は fitBounds アニメーションの収束を待ってから計測する。
-  await expect.poll(async () => (await measureOffset())?.dx ?? 999, { timeout: 3000 }).toBeLessThan(5);
+  await expect
+    .poll(async () => (await measureOffset())?.dx ?? 999, { timeout: 3000 })
+    .toBeLessThan(5);
 
-  await page.locator('.cat-item').first().click();
+  await page.locator('.cat-item:not(.cat-item--locked)').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
-  await page.waitForSelector('text=おさんぽ完了', { timeout: 15_000 });
+  // S04 はシナリオ5スライド（切断→目→鼻→足→ねむり）。行動ボタンは最後のスライドに出る。
+  await page.waitForSelector('text=ねこの 記録', { timeout: 15_000 });
+  for (let i = 0; i < 4; i += 1) {
+    await page.getByRole('button', { name: 'つぎへ' }).click();
+  }
   await page.getByRole('button', { name: 'べつのねこで遊ぶ' }).click();
   await page.waitForSelector('.cat-pin');
 
   // 修正前はここで移動後(fitBounds後)の位置に追従できず、円とピンがずれたままになっていた。
-  await expect.poll(async () => (await measureOffset())?.dx ?? 999, { timeout: 3000 }).toBeLessThan(5);
-  const after = await measureOffset();
-  expect(Math.abs(after!.dy)).toBeLessThan(5);
+  // fitBounds のアニメーション途中を拾わないよう、dx/dy の絶対値の和が収束するまで待つ。
+  await expect
+    .poll(
+      async () => {
+        const offset = await measureOffset();
+        return offset ? Math.abs(offset.dx) + Math.abs(offset.dy) : 999;
+      },
+      // 3D シーンの後片付けと並走すると収束が遅れることがあるため余裕を持たせる
+      { timeout: 8000 }
+    )
+    .toBeLessThan(5);
 });
 
 test('pausing stops the timer and movement, and resuming continues normally', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.locator('.cat-item').first().click();
+  await page.locator('.cat-item:not(.cat-item--locked)').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
 
   await expect(page.locator('.scene-canvas')).toHaveAttribute('data-ready', 'true', {
     timeout: 20_000
   });
 
-  const remainingText = () => page.getByText(/残り \d+s/).first().innerText();
+  const remainingText = () =>
+    page
+      .getByText(/残り \d+s/)
+      .first()
+      .innerText();
   await expect.poll(remainingText).toMatch(/残り \d+s/);
 
   await page.getByRole('button', { name: 'ポーズ' }).click();
@@ -178,7 +225,7 @@ test('the cat cannot walk through a hydrant and reacts with a speech bubble', as
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.locator('.cat-item').first().click();
+  await page.locator('.cat-item:not(.cat-item--locked)').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
 
@@ -222,6 +269,9 @@ test('every cat can move away from their own spawn point', async ({ page }) => {
   // タキザワはスポーン座標が実際の建物メッシュの内側に重なっており、
   // 「そのコライダーで移動を止める」実装だと永久に動けなくなっていた回帰バグの再現テスト。
   await page.setViewportSize({ width: 390, height: 844 });
+  // シラヤマは公開時 locked（からだを まっている）だが、解放後もスポーンから動けることを
+  // 保証したいので、このテストでは全猫を unlocked に差し替える（実データは変更しない）。
+  await unlockAllCats(page);
   await page.goto('/');
 
   for (const catName of ['シラヤマ', 'タキザワ']) {

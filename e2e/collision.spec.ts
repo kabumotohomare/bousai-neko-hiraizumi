@@ -10,10 +10,13 @@ function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: 
 
 test('territory boundary stops the cat without a rubber-band snap back (H8)', async ({ page }) => {
   // 縄張り半径を小さくし(3m)、スポーン直後に境界へ到達するようにして検証を高速化する。
+  // シラヤマは公開データでは locked（選べない）なので、このテストでは unlocked に差し替える。
   await page.route('**/data/cats.json', async (route) => {
     const response = await route.fetch();
     const cats = await response.json();
-    const patched = cats.map((c: Record<string, unknown>) => (c.id === 'cat_001' ? { ...c, radius: 3 } : c));
+    const patched = cats.map((c: Record<string, unknown>) =>
+      c.id === 'cat_001' ? { ...c, radius: 3, status: 'unlocked' } : c
+    );
     await route.fulfill({ response, json: patched });
   });
 
@@ -36,7 +39,10 @@ test('territory boundary stops the cat without a rubber-band snap back (H8)', as
 
   // まず境界(3m)まで到達するのを待つ。
   await expect
-    .poll(async () => distanceMeters(center, await currentPos()), { timeout: 8_000, intervals: [100] })
+    .poll(async () => distanceMeters(center, await currentPos()), {
+      timeout: 8_000,
+      intervals: [100]
+    })
     .toBeGreaterThan(radius - 0.3);
 
   // 境界到達後、押し続けている間に大きく中心側へスナップバックしないことを確認する。
@@ -76,7 +82,9 @@ test('タキザワ moves in the direction she is facing, not backward (regressio
     lng: Number(await minimap.getAttribute('data-player-lng'))
   });
   const getHeadingRad = async () => {
-    const transform = await page.locator('.minimap-player__arrow').evaluate((el) => (el as HTMLElement).style.transform);
+    const transform = await page
+      .locator('.minimap-player__arrow')
+      .evaluate((el) => (el as HTMLElement).style.transform);
     const match = transform.match(/rotate\(([-\d.]+)deg\)/);
     return match ? (parseFloat(match[1]) * Math.PI) / 180 : null;
   };
