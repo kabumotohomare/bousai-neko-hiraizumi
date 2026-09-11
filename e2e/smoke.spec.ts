@@ -117,10 +117,13 @@ test('cat pins stay aligned with their territory circles after a patrol round tr
 }) => {
   // S03(みまわり)→S04(結果)→この選択画面、と経由した直後にピンの位置がずれる回帰バグの再現テスト。
   // ゲーム時間を短縮してラウンドトリップを高速化する（実データファイルは変更しない）。
+  // 注意: タイマーは3Dシーンの読み込み完了を待たずに進むため、この秒数はモデルの
+  // 読み込み時間より確実に長くする必要がある（短すぎるとシーンが出る前に結果画面へ
+  // 遷移してしまい、.scene-canvas[data-ready] が永久に現れずタイムアウトする）。
   await page.route('**/data/game-config.json', async (route) => {
     const response = await route.fetch();
     const json = await response.json();
-    await route.fulfill({ response, json: { ...json, gameDurationSec: 2 } });
+    await route.fulfill({ response, json: { ...json, gameDurationSec: 12 } });
   });
 
   await page.setViewportSize({ width: 1854, height: 900 });
@@ -153,7 +156,9 @@ test('cat pins stay aligned with their territory circles after a patrol round tr
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
   // S04 はシナリオ5スライド（切断→目→鼻→足→ねむり）。行動ボタンは最後のスライドに出る。
-  await page.waitForSelector('text=ねこの 記録', { timeout: 15_000 });
+  // タイマーは setInterval ベースで、3D描画で main thread が混雑すると tick が遅延しうる
+  // ため、gameDurationSec の額面(12s)より十分長いタイムアウトを取る。
+  await page.waitForSelector('text=ねこの 記録', { timeout: 45_000 });
   for (let i = 0; i < 4; i += 1) {
     await page.getByRole('button', { name: 'つぎへ' }).click();
   }
