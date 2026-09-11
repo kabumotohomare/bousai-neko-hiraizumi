@@ -122,6 +122,14 @@ function placeTownModel(root: THREE.Object3D, origin: { lat: number; lng: number
       }
       const color = 'color' in material && material.color instanceof THREE.Color ? material.color : new THREE.Color('#c9c2b6');
       const lambert = new THREE.MeshLambertMaterial({ map, color });
+      // 生垣・室外機などの小道具(Cube系メッシュ)は建物本体の壁面とほぼ同一面に
+      // 配置されており、Zファイティング(ちらつき)を起こしやすい。手前へわずかに
+      // オフセットして、常に壁より優先して描画されるようにする。
+      if (/^Cube\d/.test(child.name)) {
+        lambert.polygonOffset = true;
+        lambert.polygonOffsetFactor = -4;
+        lambert.polygonOffsetUnits = -4;
+      }
       material.dispose();
       return lambert;
     });
@@ -443,7 +451,10 @@ export function PatrolScene({
       CAMERA_NEAR_M,
       cat.radius + CAMERA_FAR_MARGIN_M
     );
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    // logarithmicDepthBuffer: 深度バッファの精度は近距離に偏るため、遠くのオブジェクト同士が
+    // わずかに重なっているだけでもチラつく(Zファイティング)。対数深度バッファにすることで
+    // 遠距離側の精度を底上げし、これを緩和する。
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, logarithmicDepthBuffer: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
