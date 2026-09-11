@@ -10,11 +10,12 @@
     "spawn": { "lat": 38.99066, "lng": 141.11424 },
     "photoUrl": "/images/cats/shirayama.png",
     "illustUrl": "/images/characters/shirayama.png",
+    "sleepIllustUrl": "/images/characters/shirayama-sleep.png",
     "catchphrase": "そなえれば きっと まもれるニャ",
     "namedBy": "Code for hiraizumi",
     "territoryColor": "#4f46e5",
-    "lastUpdated": "2026-09-06",
-    "version": 5
+    "lastUpdated": "2026-09-11",
+    "version": 6
   },
   {
     "id": "cat_002",
@@ -26,9 +27,12 @@
     "radius": 122,
     "spawn": { "lat": 38.9888613, "lng": 141.11681317 },
     "photoUrl": "/images/cats/takizawa.png",
+    "illustUrl": "/images/characters/takizawa.png",
+    "sleepIllustUrl": "/images/characters/takizawa-sleep.png",
+    "catchphrase": "みつけた赤は みんなのあんしんに つながるニャ",
     "namedBy": "Code for hiraizumi",
     "territoryColor": "#ea580c",
-    "lastUpdated": "2026-09-10",
-    "version": 6
+    "lastUpdated": "2026-09-11",
+    "version": 7
   }
 ]

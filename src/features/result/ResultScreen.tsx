@@ -238,11 +238,17 @@ function SenseHeader({ id, label, hint }: { id: string; label: string; hint: str
   );
 }
 
-/** イラスト → 写真 の順に試し、どちらも無ければ null。読み込み失敗時は次の候補へ落ちる。 */
-function useCatImage(cat: Cat): { src: string | null; onError: () => void } {
+/**
+ * （ねむり時は寝ポーズ →）イラスト → 写真 の順に試し、どれも無ければ null。
+ * 読み込み失敗時は次の候補へ落ちる。
+ */
+function useCatImage(cat: Cat, sleeping = false): { src: string | null; onError: () => void } {
   const candidates = useMemo(
-    () => [cat.illustUrl, cat.photoUrl].filter((url): url is string => Boolean(url)),
-    [cat.illustUrl, cat.photoUrl]
+    () =>
+      [sleeping ? cat.sleepIllustUrl : undefined, cat.illustUrl, cat.photoUrl].filter(
+        (url): url is string => Boolean(url)
+      ),
+    [cat.illustUrl, cat.photoUrl, cat.sleepIllustUrl, sleeping]
   );
   const [failed, setFailed] = useState<string[]>([]);
   const src = candidates.find((url) => !failed.includes(url)) ?? null;
@@ -262,9 +268,13 @@ function CatPortrait({
   mood: string;
   sleeping?: boolean;
 }) {
-  const { src, onError } = useCatImage(cat);
+  const { src, onError } = useCatImage(cat, sleeping);
+  const usingSleepPose = sleeping && src !== null && src === cat.sleepIllustUrl;
   return (
-    <figure className={`result-portrait${sleeping ? ' is-sleeping' : ''}`} data-mood={mood}>
+    <figure
+      className={`result-portrait${sleeping ? ' is-sleeping' : ''}${usingSleepPose ? ' has-sleep-pose' : ''}`}
+      data-mood={mood}
+    >
       <span className="result-portrait__ring" aria-hidden="true" />
       {src ? (
         <img className="result-portrait__img" src={src} alt="" onError={onError} />

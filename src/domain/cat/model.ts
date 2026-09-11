@@ -14,6 +14,8 @@ export const CatSchema = z.object({
   photoUrl: z.string().optional(),
   // リザルト・LP 用のキャラクターイラスト（任意）。無ければ photoUrl を使う。
   illustUrl: z.string().optional(),
+  // ねむりスライド用の寝ているポーズ（任意）。無ければ illustUrl をグレーで使う。
+  sleepIllustUrl: z.string().optional(),
   // 名づけ主が添えた ひとこと（任意）。眠っている人格カードに出す。
   catchphrase: z.string().optional(),
   // 猫が増えても名づけ主を書き忘れないよう必須にする。

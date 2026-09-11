@@ -74,9 +74,14 @@ export function MapSelectionScreen() {
                 aria-disabled={locked || undefined}
                 onClick={() => handleSelect(cat.id)}
               >
-                {cat.photoUrl ? (
-                  <img className="cat-item__photo" src={cat.photoUrl} alt="" />
-                ) : null}
+                <span className="cat-item__visual" aria-hidden="true">
+                  {cat.photoUrl ? (
+                    <img className="cat-item__photo" src={cat.photoUrl} alt="" />
+                  ) : null}
+                  {cat.illustUrl ? (
+                    <img className="cat-item__persona" src={cat.illustUrl} alt="" />
+                  ) : null}
+                </span>
                 <span className="cat-item__body">
                   <span className={`cat-item__badge${locked ? '' : ' cat-item__badge--open'}`}>
                     {locked ? s.sleepingBadge : s.selectConnectable}

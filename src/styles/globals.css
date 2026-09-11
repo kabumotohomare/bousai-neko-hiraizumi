@@ -103,6 +103,14 @@ button {
   gap: 2px;
 }
 
+/* 体（写真）の上に、入る人格（イラスト）を小さく重ねる */
+.cat-item__visual {
+  position: relative;
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+}
+
 .cat-item__photo {
   flex: 0 0 auto;
   width: 64px;
@@ -110,6 +118,19 @@ button {
   border-radius: 12px;
   object-fit: cover;
   background: #eef2f7;
+}
+
+.cat-item__persona {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  background: #eef2f7;
+  box-shadow: 0 2px 8px rgba(23, 32, 51, 0.25);
 }
 
 .cat-item__credit {
@@ -726,6 +747,24 @@ button {
   opacity: 0.25;
 }
 
+/* 寝ポーズのイラストがあるときは色を残し、静かに息をする */
+.result-portrait.has-sleep-pose .result-portrait__img {
+  filter: saturate(0.75) brightness(0.95);
+  animation: result-breathe 5s ease-in-out infinite;
+}
+
+@keyframes result-breathe {
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-portrait.has-sleep-pose .result-portrait__img {
+    animation: none;
+  }
+}
+
 .result-portrait__name {
   font-size: 0.85rem;
   color: var(--mood-sub);
@@ -1022,6 +1061,11 @@ button {
 .cat-item--locked .cat-item__photo {
   filter: grayscale(1);
   opacity: 0.7;
+}
+
+.cat-item--locked .cat-item__persona {
+  filter: grayscale(0.8);
+  opacity: 0.85;
 }
 
 .cat-item--locked .cat-item__body {
