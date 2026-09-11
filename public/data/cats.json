@@ -3,28 +3,36 @@
     "id": "cat_001",
     "name": "シラヤマ",
     "displayAreaName": "志羅山・鈴沢地区",
-    "status": "unlocked",
+    "aliasName": "にしの なわばり",
+    "status": "locked",
     "center": { "lat": 38.99066, "lng": 141.11424 },
     "radius": 160,
     "spawn": { "lat": 38.99066, "lng": 141.11424 },
     "photoUrl": "/images/cats/shirayama.png",
+    "illustUrl": "/images/characters/shirayama.png",
+    "sleepIllustUrl": "/images/characters/shirayama-sleep.png",
+    "catchphrase": "そなえれば きっと まもれるニャ",
     "namedBy": "Code for hiraizumi",
     "territoryColor": "#4f46e5",
-    "lastUpdated": "2026-09-06",
-    "version": 5
+    "lastUpdated": "2026-09-11",
+    "version": 6
   },
   {
     "id": "cat_002",
     "name": "タキザワ",
     "displayAreaName": "中尊寺通り周辺",
+    "aliasName": "ひがしの なわばり",
     "status": "unlocked",
     "center": { "lat": 38.9888613, "lng": 141.1166976 },
     "radius": 122,
-    "spawn": { "lat": 38.9888613, "lng": 141.1166976 },
+    "spawn": { "lat": 38.9888613, "lng": 141.11681317 },
     "photoUrl": "/images/cats/takizawa.png",
+    "illustUrl": "/images/characters/takizawa.png",
+    "sleepIllustUrl": "/images/characters/takizawa-sleep.png",
+    "catchphrase": "みつけた赤は みんなのあんしんに つながるニャ",
     "namedBy": "Code for hiraizumi",
     "territoryColor": "#ea580c",
-    "lastUpdated": "2026-09-06",
-    "version": 5
+    "lastUpdated": "2026-09-11",
+    "version": 7
   }
 ]

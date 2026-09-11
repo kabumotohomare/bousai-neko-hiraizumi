@@ -1,8 +1,68 @@
 {
-  "boundary": "ここからそとは、ぼくのなわばりじゃない",
+  "boundary": "この先はなわばりじゃにゃい",
   "timeUp": "きょうはもうつかれた。みまわりはおわりだ。",
-  "inspectSuccess": "てんけんできた！",
+  "inspectSuccess": "赤いしるし。きろくに、ひとつ。",
   "resultLow": "つぎはもっとたくさん見つけてみよう。",
   "resultMid": "この場所、ほんとうの町でもおぼえておこう。",
-  "resultHigh": "みんなの見回りが、町のあんしんにつながる。"
+  "resultHigh": "みんなの見回りが、町のあんしんにつながる。",
+  "obstacleHit": [
+    "あいたっ",
+    "いたいニャー",
+    "ぶつかったニャ",
+    "とおれないニャ",
+    "いたたたニャ",
+    "ここはムリだニャ",
+    "まえがふさがってるニャ",
+    "ニャッ、いたっ"
+  ],
+  "scenario": {
+    "resultTitle": "ねこの 記録",
+    "nextSlide": "つぎへ",
+    "slideLabels": ["切断", "目", "鼻", "足", "ねむり"],
+    "senseHints": {
+      "map": "かりた 目。この なわばりで 見たもの、まだ 見ていないもの。",
+      "nose": "かりた 鼻。まだ 見ていない 赤の、いちばん近い 方角。",
+      "feet": "かりた 足。この からだで、どれだけ はやく まわれたか。"
+    },
+
+    "disconnectIntro": "ねこの時間、おわり。{catName}は、からだから でる。",
+    "disconnectSub": "でる まえに、かりた 3つの かんかくで、きょうを のこす。",
+
+    "progressLabel": "このなわばりで 見つけた 赤いしるし",
+    "todayTag": "きょう",
+    "mapEmpty": "{alias}の 記録は、まだ しろい。",
+    "mapLow": "{alias}で、まだ しらない 赤が {missing}つ。",
+    "mapHigh": "記録の はんぶんより むこうが、見えた。まだ {missing}つ。",
+    "mapComplete": "{alias}の 記録は、できた。",
+    "mapGained": "きょう、記録に ふえた しるし: {gained}つ。",
+
+    "noseNearest": "いちばん近い「まだ」は、{direction} {distance}m。",
+    "noseHop": "{hop}の あとに まわると、ちかい。",
+    "noseComplete": "この なわばりに、しらない においは ない。",
+    "noseSleeping": "においは、{sleepingAlias}から。まだ、だれの 記録にも ない。",
+
+    "feetNone": "この からだでは、まだ 走れていない。",
+    "feetFirst": "この からだに、はじめて はいった。さいごの しるしまで {sec}秒。",
+    "feetFaster": "からだが、みちを おぼえた。まえより はやい。{sec}秒。",
+    "feetSame": "まえと おなじ 足。{sec}秒。",
+    "feetSlower": "きょうは、まわりみちを した。{sec}秒。",
+    "feetMoreMarks": "まえより {diff}つ おおく、しるしを 見た。{sec}秒。",
+    "feetFewerMarks": "まえより {diff}つ すくない。しるしは、にげない。",
+    "feetBest": "この からだの、いちばん はやい 足。{sec}秒。",
+    "feetPrev": "まえ: {prevInspected}つ、{prevSec}秒。",
+    "feetNowLabel": "きょう",
+    "feetPrevLabel": "まえ",
+
+    "sleepIntro": "ねこは ねむる。なにも おぼえていない。",
+    "sleepSub": "記録だけが、まちに のこる。",
+    "sleepingBadge": "ねむりちゅう",
+    "closingSleeping": "{sleepingName}は、からだを まっている。まちの ひとが ねこを みつけたら、はいれる。",
+    "closingAllAwake": "べつの なわばりの 記録も、まだ しろい。",
+    "closingOpen": "つぎの ねこの時間まで、記録は のこる。",
+
+    "selectIntro": "ねこの時間は、{durationSec}びょう。ひとつ えらんで、からだに はいる。",
+    "selectSleeping": "{sleepingName}は、まだ からだを まっている。まちの ひとが ねこを みつけたら、はいれる。",
+    "selectLockedTap": "{catName}は、からだを まっている。ねこを みつけたら、ほうこくで おしえてください。",
+    "selectConnectable": "はいれる"
+  }
 }

@@ -1,11 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppStore } from '../../app/store/useAppStore';
 import { PatrolMinimap } from '../../components/map/PatrolMinimap';
 import { PatrolScene } from '../../components/three/PatrolScene';
 import { VirtualStick } from '../../components/ui/VirtualStick';
+import { isHydrantInTerritory } from '../../domain/hydrant/inTerritory';
 import { PlayerPose } from '../../domain/session/playerInput';
 import { distance2d, latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
 import { usePlayerInput } from './usePlayerInput';
+
+function isCoarsePointer(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+}
 
 export function PatrolScreen() {
   const cats = useAppStore((state) => state.cats);
@@ -17,15 +22,29 @@ export function PatrolScreen() {
   const messages = useAppStore((state) => state.messages);
   const tickPatrol = useAppStore((state) => state.tickPatrol);
   const inspectHydrant = useAppStore((state) => state.inspectHydrant);
+  const pausePatrol = useAppStore((state) => state.pausePatrol);
+  const resumePatrol = useAppStore((state) => state.resumePatrol);
   const goToMap = useAppStore((state) => state.goToMap);
   const failScene = useAppStore((state) => state.failScene);
   const lastInspectAtRef = useRef(0);
   const lastBoundaryAtRef = useRef(0);
+  const lastObstacleHitAtRef = useRef(0);
   const [inspectableId, setInspectableId] = useState<string | null>(null);
   const [boundaryVisible, setBoundaryVisible] = useState(false);
   const [inspectFlash, setInspectFlash] = useState(false);
+  const [obstacleLine, setObstacleLine] = useState<string | null>(null);
   const [playerPose, setPlayerPose] = useState<PlayerPose | null>(null);
-  const { inputRef, setStick } = usePlayerInput();
+  const [showDashButton, setShowDashButton] = useState(isCoarsePointer);
+  const [stickMoving, setStickMoving] = useState(false);
+  const { inputRef, setStick, setDash, dashing } = usePlayerInput();
+
+  const handleStick = useCallback(
+    (forward: number, turn: number) => {
+      setStick(forward, turn);
+      setStickMoving(Math.abs(forward) > 0.12);
+    },
+    [setStick]
+  );
 
   const selectedCat = useMemo(() => {
     if (!currentSession) {
@@ -46,7 +65,7 @@ export function PatrolScreen() {
       .filter((hydrant) => hydrant.status === 'active')
       .filter((hydrant) => {
         const hydrantWorld = latLngToWorldPosition(hydrant.lat, hydrant.lng, origin);
-        return distance2d(catWorld, hydrantWorld) <= selectedCat.radius;
+        return isHydrantInTerritory(hydrantWorld, catWorld, selectedCat.radius);
       });
   }, [gameConfig.defaultMapCenter, hydrants, selectedCat]);
 
@@ -86,8 +105,20 @@ export function PatrolScreen() {
     window.setTimeout(() => setBoundaryVisible(false), 1500);
   }, []);
 
+  const onObstacleHit = useCallback(() => {
+    const now = Date.now();
+    if (now - lastObstacleHitAtRef.current < 1800) {
+      return;
+    }
+
+    lastObstacleHitAtRef.current = now;
+    const lines = messages.obstacleHit;
+    setObstacleLine(lines[Math.floor(Math.random() * lines.length)]);
+    window.setTimeout(() => setObstacleLine(null), 1100);
+  }, [messages.obstacleHit]);
+
   useEffect(() => {
-    if (!currentSession || currentSession.finished) {
+    if (!currentSession || currentSession.finished || currentSession.paused) {
       return;
     }
 
@@ -98,15 +129,37 @@ export function PatrolScreen() {
     return () => window.clearInterval(timer);
   }, [currentSession, tickPatrol]);
 
+  useEffect(() => {
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === 'touch') {
+        setShowDashButton(true);
+      }
+    };
+
+    window.addEventListener('pointerdown', onPointerDown);
+    return () => window.removeEventListener('pointerdown', onPointerDown);
+  }, []);
+
+  const holdDash = useCallback(
+    (event: ReactPointerEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      setDash(true, event.pointerId);
+    },
+    [setDash]
+  );
+
   if (!currentSession || !selectedCat) {
     return null;
   }
 
   const canInspect =
-    Boolean(inspectableId) && currentSession.remainingSec > 0 && !currentSession.finished;
+    Boolean(inspectableId) &&
+    currentSession.remainingSec > 0 &&
+    !currentSession.finished &&
+    !currentSession.paused;
 
   const handleInspect = () => {
-    if (!inspectableId || currentSession.remainingSec <= 0) {
+    if (!inspectableId || currentSession.remainingSec <= 0 || currentSession.paused) {
       return;
     }
 
@@ -122,7 +175,15 @@ export function PatrolScreen() {
   };
 
   return (
-    <main className="patrol-screen">
+    <main
+      className={[
+        'patrol-screen',
+        dashing ? 'is-dashing' : '',
+        dashing && stickMoving ? 'is-running' : ''
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <PatrolScene
         cat={selectedCat}
         hydrants={nearbyHydrants}
@@ -131,12 +192,15 @@ export function PatrolScreen() {
         origin={gameConfig.defaultMapCenter}
         mapBounds={gameConfig.mapBounds}
         moveSpeedMps={gameConfig.playerMoveSpeedMps}
+        dashSpeedMps={currentSession.dashSpeedMps}
         inspectRadiusMeters={gameConfig.inspectRadiusMeters}
         inspectedHydrantIds={currentSession.inspectedHydrantIds}
+        paused={currentSession.paused}
         inputRef={inputRef}
         onInspectableChange={onInspectableChange}
         onPlayerPose={onPlayerPose}
         onBoundary={onBoundary}
+        onObstacleHit={onObstacleHit}
         onFatalError={failScene}
       />
 
@@ -148,8 +212,13 @@ export function PatrolScreen() {
           点検 {currentSession.inspectedHydrantIds.length} / {nearbyHydrants.length}
         </div>
         <div className="patrol-hud__chip">スコア {currentSession.score}</div>
-        <button className="patrol-hud__quit" type="button" onClick={() => goToMap()}>
-          × やめる
+        <button
+          className="patrol-hud__pause"
+          type="button"
+          aria-label="ポーズ"
+          onClick={() => pausePatrol()}
+        >
+          ❚❚
         </button>
       </header>
 
@@ -163,8 +232,10 @@ export function PatrolScreen() {
           pose={playerPose}
         />
       ) : null}
-      {boundaryVisible ? <p className="patrol-toast">{messages.boundary}</p> : null}
       {inspectFlash ? <p className="patrol-toast patrol-toast--inspect">{messages.inspectSuccess}</p> : null}
+
+      {boundaryVisible ? <p className="patrol-speech">{messages.boundary}</p> : null}
+      {obstacleLine ? <p className="patrol-speech">{obstacleLine}</p> : null}
 
       <div className="patrol-whisker" aria-hidden="true">
         <span className="patrol-whisker__line patrol-whisker__line--left" />
@@ -172,8 +243,31 @@ export function PatrolScreen() {
         <span className="patrol-whisker__line patrol-whisker__line--right" />
       </div>
 
+      {dashing && stickMoving ? (
+        <div className="patrol-run-streaks" aria-hidden="true" />
+      ) : null}
+
       <div className="patrol-controls">
-        <VirtualStick onChange={setStick} />
+        <VirtualStick onChange={handleStick} />
+        {showDashButton ? (
+          <button
+            className={dashing ? 'patrol-dash is-active' : 'patrol-dash'}
+            type="button"
+            aria-label="はしる"
+            aria-pressed={dashing}
+            onPointerDown={holdDash}
+            onContextMenu={(event) => event.preventDefault()}
+          >
+            <span className="patrol-dash__label">
+              {dashing && stickMoving ? 'はしってる' : 'はしる'}
+            </span>
+            <span className="patrol-dash__caption">
+              {dashing ? (stickMoving ? 'はやく うごく' : 'スティックで うごく') : 'おしたまま うごく'}
+            </span>
+          </button>
+        ) : (
+          <p className="patrol-dash-hint">Shift ではしる</p>
+        )}
         <button
           className="patrol-inspect"
           type="button"
@@ -183,6 +277,21 @@ export function PatrolScreen() {
           てんけんする
         </button>
       </div>
+
+      {currentSession.paused ? (
+        <div className="patrol-pause-overlay">
+          <div className="patrol-pause-card card stack">
+            <h2 className="title">ポーズちゅう</h2>
+            <p className="subtitle">残り {currentSession.remainingSec}s</p>
+            <button className="primary-button" type="button" onClick={() => resumePatrol()}>
+              つづきから
+            </button>
+            <button className="secondary-button" type="button" onClick={() => goToMap()}>
+              ねこえらびにもどる
+            </button>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
