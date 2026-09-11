@@ -3,23 +3,38 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
     <title>ぼうさいネコ＠平泉 — ねこの時間（ストーリー構造）</title>
     <style>
+      /* =====================================================================
+         ねこの時間 LP
+         夜（せつぞく）→ 夜明け → 朝（ねむり）へ、スクロールと一緒に背景が変わる。
+         ページ全体がひとつの「ねこの時間」＝90秒。上部 HUD の残り秒数と記録数は
+         スクロール量から算出する（シナリオの「記録の進み具合で夜から朝へ」と同じ規則）。
+         ===================================================================== */
       :root {
-        --night-a: #0f1b3d;
-        --night-b: #1e2a5a;
+        --night-a: #0a1230;
+        --night-b: #14204a;
         --dawn: #4a2f6b;
-        --morning-a: #f0a24b;
-        --morning-b: #b9542b;
-        --ink: #172033;
-        --sub: #52607a;
-        --paper: #fbf7ef;
-        --card: #ffffff;
-        --line: #dbe5f1;
+        --dawn-b: #7a3d5a;
+        --morning-a: #c86a4a;
+        --morning-b: #f0a24b;
         --red: #ef4444;
-        --red-soft: #fff1f2;
-        --blue-soft: #e5edf9;
-        --grey: #64748b;
+        --red-glow: rgba(239, 68, 68, 0.55);
+        --cyan: #7dd3fc;
+        --cyan-dim: rgba(125, 211, 252, 0.35);
+        --amber: #fbbf24;
+        --ink: #e9eef8;
+        --sub: #9fb0cc;
+        --mute: #6f7f9c;
+        --line: rgba(151, 178, 224, 0.18);
+        --glass: rgba(255, 255, 255, 0.045);
+        --glass-2: rgba(255, 255, 255, 0.08);
+        --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+        /* スクロールで JS が更新 */
+        --bg-a: var(--night-a);
+        --bg-b: var(--night-b);
+        --accent: var(--cyan);
       }
       * {
         box-sizing: border-box;
@@ -32,70 +47,158 @@
         font-family:
           system-ui,
           -apple-system,
+          'Hiragino Sans',
           'Segoe UI',
           sans-serif;
         color: var(--ink);
-        background: var(--paper);
-        line-height: 1.75;
+        background: linear-gradient(180deg, var(--bg-a), var(--bg-b));
+        background-attachment: fixed;
+        line-height: 1.8;
+        transition: background 0.6s linear;
+        overflow-x: hidden;
+      }
+      body::before {
+        /* 走査線 */
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        background: repeating-linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.015) 0 1px,
+          transparent 1px 3px
+        );
+        mix-blend-mode: overlay;
+      }
+      body::after {
+        /* 周辺減光 */
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        background: radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.45));
       }
       main {
-        max-width: 920px;
+        position: relative;
+        z-index: 2;
+        max-width: 1040px;
         margin: 0 auto;
-        padding: 0 20px 96px;
+        padding: 0 20px 120px;
       }
       section {
-        padding: 56px 0 8px;
+        padding: 72px 0 8px;
       }
       h2 {
-        font-size: 1.35rem;
-        margin: 0 0 6px;
-        letter-spacing: 0.04em;
+        font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+        margin: 0 0 8px;
+        letter-spacing: 0.06em;
+        font-weight: 700;
       }
       h2 small {
-        display: block;
-        font-size: 0.8rem;
-        font-weight: 400;
-        color: var(--sub);
-        letter-spacing: 0.2em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--accent);
+        letter-spacing: 0.3em;
+        margin-bottom: 6px;
+      }
+      h2 small::before {
+        content: '';
+        width: 28px;
+        height: 1px;
+        background: var(--accent);
+        box-shadow: 0 0 8px var(--accent);
       }
       h3 {
         font-size: 1rem;
-        margin: 18px 0 8px;
+        margin: 22px 0 8px;
+        letter-spacing: 0.04em;
       }
       p {
         margin: 8px 0;
       }
       .lead {
         color: var(--sub);
+        max-width: 60ch;
       }
+      a {
+        color: var(--cyan);
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.84em;
+        background: rgba(125, 211, 252, 0.1);
+        color: #c9e7fb;
+        padding: 1px 6px;
+        border-radius: 6px;
+      }
+      .mono {
+        font-family: var(--mono);
+      }
+
+      /* ---------- glass card ---------- */
       .card {
-        background: var(--card);
-        border-radius: 16px;
-        padding: 18px 22px;
-        box-shadow: 0 8px 24px rgba(23, 32, 51, 0.08);
+        position: relative;
+        background: var(--glass);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px 24px;
         margin: 14px 0;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 20px 50px rgba(0, 0, 0, 0.35);
+      }
+      .card::before,
+      .card::after {
+        /* コーナーブラケット */
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border: 1px solid var(--accent);
+        opacity: 0.7;
+        pointer-events: none;
+      }
+      .card::before {
+        top: 8px;
+        left: 8px;
+        border-right: 0;
+        border-bottom: 0;
+        border-top-left-radius: 6px;
+      }
+      .card::after {
+        right: 8px;
+        bottom: 8px;
+        border-left: 0;
+        border-top: 0;
+        border-bottom-right-radius: 6px;
       }
       .grid {
         display: grid;
         gap: 14px;
       }
-      @media (min-width: 720px) {
+      @media (min-width: 760px) {
         .grid-2 {
           grid-template-columns: 1fr 1fr;
         }
         .grid-3 {
           grid-template-columns: repeat(3, 1fr);
         }
-        .grid-4 {
-          grid-template-columns: repeat(4, 1fr);
-        }
       }
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.92rem;
-        background: var(--card);
-        border-radius: 12px;
+        font-size: 0.9rem;
+        background: var(--glass);
+        border: 1px solid var(--line);
+        border-radius: 14px;
         overflow: hidden;
       }
       th,
@@ -106,257 +209,894 @@
         border-bottom: 1px solid var(--line);
       }
       th {
-        background: var(--blue-soft);
+        background: rgba(125, 211, 252, 0.08);
+        color: #d7e8fa;
         font-weight: 600;
         white-space: nowrap;
+        font-size: 0.85rem;
       }
-      code {
-        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        font-size: 0.86em;
-        background: #f1f4f9;
-        padding: 1px 6px;
-        border-radius: 6px;
+      tr:last-child td,
+      tr:last-child th {
+        border-bottom: 0;
       }
       .tag {
         display: inline-block;
-        padding: 1px 8px;
+        padding: 1px 9px;
         border-radius: 999px;
-        background: var(--blue-soft);
-        font-size: 0.75rem;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.05);
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
         color: var(--sub);
         margin-left: 6px;
         vertical-align: middle;
       }
       .tag.red {
         background: var(--red);
+        border-color: var(--red);
         color: #fff;
+        box-shadow: 0 0 14px var(--red-glow);
       }
       .tag.grey {
-        background: var(--grey);
+        background: var(--mute);
+        border-color: var(--mute);
         color: #fff;
       }
       .note {
-        border-left: 4px solid var(--line);
-        padding-left: 12px;
+        border-left: 2px solid var(--accent);
+        padding-left: 14px;
         color: var(--sub);
         font-size: 0.92rem;
       }
 
-      /* ---------- ヒーロー（夜） ---------- */
+      /* ---------- reveal ---------- */
+      .reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease;
+      }
+      .reveal.in {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* =====================================================================
+         HUD（固定ヘッダー）
+         ===================================================================== */
+      .hud {
+        position: fixed;
+        inset: 0 0 auto 0;
+        z-index: 10;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 18px;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        color: var(--sub);
+        background: linear-gradient(180deg, rgba(5, 9, 24, 0.85), rgba(5, 9, 24, 0.35) 80%, transparent);
+        pointer-events: none;
+      }
+      .hud .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+      }
+      .hud .brand .led {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--red);
+        box-shadow: 0 0 10px var(--red);
+        animation: blink 1.6s ease-in-out infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.35;
+        }
+      }
+      .hud .timer {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        color: var(--ink);
+      }
+      .hud .timer b {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #fff;
+        font-variant-numeric: tabular-nums;
+      }
+      .hud .rec {
+        justify-self: end;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .hud .rec i {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        border: 1px solid var(--red);
+        transition: background 0.3s;
+      }
+      .hud .rec i.on {
+        background: var(--red);
+        box-shadow: 0 0 8px var(--red);
+      }
+      .hud .bar {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 1px;
+        width: 0%;
+        background: linear-gradient(90deg, var(--red), var(--accent));
+        box-shadow: 0 0 10px var(--accent);
+      }
+      @media (max-width: 600px) {
+        .hud .brand span {
+          display: none;
+        }
+      }
+
+      /* =====================================================================
+         ヒーロー（Three.js 背景）
+         ===================================================================== */
       .hero {
         position: relative;
-        padding: 64px 20px 56px;
-        background:
-          radial-gradient(ellipse at 20% 0%, rgba(239, 68, 68, 0.18), transparent 50%),
-          linear-gradient(180deg, var(--night-a) 0%, var(--night-b) 100%);
-        color: #fff;
+        min-height: 100svh;
+        display: grid;
+        align-items: center;
+        padding: 96px 20px 72px;
         overflow: hidden;
+        isolation: isolate;
+      }
+      .hero canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        display: block;
+      }
+      .hero .fallback-bg {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        background:
+          radial-gradient(ellipse at 20% 20%, rgba(239, 68, 68, 0.2), transparent 45%),
+          radial-gradient(ellipse at 80% 70%, rgba(125, 211, 252, 0.12), transparent 50%);
       }
       .hero::after {
         content: '';
         position: absolute;
         inset: auto 0 0 0;
-        height: 60px;
-        background: linear-gradient(180deg, transparent, var(--paper));
+        height: 120px;
+        background: linear-gradient(180deg, transparent, var(--bg-a));
+        z-index: -1;
       }
       .hero-inner {
-        max-width: 920px;
+        position: relative;
+        max-width: 1040px;
         margin: 0 auto;
+        width: 100%;
         display: grid;
-        gap: 24px;
+        gap: 32px;
         align-items: center;
       }
-      @media (min-width: 720px) {
+      @media (min-width: 860px) {
         .hero-inner {
-          grid-template-columns: 1.2fr 0.8fr;
+          grid-template-columns: 1.15fr 0.85fr;
         }
       }
-      .hero .kicker {
-        display: inline-block;
-        padding: 3px 12px;
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 12px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        font-size: 0.78rem;
-        letter-spacing: 0.2em;
-        color: rgba(255, 255, 255, 0.85);
+        border: 1px solid var(--cyan-dim);
+        background: rgba(125, 211, 252, 0.06);
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.24em;
+        color: var(--cyan);
+      }
+      .kicker::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--cyan);
+        box-shadow: 0 0 8px var(--cyan);
       }
       .hero h1 {
-        margin: 12px 0 8px;
-        font-size: 2.1rem;
+        margin: 18px 0 10px;
+        font-size: clamp(1.75rem, 4.2vw, 2.7rem);
         line-height: 1.25;
         letter-spacing: 0.04em;
+        text-wrap: balance;
       }
       .hero h1 span {
+        position: relative;
         display: inline-block;
-        transform: rotate(-2deg);
-        border-bottom: 3px solid var(--red);
+      }
+      .hero h1 span::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 2px;
+        height: 3px;
+        background: var(--red);
+        box-shadow: 0 0 16px var(--red-glow);
+        transform: rotate(-1.2deg);
       }
       .hero .tagline {
-        font-size: 1.05rem;
-        color: rgba(255, 255, 255, 0.85);
+        font-size: 1.02rem;
+        color: var(--sub);
+        max-width: 56ch;
+      }
+      .hero .tagline strong {
+        color: #fff;
+        text-shadow: 0 0 12px var(--red-glow);
       }
       .hero .meta {
         margin-top: 18px;
-        font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.65);
+        font-family: var(--mono);
+        font-size: 0.74rem;
+        letter-spacing: 0.06em;
+        color: var(--mute);
       }
-      .hero-figure {
+      .readout {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        margin-top: 22px;
+        padding: 12px 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(5, 9, 24, 0.5);
+        font-family: var(--mono);
+        font-size: 0.74rem;
+        letter-spacing: 0.08em;
+        color: var(--sub);
+      }
+      .readout b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .readout .ok {
+        color: var(--cyan);
+      }
+      .readout .warn {
+        color: var(--amber);
+      }
+      .typed {
+        margin-top: 14px;
+        font-family: var(--mono);
+        font-size: 0.86rem;
+        color: #d7e8fa;
+        min-height: 1.6em;
+      }
+      .typed::after {
+        content: '▍';
+        color: var(--cyan);
+        animation: blink 1s steps(1) infinite;
+      }
+
+      /* 接続パネル：2つの人格の状態 */
+      .link-panel {
+        display: grid;
+        gap: 14px;
+      }
+      .persona-chip {
         position: relative;
         display: grid;
-        place-items: center;
+        grid-template-columns: 84px 1fr;
         gap: 14px;
-        min-height: 260px;
-        margin: 0;
-        padding-bottom: 28px;
+        align-items: center;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(5, 9, 24, 0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        overflow: hidden;
       }
-      .hero-figure .ring {
-        position: absolute;
-        top: 5px;
-        width: 250px;
-        height: 250px;
+      .persona-chip .face {
+        position: relative;
+        width: 84px;
+        height: 84px;
+      }
+      .persona-chip .face img {
+        width: 84px;
+        height: 84px;
         border-radius: 50%;
-        border: 2px dashed rgba(239, 68, 68, 0.7);
-        animation: spin 30s linear infinite;
+        object-fit: cover;
+        display: block;
+        border: 2px solid rgba(255, 255, 255, 0.12);
+      }
+      .persona-chip .face .ring {
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        border: 1.5px dashed var(--chip);
+        animation: spin 22s linear infinite;
+        opacity: 0.8;
+      }
+      .persona-chip .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.22em;
+        color: var(--chip);
+      }
+      .persona-chip .status::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--chip);
+        box-shadow: 0 0 8px var(--chip);
+      }
+      .persona-chip .nm {
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        line-height: 1.2;
+        margin: 2px 0;
+      }
+      .persona-chip .nm small {
+        font-family: var(--mono);
+        font-size: 0.66rem;
+        font-weight: 400;
+        letter-spacing: 0.3em;
+        color: var(--mute);
+        margin-left: 8px;
+      }
+      .persona-chip .ln {
+        font-size: 0.82rem;
+        color: var(--sub);
+      }
+      .persona-chip.link {
+        --chip: var(--red);
+      }
+      .persona-chip.standby {
+        --chip: #94a3b8;
+      }
+      .persona-chip.standby img {
+        filter: grayscale(0.85) brightness(0.8);
+      }
+      .persona-chip.standby .ring {
+        animation-play-state: paused;
+        opacity: 0.35;
+      }
+      .persona-chip .scan {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg, transparent 0 45%, rgba(239, 68, 68, 0.12) 50%, transparent 55% 100%);
+        background-size: 100% 300%;
+        animation: scan 4s linear infinite;
+        mix-blend-mode: screen;
+      }
+      @keyframes scan {
+        from {
+          background-position: 0 -100%;
+        }
+        to {
+          background-position: 0 200%;
+        }
       }
       @keyframes spin {
         to {
           transform: rotate(360deg);
         }
       }
-      .hero-figure img,
-      .hero-figure .silhouette {
-        width: 220px;
-        height: 220px;
-        border-radius: 50%;
-        object-fit: cover;
-        background: #0b1330;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+      .link-wire {
+        position: relative;
+        height: 22px;
+        margin: -6px 0 -6px 41px;
+        border-left: 1px dashed var(--red-glow);
       }
-      .hero-figure .silhouette {
-        display: grid;
-        place-items: center;
-      }
-      .hero-figure .hint {
-        font-size: 0.78rem;
-        color: rgba(255, 255, 255, 0.55);
+      .link-wire::after {
+        content: 'LINK → BODY';
+        position: absolute;
+        left: 12px;
+        top: 0;
+        font-family: var(--mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.24em;
+        color: var(--mute);
       }
 
-      /* ---------- キャラカード（シート風） ---------- */
-      .char-card {
-        display: grid;
-        gap: 18px;
-        padding: 22px;
-        border-radius: 18px;
-        background: #0b0d12;
-        color: #f5f1e8;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-      }
-      @media (min-width: 720px) {
-        .char-card {
-          grid-template-columns: minmax(240px, 40%) 1fr;
-        }
-      }
-      .char-card.is-sleeping {
-        filter: saturate(0.6);
-      }
-      .char-card .portrait {
+      /* =====================================================================
+         人格リンクカード（02）
+         ===================================================================== */
+      .persona-card {
+        --pc: var(--red);
         position: relative;
         display: grid;
-        place-items: center;
+        gap: 20px;
+        padding: 22px;
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.06), transparent 40%),
+          rgba(5, 9, 24, 0.6);
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+        transform-style: preserve-3d;
+        transition: transform 0.25s ease;
+        will-change: transform;
+        margin: 18px 0;
+        overflow: hidden;
       }
-      .char-card .portrait img,
-      .char-card .portrait .silhouette {
-        width: 220px;
-        height: 220px;
-        border-radius: 18px;
-        object-fit: cover;
-        background: #161a26;
+      .persona-card .sheen {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          circle at var(--mx, 50%) var(--my, 50%),
+          rgba(255, 255, 255, 0.14),
+          transparent 45%
+        );
+        opacity: 0;
+        transition: opacity 0.3s;
       }
-      /* キャラクターシート全体を見せる（透過PNG・黒背景に合わせて contain） */
-      .char-card .portrait img.sheet {
-        width: 100%;
-        max-width: 420px;
-        height: auto;
-        object-fit: contain;
-        background: transparent;
+      .persona-card:hover .sheen {
+        opacity: 1;
       }
-      .char-card.is-sleeping .portrait img:not(.sheet) {
-        filter: grayscale(1) brightness(0.85);
+      .persona-card .frame {
+        position: absolute;
+        inset: 10px;
+        border-radius: 16px;
+        border: 1px solid color-mix(in srgb, var(--pc) 45%, transparent);
+        pointer-events: none;
       }
-      .char-card.is-sleeping {
-        filter: none;
+      .persona-card .frame::before,
+      .persona-card .frame::after {
+        content: '';
+        position: absolute;
+        width: 26px;
+        height: 26px;
+        border: 2px solid var(--pc);
       }
-      .char-card .portrait .silhouette {
+      .persona-card .frame::before {
+        top: -1px;
+        left: -1px;
+        border-right: 0;
+        border-bottom: 0;
+        border-top-left-radius: 14px;
+      }
+      .persona-card .frame::after {
+        right: -1px;
+        bottom: -1px;
+        border-left: 0;
+        border-top: 0;
+        border-bottom-right-radius: 14px;
+      }
+      @media (min-width: 860px) {
+        .persona-card {
+          grid-template-columns: minmax(280px, 42%) 1fr;
+        }
+      }
+      .persona-card.standby {
+        --pc: #94a3b8;
+      }
+      .persona-card .visual {
+        position: relative;
         display: grid;
-        place-items: center;
-        border: 1px dashed rgba(255, 255, 255, 0.25);
-        color: rgba(255, 255, 255, 0.45);
-        font-size: 0.8rem;
-        text-align: center;
-        padding: 12px;
+        gap: 12px;
+        align-content: start;
       }
-      .char-card .name {
-        font-size: 1.9rem;
-        font-weight: 800;
-        letter-spacing: 0.12em;
-        margin: 0;
-        line-height: 1.1;
+      .persona-card .figure {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #0b0f1e;
+        border: 1px solid var(--line);
+        aspect-ratio: 5 / 8;
       }
-      .char-card .name small {
+      .persona-card .figure img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
         display: block;
-        font-size: 0.7rem;
-        letter-spacing: 0.4em;
-        color: rgba(255, 255, 255, 0.55);
-        font-weight: 400;
+        transition: filter 0.4s;
       }
-      .char-card .desc {
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 0.92rem;
+      .persona-card .figure::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        border-radius: inherit;
+        box-shadow: inset 0 0 48px rgba(5, 9, 24, 0.7);
       }
-      .char-card table {
-        background: transparent;
-        color: #f5f1e8;
-        font-size: 0.88rem;
+      .persona-card .figure .grid-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(125, 211, 252, 0.12) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(125, 211, 252, 0.12) 1px, transparent 1px);
+        background-size: 24px 24px;
+        mask: linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent 40%, transparent 70%, rgba(0, 0, 0, 0.6));
       }
-      .char-card th {
-        background: rgba(255, 255, 255, 0.08);
-        color: rgba(255, 255, 255, 0.85);
-        width: 7em;
+      .persona-card .figure .scanline {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--pc);
+        box-shadow: 0 0 18px var(--pc);
+        opacity: 0.7;
+        animation: scanY 5s linear infinite;
       }
-      .char-card th,
-      .char-card td {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      @keyframes scanY {
+        from {
+          top: -2px;
+        }
+        to {
+          top: 100%;
+        }
       }
-      .char-card .quote {
-        display: inline-block;
-        margin-top: 10px;
-        padding: 6px 14px;
-        border-radius: 12px;
-        background: var(--paper);
-        color: var(--ink);
-        font-weight: 600;
-        transform: rotate(-1.5deg);
-      }
-      .char-card .badge {
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 999px;
-        font-size: 0.75rem;
-        background: var(--grey);
+      .persona-card .figure .lbl {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        font-family: var(--mono);
+        font-size: 0.64rem;
+        letter-spacing: 0.24em;
         color: #fff;
-        vertical-align: middle;
-        margin-left: 8px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: rgba(5, 9, 24, 0.6);
+        border: 1px solid var(--line);
       }
-      .char-card .badge.open {
-        background: var(--red);
+      .persona-card .figure .lbl.br {
+        left: auto;
+        top: auto;
+        right: 10px;
+        bottom: 10px;
+        color: var(--pc);
+      }
+      .persona-card.standby .figure img {
+        filter: grayscale(0.7) brightness(0.85) contrast(0.95);
+      }
+      .persona-card.standby .figure .scanline {
+        animation-duration: 12s;
+        opacity: 0.3;
+      }
+      .persona-card.standby .figure img {
+        animation: breathe 6s ease-in-out infinite;
+      }
+      @keyframes breathe {
+        50% {
+          transform: scale(1.015);
+        }
       }
 
-      /* ---------- 人格 / 体 ---------- */
+      /* 表情モニター */
+      .faces {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+      .faces button {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        padding: 6px 4px 4px;
+        color: var(--sub);
+        font: inherit;
+        font-size: 0.7rem;
+        cursor: pointer;
+        display: grid;
+        gap: 4px;
+        justify-items: center;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .faces button img {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+      }
+      .faces button.on {
+        border-color: var(--pc);
+        background: color-mix(in srgb, var(--pc) 14%, transparent);
+        color: #fff;
+      }
+      .persona-card.standby .faces button img {
+        filter: grayscale(0.8);
+      }
+      .persona-card.standby .faces button.on img {
+        filter: none;
+      }
+      .face-monitor {
+        display: grid;
+        grid-template-columns: 96px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .face-monitor img {
+        width: 96px;
+        height: 96px;
+        border-radius: 14px;
+        object-fit: cover;
+        display: block;
+      }
+      .face-monitor .k {
+        font-family: var(--mono);
+        font-size: 0.64rem;
+        letter-spacing: 0.24em;
+        color: var(--mute);
+      }
+      .face-monitor .v {
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+      .face-monitor .say {
+        font-size: 0.84rem;
+        color: var(--sub);
+        margin-top: 2px;
+      }
+
+      /* 右側：データ */
+      .persona-card .data {
+        display: grid;
+        gap: 12px;
+        align-content: start;
+      }
+      .persona-card .head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 14px;
+      }
+      .persona-card .name {
+        font-size: clamp(1.8rem, 3.4vw, 2.3rem);
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        margin: 0;
+        line-height: 1.05;
+      }
+      .persona-card .name small {
+        display: block;
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.42em;
+        color: var(--mute);
+        font-weight: 400;
+        margin-top: 4px;
+      }
+      .persona-card .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        border: 1px solid var(--pc);
+        color: var(--pc);
+        background: color-mix(in srgb, var(--pc) 12%, transparent);
+      }
+      .persona-card .badge::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--pc);
+        box-shadow: 0 0 10px var(--pc);
+      }
+      .persona-card.link .badge::before {
+        animation: blink 1.4s ease-in-out infinite;
+      }
+      .persona-card .desc {
+        color: var(--sub);
+        font-size: 0.94rem;
+        margin: 0;
+      }
+      .persona-card .desc strong {
+        color: #fff;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: 7.5em 1fr;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        font-size: 0.9rem;
+      }
+      .kv > div {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .kv > div:nth-last-child(-n + 2) {
+        border-bottom: 0;
+      }
+      .kv > div:nth-child(odd) {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--sub);
+        font-size: 0.82rem;
+        letter-spacing: 0.04em;
+      }
+      .kv .mono {
+        font-size: 0.82rem;
+        color: #c9e7fb;
+      }
+      .redmarks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .redmarks span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(239, 68, 68, 0.5);
+        background: rgba(239, 68, 68, 0.08);
+        font-family: var(--mono);
+        font-size: 0.74rem;
+        color: #ffd7d7;
+      }
+      .redmarks span::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--red);
+        box-shadow: 0 0 8px var(--red);
+      }
+      .redmarks span.empty {
+        border-color: var(--line);
+        background: transparent;
+        color: var(--mute);
+      }
+      .redmarks span.empty::before {
+        background: transparent;
+        border: 1px solid var(--mute);
+        box-shadow: none;
+      }
+      .persona-card .quote {
+        display: inline-block;
+        margin-top: 4px;
+        padding: 8px 16px;
+        border-radius: 12px;
+        background: #fbf7ef;
+        color: #172033;
+        font-weight: 700;
+        transform: rotate(-1.2deg);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+      }
+      /* 人格→体 */
+      .bind {
+        display: grid;
+        grid-template-columns: 64px 1fr 64px;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .bind img,
+      .bind .unknown {
+        width: 64px;
+        height: 64px;
+        border-radius: 14px;
+        object-fit: cover;
+        display: grid;
+        place-items: center;
+        background: #0b0f1e;
+        border: 1px solid var(--line);
+        color: var(--mute);
+        font-size: 1.4rem;
+      }
+      .bind .unknown {
+        border-style: dashed;
+      }
+      .bind .wire {
+        position: relative;
+        height: 2px;
+        background: repeating-linear-gradient(90deg, var(--pc) 0 8px, transparent 8px 14px);
+        opacity: 0.8;
+        animation: flow 1.2s linear infinite;
+      }
+      .persona-card.standby .bind .wire {
+        animation: none;
+        opacity: 0.3;
+      }
+      @keyframes flow {
+        to {
+          background-position: 14px 0;
+        }
+      }
+      .bind .wire span {
+        position: absolute;
+        left: 50%;
+        top: -1.7em;
+        transform: translateX(-50%);
+        font-family: var(--mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.24em;
+        color: var(--mute);
+        white-space: nowrap;
+      }
+      .bind small {
+        display: block;
+        text-align: center;
+        font-family: var(--mono);
+        font-size: 0.6rem;
+        letter-spacing: 0.2em;
+        color: var(--mute);
+        margin-top: 4px;
+      }
+      details.sheet {
+        margin-top: 10px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.03);
+        overflow: hidden;
+      }
+      details.sheet summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 10px 14px;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.2em;
+        color: var(--sub);
+      }
+      details.sheet summary::-webkit-details-marker {
+        display: none;
+      }
+      details.sheet summary::before {
+        content: '▸ ';
+        color: var(--accent);
+      }
+      details.sheet[open] summary::before {
+        content: '▾ ';
+      }
+      details.sheet img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-top: 1px solid var(--line);
+      }
+
+      /* =====================================================================
+         人格 / 体（01）
+         ===================================================================== */
       .duo {
         display: grid;
         gap: 14px;
+        margin-top: 8px;
       }
-      @media (min-width: 720px) {
+      @media (min-width: 760px) {
         .duo {
           grid-template-columns: 1fr auto 1fr;
           align-items: stretch;
@@ -366,108 +1106,214 @@
         border-radius: 16px;
         padding: 18px 20px;
         border: 1px solid var(--line);
-        background: var(--card);
+        background: var(--glass);
       }
       .duo .side h3 {
         margin: 0 0 6px;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .duo .side h3 small {
+        font-family: var(--mono);
+        font-size: 0.64rem;
+        letter-spacing: 0.24em;
+        color: var(--mute);
       }
       .duo .side.mind {
-        border-color: rgba(30, 42, 90, 0.5);
-        background: linear-gradient(180deg, #eef2ff, #fff);
+        border-color: var(--cyan-dim);
+        background: linear-gradient(180deg, rgba(125, 211, 252, 0.09), var(--glass));
       }
       .duo .side.body {
         border-color: rgba(239, 68, 68, 0.4);
-        background: linear-gradient(180deg, #fff1f2, #fff);
+        background: linear-gradient(180deg, rgba(239, 68, 68, 0.1), var(--glass));
+      }
+      .duo .side .k {
+        font-family: var(--mono);
+        font-size: 0.66rem;
+        letter-spacing: 0.24em;
+        color: var(--mute);
+        margin-top: 8px;
       }
       .duo .side ul {
-        margin: 6px 0 0;
+        margin: 4px 0 0;
         padding-left: 1.1em;
         font-size: 0.92rem;
       }
-      .duo .side .lack {
-        color: var(--sub);
+      .duo .side ul.lack {
+        color: var(--mute);
+        text-decoration: line-through;
+        text-decoration-color: rgba(255, 255, 255, 0.3);
       }
       .duo .join {
         display: grid;
         place-items: center;
+        gap: 6px;
         color: var(--sub);
         font-size: 0.85rem;
         text-align: center;
         padding: 8px;
+        min-width: 160px;
       }
-      .duo .join strong {
-        display: block;
-        font-size: 1.4rem;
+      .duo .join .pulse {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--red);
         color: var(--red);
+        font-size: 1.4rem;
+        font-weight: 700;
+      }
+      .duo .join .pulse::before,
+      .duo .join .pulse::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1px solid var(--red);
+        animation: ripple 2.4s ease-out infinite;
+      }
+      .duo .join .pulse::after {
+        animation-delay: 1.2s;
+      }
+      @keyframes ripple {
+        to {
+          transform: scale(1.9);
+          opacity: 0;
+        }
       }
 
-      /* ---------- 一周の流れ ---------- */
+      /* =====================================================================
+         一周の流れ（03）
+         ===================================================================== */
       .flow {
         display: grid;
         gap: 12px;
+        position: relative;
       }
-      @media (min-width: 720px) {
+      @media (min-width: 760px) {
         .flow {
           grid-template-columns: repeat(4, 1fr);
         }
+        .flow::before {
+          content: '';
+          position: absolute;
+          left: 4%;
+          right: 4%;
+          top: 22px;
+          height: 1px;
+          background: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 12px);
+          opacity: 0.5;
+        }
       }
       .flow .step {
-        border-radius: 14px;
-        padding: 14px 16px;
+        position: relative;
+        border-radius: 16px;
+        padding: 16px 16px 14px;
         color: #fff;
-        min-height: 150px;
+        min-height: 170px;
         display: grid;
         align-content: start;
         gap: 4px;
+        border: 1px solid var(--line);
+        overflow: hidden;
       }
       .flow .step small {
-        font-size: 0.72rem;
-        letter-spacing: 0.25em;
-        opacity: 0.75;
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.28em;
+        opacity: 0.85;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .flow .step small::before {
+        content: '';
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 10px currentColor;
       }
       .flow .step strong {
         font-size: 1.05rem;
+        letter-spacing: 0.04em;
       }
       .flow .step p {
         margin: 2px 0 0;
-        font-size: 0.88rem;
+        font-size: 0.86rem;
         opacity: 0.9;
       }
+      .flow .step .say {
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        color: #d7e8fa;
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.2);
+      }
       .flow .step.connect {
-        background: linear-gradient(180deg, #2a3670, #1e2a5a);
+        background: linear-gradient(180deg, #23306e, #14204a);
       }
       .flow .step.time {
-        background: linear-gradient(180deg, #0f1b3d, #0b1330);
+        background: linear-gradient(180deg, #0f1b3d, #070c1f);
       }
       .flow .step.cut {
         background: linear-gradient(180deg, #4a2f6b, #1e2a5a);
-        outline: 3px solid var(--red);
-        outline-offset: -3px;
+        outline: 2px solid var(--red);
+        outline-offset: -2px;
+        box-shadow: 0 0 30px var(--red-glow);
       }
       .flow .step.sleep {
         background: linear-gradient(180deg, #f0a24b, #b9542b);
+        color: #2a150a;
+      }
+      .flow .step.sleep .say {
+        color: #3b1d0e;
+        border-color: rgba(0, 0, 0, 0.2);
       }
       .flow .step .tag {
         justify-self: start;
-        margin: 4px 0 0;
+        margin: 6px 0 0;
+      }
+      .flow .step.sleep .tag {
+        color: #3b1d0e;
+        border-color: rgba(0, 0, 0, 0.25);
+        background: rgba(255, 255, 255, 0.35);
+      }
+      .flow .step .pose {
+        position: absolute;
+        right: -6px;
+        bottom: -4px;
+        width: 96px;
+        opacity: 0.9;
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+      .flow .step.sleep .pose {
+        border-color: rgba(0, 0, 0, 0.15);
       }
 
-      /* ---------- 感覚 3 枚 ---------- */
+      /* 感覚 3 枚 */
       .senses {
         display: grid;
         gap: 12px;
       }
-      @media (min-width: 720px) {
+      @media (min-width: 760px) {
         .senses {
           grid-template-columns: repeat(3, 1fr);
         }
       }
       .sense {
-        border-radius: 14px;
+        border-radius: 16px;
         padding: 16px;
         border: 1px solid var(--line);
-        background: var(--card);
+        background: var(--glass);
         display: grid;
         gap: 6px;
       }
@@ -477,10 +1323,11 @@
         border-radius: 50%;
         display: grid;
         place-items: center;
-        background: var(--red);
+        background: radial-gradient(circle at 30% 30%, #ff8a8a, var(--red));
         color: #fff;
         font-size: 1.3rem;
         font-weight: 700;
+        box-shadow: 0 0 20px var(--red-glow);
       }
       .sense strong {
         font-size: 1.05rem;
@@ -490,17 +1337,53 @@
         font-size: 0.9rem;
       }
       .sense .how {
-        font-size: 0.85rem;
-        padding-top: 6px;
+        font-family: var(--mono);
+        font-size: 0.76rem;
+        color: #c9e7fb;
+        padding-top: 8px;
         border-top: 1px dashed var(--line);
       }
 
-      /* ---------- 画面モック ---------- */
+      /* =====================================================================
+         画面モック（05）— デバイスフレーム
+         ===================================================================== */
+      .devices {
+        display: grid;
+        gap: 18px;
+      }
+      @media (min-width: 760px) {
+        .devices {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .device {
+        position: relative;
+        border-radius: 28px;
+        padding: 10px;
+        background: #05070f;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+          0 30px 60px rgba(0, 0, 0, 0.5);
+      }
+      .device::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 12px;
+        transform: translateX(-50%);
+        width: 84px;
+        height: 18px;
+        border-radius: 999px;
+        background: #000;
+        z-index: 2;
+      }
       .mock {
         border-radius: 20px;
-        padding: 12px;
+        padding: 30px 12px 12px;
         font-size: 0.84rem;
-        color: var(--ink);
+        color: #172033;
+        min-height: 100%;
       }
       .mock[data-mood='empty'] {
         background: linear-gradient(180deg, #0f1b3d, #1e2a5a);
@@ -519,6 +1402,14 @@
         margin: 8px 0;
         box-shadow: none;
         border-radius: 14px;
+        background: #fff;
+        border: 0;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+      .mock .card::before,
+      .mock .card::after {
+        display: none;
       }
       .mock .steps {
         display: grid;
@@ -531,11 +1422,11 @@
       .mock .steps li {
         text-align: center;
         border-radius: 999px;
-        border: 1px solid var(--line);
+        border: 1px solid #dbe5f1;
         background: #f5f7fb;
-        color: var(--sub);
+        color: #52607a;
         padding: 3px 0;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
       }
       .mock .steps li.on {
         background: var(--red);
@@ -544,8 +1435,8 @@
         font-weight: 700;
       }
       .mock .steps li.done {
-        background: var(--blue-soft);
-        color: var(--ink);
+        background: #e5edf9;
+        color: #172033;
       }
       .mock .portrait {
         width: 72px;
@@ -555,8 +1446,14 @@
         border: 2px dashed var(--red);
         display: grid;
         place-items: center;
-        color: var(--sub);
+        overflow: hidden;
+        color: #52607a;
         font-size: 0.7rem;
+      }
+      .mock .portrait img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
       .mock .portrait.sleep {
         border-color: #cbd5e1;
@@ -565,7 +1462,7 @@
       .mock .bar {
         height: 10px;
         border-radius: 999px;
-        background: var(--blue-soft);
+        background: #e5edf9;
         overflow: hidden;
       }
       .mock .bar span {
@@ -592,13 +1489,13 @@
         display: flex;
         gap: 8px;
         padding: 4px 8px;
-        border: 1px solid var(--line);
+        border: 1px solid #dbe5f1;
         border-radius: 8px;
-        color: var(--sub);
+        color: #52607a;
         background: #fcfdff;
       }
       .mock ul.marks li.known {
-        color: var(--ink);
+        color: #172033;
         border-color: #fecaca;
         background: #fff7f7;
       }
@@ -607,10 +1504,10 @@
       }
       .mock .line {
         margin: 6px 0 0;
-        color: var(--ink);
+        color: #172033;
       }
       .mock .sub {
-        color: var(--sub);
+        color: #52607a;
         font-size: 0.8rem;
       }
       .mock .btn {
@@ -623,8 +1520,8 @@
         font-weight: 600;
       }
       .mock .btn.sec {
-        background: var(--blue-soft);
-        color: var(--ink);
+        background: #e5edf9;
+        color: #172033;
         font-weight: 400;
         margin-top: 6px;
       }
@@ -634,7 +1531,7 @@
         height: 120px;
         margin: 6px auto;
         border-radius: 50%;
-        border: 1px solid var(--line);
+        border: 1px solid #dbe5f1;
         background: #f5f7fb;
       }
       .mock .compass i {
@@ -663,7 +1560,7 @@
       .mock .feet .track {
         height: 10px;
         border-radius: 999px;
-        background: var(--blue-soft);
+        background: #e5edf9;
         overflow: hidden;
       }
       .mock .feet .track span {
@@ -677,54 +1574,126 @@
       .mock .caption {
         text-align: center;
         color: rgba(255, 255, 255, 0.85);
-        font-size: 0.8rem;
-        margin: 4px 0 0;
+        font-family: var(--mono);
+        font-size: 0.74rem;
+        letter-spacing: 0.08em;
+        margin: 6px 0 0;
       }
       .mock[data-mood='complete'] .caption {
         color: #3b1d0e;
       }
+      .mock .sleeping-card {
+        text-align: left;
+        background: #f5f7fb;
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 10px;
+        align-items: center;
+      }
+      .mock .sleeping-card img {
+        width: 56px;
+        height: 56px;
+        border-radius: 10px;
+        object-fit: cover;
+        filter: grayscale(0.8);
+      }
 
-      /* ---------- 物語（縦書き風カード） ---------- */
+      /* =====================================================================
+         物語（07）
+         ===================================================================== */
       .story {
-        background: linear-gradient(180deg, #0f1b3d 0%, #1e2a5a 70%, #4a2f6b 100%);
+        position: relative;
+        background: linear-gradient(180deg, #0f1b3d 0%, #1e2a5a 60%, #4a2f6b 100%);
         color: rgba(255, 255, 255, 0.9);
-        border-radius: 18px;
-        padding: 28px 26px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        padding: 32px 30px;
         font-size: 1rem;
+        overflow: hidden;
+      }
+      .story::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 85% 10%, rgba(239, 68, 68, 0.18), transparent 35%),
+          radial-gradient(circle at 10% 90%, rgba(240, 162, 75, 0.2), transparent 40%);
+        pointer-events: none;
       }
       .story p {
+        position: relative;
         margin: 14px 0;
       }
       .story p:first-child {
         margin-top: 0;
       }
       .story .morning {
-        margin-top: 22px;
-        padding-top: 18px;
-        border-top: 1px dashed rgba(255, 255, 255, 0.3);
+        position: relative;
+        margin-top: 26px;
+        padding: 20px 22px;
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(240, 162, 75, 0.18), rgba(185, 84, 43, 0.22));
+        border: 1px solid rgba(240, 162, 75, 0.4);
         color: #ffe4c4;
       }
+      .story .morning::before {
+        content: 'MORNING';
+        display: block;
+        font-family: var(--mono);
+        font-size: 0.66rem;
+        letter-spacing: 0.3em;
+        color: var(--morning-b);
+        margin-bottom: 6px;
+      }
+      .story .walkers {
+        position: absolute;
+        right: 18px;
+        bottom: 12px;
+        display: flex;
+        gap: 8px;
+        opacity: 0.85;
+      }
+      .story .walkers img {
+        width: 86px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+      }
+      @media (max-width: 760px) {
+        .story .walkers {
+          position: static;
+          margin-top: 16px;
+          justify-content: flex-end;
+        }
+      }
 
-      /* ---------- 解放の仕組み ---------- */
+      /* =====================================================================
+         解放の仕組み（06）
+         ===================================================================== */
       .unlock {
         display: grid;
         gap: 12px;
       }
-      @media (min-width: 720px) {
+      @media (min-width: 760px) {
         .unlock {
           grid-template-columns: repeat(3, 1fr);
         }
       }
       .unlock .step {
-        border-radius: 14px;
-        padding: 14px 16px;
+        border-radius: 16px;
+        padding: 16px 18px;
         border: 1px solid var(--line);
-        background: var(--card);
+        background: var(--glass);
         font-size: 0.9rem;
+        color: var(--sub);
       }
       .unlock .step strong {
-        display: block;
-        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+        color: var(--ink);
       }
       .unlock .step .no {
         display: inline-grid;
@@ -732,39 +1701,102 @@
         width: 26px;
         height: 26px;
         border-radius: 50%;
-        background: var(--ink);
-        color: #fff;
-        font-size: 0.8rem;
-        margin-right: 6px;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        font-family: var(--mono);
+        font-size: 0.78rem;
+      }
+
+      footer {
+        position: relative;
+        z-index: 2;
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 20px 64px;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        color: var(--mute);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001s !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.001s !important;
+        }
+        .reveal {
+          opacity: 1;
+          transform: none;
+        }
       }
     </style>
   </head>
   <body>
-    <header class="hero">
+    <!-- 固定 HUD：ページ全体を 90 秒の「ねこの時間」として、スクロール量で残り秒数と記録数が変わる -->
+    <div class="hud" aria-hidden="true">
+      <div class="brand"><i class="led"></i>BOUSAI NEKO <span>@ HIRAIZUMI ／ ねこの時間</span></div>
+      <div class="timer">T−<b id="hud-sec">90</b>s</div>
+      <div class="rec">REC <i></i><i></i><i></i><i></i> <span id="hud-rec">0</span>/4</div>
+      <div class="bar" id="hud-bar"></div>
+    </div>
+
+    <header class="hero" id="top">
+      <div class="fallback-bg" aria-hidden="true"></div>
+      <canvas id="scene" aria-hidden="true"></canvas>
       <div class="hero-inner">
         <div>
-          <span class="kicker">BOUSAI NEKO @ HIRAIZUMI</span>
+          <span class="kicker">NEKO NO JIKAN ／ 90 SEC</span>
           <h1>人の目は、高いところにある。<br /><span>だから町は、猫に頼んだ。</span></h1>
           <p class="tagline">
             少し先の平泉。名前を持つ人格が、少しの間だけ猫の中に入り、人が見ない高さにある<strong>赤いしるし</strong>（消火栓）を記録する。
             町はそれを「ぼうさいネコ」と呼ぶ。
           </p>
-          <p class="meta">
-            feature-7 ／ S04 リザルト画面のシナリオ（README 機能実装状況 No.21）／ ストーリー構造の共有用
-          </p>
+          <p class="typed" id="typed" aria-live="polite"></p>
+          <div class="readout" aria-label="接続先の読み取り値">
+            <span>ORIGIN <b>38.9889N 141.1167E</b></span>
+            <span>TERRITORY <b>R 122m</b></span>
+            <span>MARKS <b class="warn">4 / 未記録</b></span>
+            <span>LINK <b class="ok">タキザワ → ひがし</b></span>
+            <span>STANDBY <b>シラヤマ</b></span>
+          </div>
+          <p class="meta">feature-7 ／ S04 リザルト画面のシナリオ（README 機能実装状況 No.21）／ ストーリー構造の共有用</p>
         </div>
-        <figure class="hero-figure">
-          <span class="ring" aria-hidden="true"></span>
-          <!-- キャラクターイラスト（シラヤマ）。顔の切り出し assets/shirayama-face.png -->
-          <img src="assets/shirayama-face.png" alt="シラヤマ" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'silhouette',textContent:'シラヤマ（イラスト）'}))" />
-          <span class="hint">体を待っている人格 ── シラヤマ</span>
-        </figure>
+
+        <div class="link-panel" aria-label="ふたつの人格の接続状態">
+          <div class="persona-chip link">
+            <span class="scan" aria-hidden="true"></span>
+            <div class="face">
+              <span class="ring" aria-hidden="true"></span>
+              <img src="assets/takizawa-face.png" alt="タキザワ" />
+            </div>
+            <div>
+              <span class="status">LINK ESTABLISHED</span>
+              <div class="nm">タキザワ<small>TAKIZAWA</small></div>
+              <div class="ln">ひがしの なわばり ／ 体を持っている。いま、入れる。</div>
+            </div>
+          </div>
+          <div class="link-wire" aria-hidden="true"></div>
+          <div class="persona-chip standby">
+            <div class="face">
+              <span class="ring" aria-hidden="true"></span>
+              <img src="assets/shirayama-face.png" alt="シラヤマ" />
+            </div>
+            <div>
+              <span class="status">STANDBY ／ NO BODY</span>
+              <div class="nm">シラヤマ<small>SHIRAYAMA</small></div>
+              <div class="ln">にしの なわばり（予定）／ 体を待っている。</div>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
 
     <main>
       <!-- 1. 世界設定 -->
-      <section id="world">
+      <section id="world" class="reveal">
         <h2><small>01 WORLD</small>世界設定（近未来）</h2>
         <p class="lead">
           人の意識の仕組みが解明され、人格を持ったAIが動物の感覚に一時的に入れるようになった時代。平泉町はそれを防災に使う。
@@ -781,30 +1813,30 @@
         <h3>猫と人格の関係</h3>
         <div class="duo">
           <div class="side mind">
-            <h3>人格（AI）</h3>
-            <div>持っているもの</div>
+            <h3>人格（AI）<small>PERSONA</small></h3>
+            <div class="k">HAS</div>
             <ul>
               <li>記録</li>
               <li>言葉の代わりに数値</li>
               <li>前回の記憶</li>
             </ul>
-            <div class="lack">持っていないもの</div>
+            <div class="k">LACKS</div>
             <ul class="lack">
               <li>体、におい、走る速さ</li>
             </ul>
           </div>
           <div class="join">
-            <strong>＋</strong>
+            <span class="pulse" aria-hidden="true">＋</span>
             人格は体を借りる。<br />体は人格に地図を残させる。<br />どちらか一方では見回りにならない。
           </div>
           <div class="side body">
-            <h3>体（猫）</h3>
-            <div>持っているもの</div>
+            <h3>体（猫）<small>BODY</small></h3>
+            <div class="k">HAS</div>
             <ul>
               <li>目、鼻、足</li>
               <li>なわばり</li>
             </ul>
-            <div class="lack">持っていないもの</div>
+            <div class="k">LACKS</div>
             <ul class="lack">
               <li>記憶、地図</li>
             </ul>
@@ -816,82 +1848,183 @@
       </section>
 
       <!-- 2. 人格カード -->
-      <section id="characters">
+      <section id="characters" class="reveal">
         <h2><small>02 PERSONAS</small>ふたつの人格</h2>
-        <p class="lead">東のタキザワは体を持っている。西のシラヤマは体を待っている。</p>
+        <p class="lead">東のタキザワは体を持っている。西のシラヤマは体を待っている。カードは人格のリンク状態を示す。</p>
 
-        <div class="char-card">
-          <div class="portrait">
-            <!-- タキザワのイラストは未着。写真（public/images/cats/takizawa.png）で代用。 -->
-            <img src="../../public/images/cats/takizawa.png" alt="タキザワ" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'silhouette',textContent:'タキザワ（イラスト準備中）'}))" />
+        <!-- タキザワ：LINK -->
+        <article class="persona-card link" data-tilt data-persona="takizawa">
+          <span class="sheen" aria-hidden="true"></span>
+          <span class="frame" aria-hidden="true"></span>
+          <div class="visual">
+            <div class="figure">
+              <img src="assets/takizawa-figure.png" alt="タキザワ（ひがしの なわばりを まもる）" />
+              <span class="grid-overlay" aria-hidden="true"></span>
+              <span class="scanline" aria-hidden="true"></span>
+              <span class="lbl">PERSONA ／ cat_002</span>
+              <span class="lbl br">● LINK</span>
+            </div>
+            <div class="face-monitor">
+              <img id="takizawa-face" src="assets/takizawa-exp1.png" alt="" />
+              <div>
+                <div class="k">EXPRESSION</div>
+                <div class="v" id="takizawa-face-label">にっこり</div>
+                <div class="say" id="takizawa-face-say">みつけた赤は、みんなのあんしんに つながるニャ。</div>
+              </div>
+            </div>
+            <div class="faces" role="tablist" aria-label="タキザワの表情">
+              <button type="button" class="on" data-face="takizawa" data-src="assets/takizawa-exp1.png" data-say="みつけた赤は、みんなのあんしんに つながるニャ。"><img src="assets/takizawa-exp1.png" alt="" />にっこり</button>
+              <button type="button" data-face="takizawa" data-src="assets/takizawa-exp2.png" data-say="よし、つぎの赤を 見つけに行くニャ！"><img src="assets/takizawa-exp2.png" alt="" />きりっ</button>
+              <button type="button" data-face="takizawa" data-src="assets/takizawa-exp3.png" data-say="ニャッ、いたっ。まえがふさがってるニャ。"><img src="assets/takizawa-exp3.png" alt="" />びっくり</button>
+              <button type="button" data-face="takizawa" data-src="assets/takizawa-exp4.png" data-say="きょうはもうつかれた。みまわりはおわりだ。"><img src="assets/takizawa-exp4.png" alt="" />ねむい</button>
+            </div>
           </div>
-          <div>
-            <p class="name">タキザワ<small>TAKIZAWA</small></p>
-            <span class="badge open">はいれる</span>
-            <p class="desc">東のなわばりの猫に入る人格。いま、体を持っている。プレイヤーが選ぶのはこの人格。90秒だけ、猫の中で一緒に町を見る。</p>
-            <table>
-              <tr><th>なまえ</th><td>タキザワ</td></tr>
-              <tr><th>なわばり</th><td>ひがしの なわばり</td></tr>
-              <tr><th>赤いしるし</th><td>4つ（みなみ 50m／みなみにし 70m／きた 80m／きたにし 120m）</td></tr>
-              <tr><th>名づけ主</th><td>Code for hiraizumi</td></tr>
-            </table>
+          <div class="data">
+            <div class="head">
+              <p class="name">タキザワ<small>TAKIZAWA ／ EAST</small></p>
+              <span class="badge">はいれる</span>
+            </div>
+            <p class="desc">
+              東のなわばりの猫に入る人格。いま、<strong>体を持っている</strong>。プレイヤーが選ぶのはこの人格。90秒だけ、猫の中で一緒に町を見る。
+            </p>
+            <div class="bind" aria-label="人格と体の結びつき">
+              <div>
+                <img src="assets/takizawa-face.png" alt="人格 タキザワ" />
+                <small>PERSONA</small>
+              </div>
+              <div class="wire"><span>LINK 90s</span></div>
+              <div>
+                <img src="../../public/images/cats/takizawa.png" alt="体（ひがしの なわばりの猫）" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'unknown',textContent:'🐾'}))" />
+                <small>BODY</small>
+              </div>
+            </div>
+            <div class="kv">
+              <div>なまえ</div><div>タキザワ</div>
+              <div>なわばり</div><div>ひがしの なわばり<span class="mono">（中尊寺通り周辺）</span></div>
+              <div>せいかく</div><div>まっすぐ・勇気がある</div>
+              <div>すきなこと</div><div>見回り・高いところ</div>
+              <div>すきなもの</div><div>ひなた・魚のにおい</div>
+              <div>座標</div><div class="mono">38.98886, 141.11670 ／ R 122m</div>
+              <div>名づけ主</div><div>Code for hiraizumi</div>
+            </div>
+            <div>
+              <div class="k mono" style="font-size: 0.66rem; letter-spacing: 0.24em; color: var(--mute); margin-bottom: 6px">RED MARKS ／ 赤いしるし 4</div>
+              <div class="redmarks">
+                <span>みなみ 50m</span><span>みなみにし 70m</span><span>きた 80m</span><span>きたにし 120m</span>
+              </div>
+            </div>
+            <span class="quote">まもるのは きみのいのちと このまち。</span>
+            <details class="sheet">
+              <summary>CHARACTER SHEET ／ 全体を見る</summary>
+              <img src="assets/takizawa-sheet.png" alt="タキザワ キャラクターシート" loading="lazy" />
+            </details>
           </div>
-        </div>
+        </article>
 
-        <div class="char-card is-sleeping">
-          <div class="portrait">
-            <img class="sheet" src="assets/shirayama.png" alt="シラヤマ キャラクターシート" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'silhouette',textContent:'シラヤマ（イラスト: assets/shirayama.png）'}))" />
+        <!-- シラヤマ：STANDBY -->
+        <article class="persona-card standby" data-tilt data-persona="shirayama">
+          <span class="sheen" aria-hidden="true"></span>
+          <span class="frame" aria-hidden="true"></span>
+          <div class="visual">
+            <div class="figure">
+              <img src="assets/shirayama-figure.png" alt="シラヤマ（にしの なわばりを まもる）" />
+              <span class="grid-overlay" aria-hidden="true"></span>
+              <span class="scanline" aria-hidden="true"></span>
+              <span class="lbl">PERSONA ／ cat_001</span>
+              <span class="lbl br">◌ STANDBY</span>
+            </div>
+            <div class="face-monitor">
+              <img id="shirayama-face" src="assets/shirayama-exp1.png" alt="" />
+              <div>
+                <div class="k">EXPRESSION ／ 目を覚ましたら</div>
+                <div class="v" id="shirayama-face-label">にっこり</div>
+                <div class="say" id="shirayama-face-say">そなえれば、きっと まもれるニャ。</div>
+              </div>
+            </div>
+            <div class="faces" role="tablist" aria-label="シラヤマの表情">
+              <button type="button" class="on" data-face="shirayama" data-src="assets/shirayama-exp1.png" data-say="そなえれば、きっと まもれるニャ。"><img src="assets/shirayama-exp1.png" alt="" />にっこり</button>
+              <button type="button" data-face="shirayama" data-src="assets/shirayama-exp2.png" data-say="みんなの あんしんを 見つめるニャ。"><img src="assets/shirayama-exp2.png" alt="" />やさしい</button>
+              <button type="button" data-face="shirayama" data-src="assets/shirayama-exp3.png" data-say="しらない においが する。まだ、だれの 記録にも ない。"><img src="assets/shirayama-exp3.png" alt="" />びっくり</button>
+              <button type="button" data-face="shirayama" data-src="assets/shirayama-exp4.png" data-say="平泉で まってるニャ。"><img src="assets/shirayama-exp4.png" alt="" />すこしむすっ</button>
+            </div>
           </div>
-          <div>
-            <p class="name">シラヤマ<small>SHIRAYAMA</small></p>
-            <span class="badge">ねむりちゅう</span>
+          <div class="data">
+            <div class="head">
+              <p class="name">シラヤマ<small>SHIRAYAMA ／ WEST</small></p>
+              <span class="badge">ねむりちゅう</span>
+            </div>
             <p class="desc">
               平泉のどこかに住む のらねこ。しずかで 落ち着いていて、まちを みまもる たよりになる存在。ねこの体を借りた人格「シラヤマ」が入り、消火栓（赤いしるし）を見つけて記録していく――はずだが、<strong>入る体がまだ見つかっていない。</strong>
             </p>
-            <table>
-              <tr><th>なまえ</th><td>シラヤマ</td></tr>
-              <tr><th>なわばり</th><td>にしの なわばり（予定）</td></tr>
-              <tr><th>せいかく</th><td>おだやか・しずか・たよりになる</td></tr>
-              <tr><th>すきなもの</th><td>ひなたぼっこ／まちの見回り／さかな（たまに）</td></tr>
-              <tr><th>とくいなこと</th><td>まちの においを たよりに みちを おぼえる</td></tr>
-              <tr><th>ひとこと</th><td>「そなえれば きっと まもれるニャ」</td></tr>
-            </table>
+            <div class="bind" aria-label="人格と体の結びつき">
+              <div>
+                <img src="assets/shirayama-face.png" alt="人格 シラヤマ" />
+                <small>PERSONA</small>
+              </div>
+              <div class="wire"><span>NO LINK</span></div>
+              <div>
+                <div class="unknown" aria-label="体はまだ見つかっていない">？</div>
+                <small>BODY ?</small>
+              </div>
+            </div>
+            <div class="kv">
+              <div>なまえ</div><div>シラヤマ</div>
+              <div>なわばり</div><div>にしの なわばり（予定）<span class="mono">（志羅山・鈴沢地区）</span></div>
+              <div>せいかく</div><div>おだやか・やさしい</div>
+              <div>すきなこと</div><div>見守り・ひなたぼっこ</div>
+              <div>すきなもの</div><div>やわらかい場所・魚のにおい</div>
+              <div>とくいなこと</div><div>まちの においを たよりに みちを おぼえる</div>
+              <div>座標</div><div class="mono">38.99066, 141.11424 ／ R 160m（予定）</div>
+              <div>名づけ主</div><div>Code for hiraizumi</div>
+            </div>
+            <div>
+              <div class="k mono" style="font-size: 0.66rem; letter-spacing: 0.24em; color: var(--mute); margin-bottom: 6px">RED MARKS ／ まだ しろい</div>
+              <div class="redmarks">
+                <span class="empty">？</span><span class="empty">？</span><span class="empty">？</span><span class="empty">？</span>
+              </div>
+            </div>
             <span class="quote">見つける・つながる・まもる・平泉の未来</span>
+            <details class="sheet">
+              <summary>CHARACTER SHEET ／ 全体を見る</summary>
+              <img src="assets/shirayama-sheet.png" alt="シラヤマ キャラクターシート" loading="lazy" />
+            </details>
           </div>
-        </div>
+        </article>
       </section>
 
       <!-- 3. 一周の流れ -->
-      <section id="loop">
+      <section id="loop" class="reveal">
         <h2><small>03 ONE LOOP</small>一周の流れ</h2>
         <p class="lead">プレイヤーは人格を選び、その90秒だけ、猫の中で人格と一緒に町を見る。</p>
         <div class="flow">
           <div class="step connect">
-            <small>S02</small>
+            <small>S02 CONNECT</small>
             <strong>接続（猫えらび）</strong>
             <p>東と西に2つの人格。東のタキザワは体を持っている。西のシラヤマは体を待っている。</p>
-            <p>「ねこの時間は、90びょう。にしの ひとは、まだ からだを まっている。」</p>
+            <p class="say">ねこの時間は、90びょう。にしの ひとは、まだ からだを まっている。</p>
             <span class="tag">ロック表示のみ追加</span>
           </div>
           <div class="step time">
-            <small>S03</small>
+            <small>S03 PATROL</small>
             <strong>ねこの時間（見回り）</strong>
             <p>人格が猫の目で町を見る。壁、タイヤ、看板の足。人の高さでは見えないもの。</p>
-            <p>「赤いしるし。きろくに、ひとつ。」</p>
+            <p class="say">赤いしるし。きろくに、ひとつ。</p>
             <span class="tag">文言1行のみ</span>
+            <img class="pose" src="assets/takizawa-walk.png" alt="" aria-hidden="true" />
           </div>
           <div class="step cut">
-            <small>S04</small>
+            <small>S04 DISCONNECT</small>
             <strong>切断（リザルト）</strong>
             <p>90秒で人格は猫から出る。出る直前、猫から借りた3つの感覚で、今日を残す。</p>
-            <p>目（記録）／鼻／足</p>
+            <p class="say">目（記録）／鼻／足</p>
             <span class="tag red">今回の実装</span>
           </div>
           <div class="step sleep">
-            <small>S04 → S02</small>
+            <small>S04 → S02 SLEEP</small>
             <strong>ねむり</strong>
             <p>猫は眠る。記録だけが残る。朝になると人の町が戻る。</p>
-            <p>もういちど入る／べつの人格へ／もくげきほうこく</p>
+            <p class="say">もういちど入る／べつの人格へ／もくげきほうこく</p>
+            <img class="pose" src="assets/takizawa-sleep.png" alt="" aria-hidden="true" />
           </div>
         </div>
 
@@ -916,13 +2049,11 @@
             <span class="how">きょう／まえ の秒数バー ＋ 前回比の一行</span>
           </div>
         </div>
-        <p class="note">
-          「体が覚える」のは、猫ではなくプレイヤー。人格は記録を持ち、体の使い方はプレイヤーの手が覚える。
-        </p>
+        <p class="note">「体が覚える」のは、猫ではなくプレイヤー。人格は記録を持ち、体の使い方はプレイヤーの手が覚える。</p>
       </section>
 
       <!-- 4. 分岐 -->
-      <section id="branches">
+      <section id="branches" class="reveal">
         <h2><small>04 BRANCHES</small>分岐</h2>
         <p class="lead">
           ゲーム結果は <code>src/domain/scenario/context.ts</code> で数値と真偽値（合流フラグ）になり、<code>lines.ts</code> がこの表の文を選ぶ。文言の正本は <code>messages.json</code>。数字の絶対値は文に書かず、割合と差分で分岐する。
@@ -960,7 +2091,7 @@
             </tr>
           </tbody>
         </table>
-        <p class="note">画面の雰囲気（背景の夜→朝）もこの割合で変わる：しろい＝夜、一部＝夜明け前、半分より多い＝明け方、すべて＝朝。</p>
+        <p class="note">画面の雰囲気（背景の夜→朝）もこの割合で変わる：しろい＝夜、一部＝夜明け前、半分より多い＝明け方、すべて＝朝。このページの背景も同じ規則でスクロールに応じて変わる。</p>
 
         <div class="grid grid-2">
           <div>
@@ -991,113 +2122,126 @@
       </section>
 
       <!-- 5. 画面モック -->
-      <section id="screens">
+      <section id="screens" class="reveal">
         <h2><small>05 SCREENS</small>リザルト画面の見え方</h2>
         <p class="lead">5スライド（切断 → 目 → 鼻 → 足 → ねむり）。背景は記録の進み具合で夜から朝へ。</p>
-        <div class="grid grid-2">
-          <div class="mock" data-mood="empty">
-            <div class="card">
-              <strong>ねこの 記録</strong>
-              <div class="sub">タキザワ ／ ひがしの なわばり</div>
-              <ul class="steps"><li class="on">切断</li><li>目</li><li>鼻</li><li>足</li><li>ねむり</li></ul>
+        <div class="devices">
+          <div class="device">
+            <div class="mock" data-mood="empty">
+              <div class="card">
+                <strong>ねこの 記録</strong>
+                <div class="sub">タキザワ ／ ひがしの なわばり</div>
+                <ul class="steps"><li class="on">切断</li><li>目</li><li>鼻</li><li>足</li><li>ねむり</li></ul>
+              </div>
+              <div class="card" style="text-align: center">
+                <div class="portrait"><img src="assets/takizawa-face.png" alt="" /></div>
+                <strong>ねこの時間、おわり。タキザワは、からだから でる。</strong>
+                <div class="sub">でる まえに、かりた 3つの かんかくで、きょうを のこす。</div>
+              </div>
+              <div class="card"><span class="btn">つぎへ</span></div>
+              <p class="caption">A. 切断 ── ひとつも見ていない（夜）</p>
             </div>
-            <div class="card" style="text-align: center">
-              <div class="portrait">タキザワ</div>
-              <strong>ねこの時間、おわり。タキザワは、からだから でる。</strong>
-              <div class="sub">でる まえに、かりた 3つの かんかくで、きょうを のこす。</div>
-            </div>
-            <div class="card"><span class="btn">つぎへ</span></div>
-            <p class="caption">A. 切断 ── ひとつも見ていない（夜）</p>
           </div>
 
-          <div class="mock" data-mood="low">
-            <div class="card">
-              <strong>ねこの 記録</strong>
-              <div class="sub">タキザワ ／ ひがしの なわばり</div>
-              <ul class="steps"><li class="done">切断</li><li class="on">目</li><li>鼻</li><li>足</li><li>ねむり</li></ul>
+          <div class="device">
+            <div class="mock" data-mood="low">
+              <div class="card">
+                <strong>ねこの 記録</strong>
+                <div class="sub">タキザワ ／ ひがしの なわばり</div>
+                <ul class="steps"><li class="done">切断</li><li class="on">目</li><li>鼻</li><li>足</li><li>ねむり</li></ul>
+              </div>
+              <div class="card">
+                <strong>目</strong>
+                <div class="sub">かりた 目。この なわばりで 見たもの、まだ 見ていないもの。</div>
+                <div class="bar"><span style="width: 25%"></span></div>
+                <div class="count"><strong>1</strong> / 4 <span class="sub">（きょう 1つ）</span></div>
+                <ul class="marks">
+                  <li class="known"><span class="dot">●</span>みなみ 50m</li>
+                  <li><span class="dot">○</span>みなみにし 70m</li>
+                  <li><span class="dot">○</span>きた 80m</li>
+                  <li><span class="dot">○</span>きたにし 120m</li>
+                </ul>
+                <p class="line">ひがしの なわばりで、まだ しらない 赤が 3つ。</p>
+              </div>
+              <div class="card"><span class="btn">つぎへ</span></div>
+              <p class="caption">B. 目 ── 一部（夜明け前）</p>
             </div>
-            <div class="card">
-              <strong>目</strong>
-              <div class="sub">かりた 目。この なわばりで 見たもの、まだ 見ていないもの。</div>
-              <div class="bar"><span style="width: 25%"></span></div>
-              <div class="count"><strong>1</strong> / 4 <span class="sub">（きょう 1つ）</span></div>
-              <ul class="marks">
-                <li class="known"><span class="dot">●</span>みなみ 50m</li>
-                <li><span class="dot">○</span>みなみにし 70m</li>
-                <li><span class="dot">○</span>きた 80m</li>
-                <li><span class="dot">○</span>きたにし 120m</li>
-              </ul>
-              <p class="line">ひがしの なわばりで、まだ しらない 赤が 3つ。</p>
-            </div>
-            <div class="card"><span class="btn">つぎへ</span></div>
-            <p class="caption">B. 目 ── 一部（夜明け前）</p>
           </div>
 
-          <div class="mock" data-mood="high">
-            <div class="card">
-              <strong>ねこの 記録</strong>
-              <div class="sub">タキザワ ／ ひがしの なわばり</div>
-              <ul class="steps"><li class="done">切断</li><li class="done">目</li><li class="on">鼻</li><li>足</li><li>ねむり</li></ul>
+          <div class="device">
+            <div class="mock" data-mood="high">
+              <div class="card">
+                <strong>ねこの 記録</strong>
+                <div class="sub">タキザワ ／ ひがしの なわばり</div>
+                <ul class="steps"><li class="done">切断</li><li class="done">目</li><li class="on">鼻</li><li>足</li><li>ねむり</li></ul>
+              </div>
+              <div class="card">
+                <strong>鼻</strong>
+                <div class="sub">かりた 鼻。まだ 見ていない 赤の、いちばん近い 方角。</div>
+                <div class="compass"><i style="transform: rotate(0deg)"></i></div>
+                <p class="line">いちばん近い「まだ」は、きた 80m。</p>
+                <p class="line">きた 80mの あとに まわると、ちかい。</p>
+              </div>
+              <div class="card"><span class="btn">つぎへ</span></div>
+              <p class="caption">C. 鼻 ── 半分より多い（明け方）</p>
             </div>
-            <div class="card">
-              <strong>鼻</strong>
-              <div class="sub">かりた 鼻。まだ 見ていない 赤の、いちばん近い 方角。</div>
-              <div class="compass"><i style="transform: rotate(0deg)"></i></div>
-              <p class="line">いちばん近い「まだ」は、きた 80m。</p>
-              <p class="line">きた 80mの あとに まわると、ちかい。</p>
-            </div>
-            <div class="card"><span class="btn">つぎへ</span></div>
-            <p class="caption">C. 鼻 ── 半分より多い（明け方）</p>
           </div>
 
+          <div class="device">
+            <div class="mock" data-mood="complete">
+              <div class="card">
+                <strong>ねこの 記録</strong>
+                <div class="sub">タキザワ ／ ひがしの なわばり</div>
+                <ul class="steps"><li class="done">切断</li><li class="done">目</li><li class="done">鼻</li><li class="on">足</li><li>ねむり</li></ul>
+              </div>
+              <div class="card">
+                <strong>足</strong>
+                <div class="sub">かりた 足。この からだで、どれだけ はやく まわれたか。</div>
+                <div class="feet">
+                  <div><span>きょう</span><span class="track"><span style="width: 73%"></span></span><span>66秒</span></div>
+                  <div><span>まえ</span><span class="track"><span class="prev" style="width: 83%"></span></span><span>75秒</span></div>
+                </div>
+                <p class="line">この からだの、いちばん はやい 足。66秒。</p>
+                <p class="sub">まえ: 4つ、75秒。</p>
+              </div>
+              <div class="card"><span class="btn">つぎへ</span></div>
+              <p class="caption">D. 足 ── すべて・最速（朝）</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="device" style="max-width: 460px; margin: 18px auto 0">
           <div class="mock" data-mood="complete">
             <div class="card">
               <strong>ねこの 記録</strong>
               <div class="sub">タキザワ ／ ひがしの なわばり</div>
-              <ul class="steps"><li class="done">切断</li><li class="done">目</li><li class="done">鼻</li><li class="on">足</li><li>ねむり</li></ul>
+              <ul class="steps"><li class="done">切断</li><li class="done">目</li><li class="done">鼻</li><li class="done">足</li><li class="on">ねむり</li></ul>
+            </div>
+            <div class="card" style="text-align: center">
+              <div class="portrait sleep"><img src="assets/takizawa-sleep.png" alt="" /></div>
+              <strong>ねこは ねむる。なにも おぼえていない。</strong>
+              <div class="sub">記録だけが、まちに のこる。</div>
+              <div class="card sleeping-card">
+                <img src="assets/shirayama-sleep.png" alt="" />
+                <div>
+                  <span class="tag grey" style="margin: 0">ねむりちゅう</span> <strong>シラヤマ</strong>
+                  <div class="sub">にしの なわばり ／「そなえれば きっと まもれるニャ」</div>
+                </div>
+              </div>
+              <p class="sub" style="border-top: 1px dashed #dbe5f1; padding-top: 8px">シラヤマは、からだを まっている。まちの ひとが ねこを みつけたら、はいれる。</p>
             </div>
             <div class="card">
-              <strong>足</strong>
-              <div class="sub">かりた 足。この からだで、どれだけ はやく まわれたか。</div>
-              <div class="feet">
-                <div><span>きょう</span><span class="track"><span style="width: 73%"></span></span><span>66秒</span></div>
-                <div><span>まえ</span><span class="track"><span class="prev" style="width: 83%"></span></span><span>75秒</span></div>
-              </div>
-              <p class="line">この からだの、いちばん はやい 足。66秒。</p>
-              <p class="sub">まえ: 4つ、75秒。</p>
+              <span class="btn">もういちど遊ぶ</span>
+              <span class="btn sec">べつのねこで遊ぶ</span>
+              <span class="btn sec">ねこの もくげきほうこくをする</span>
             </div>
-            <div class="card"><span class="btn">つぎへ</span></div>
-            <p class="caption">D. 足 ── すべて・最速（朝）</p>
+            <p class="caption">E. ねむり ── 眠っている人格と、締めの一行</p>
           </div>
-        </div>
-
-        <div class="mock" data-mood="complete" style="max-width: 440px; margin: 14px auto 0">
-          <div class="card">
-            <strong>ねこの 記録</strong>
-            <div class="sub">タキザワ ／ ひがしの なわばり</div>
-            <ul class="steps"><li class="done">切断</li><li class="done">目</li><li class="done">鼻</li><li class="done">足</li><li class="on">ねむり</li></ul>
-          </div>
-          <div class="card" style="text-align: center">
-            <div class="portrait sleep">タキザワ</div>
-            <strong>ねこは ねむる。なにも おぼえていない。</strong>
-            <div class="sub">記録だけが、まちに のこる。</div>
-            <div class="card" style="text-align: left; background: #f5f7fb; margin-top: 8px">
-              <span class="tag grey" style="margin: 0">ねむりちゅう</span> <strong>シラヤマ</strong>
-              <div class="sub">にしの なわばり ／「そなえれば きっと まもれるニャ」</div>
-            </div>
-            <p class="sub" style="border-top: 1px dashed var(--line); padding-top: 8px">シラヤマは、からだを まっている。まちの ひとが ねこを みつけたら、はいれる。</p>
-          </div>
-          <div class="card">
-            <span class="btn">もういちど遊ぶ</span>
-            <span class="btn sec">べつのねこで遊ぶ</span>
-            <span class="btn sec">ねこの もくげきほうこくをする</span>
-          </div>
-          <p class="caption">E. ねむり ── 眠っている人格と、締めの一行</p>
         </div>
       </section>
 
       <!-- 6. なぜ猫が増えるのか -->
-      <section id="unlock">
+      <section id="unlock" class="reveal">
         <h2><small>06 WHY CATS INCREASE</small>なぜ猫が増えるのか</h2>
         <p class="lead">人格は町にいくらでも作れる。足りないのは体。</p>
         <div class="unlock">
@@ -1108,8 +2252,8 @@
       </section>
 
       <!-- 7. 物語 -->
-      <section id="story">
-        <h2><small>07 STORY</small>全体のストーリー（数字を消して）</h2>
+      <section id="story" class="reveal">
+        <h2><small>07 STORY</small>全体のストーリー</h2>
         <div class="story">
           <p>平泉の町は、昼は人のものです。住所があり、名前があり、消火栓は番地で呼ばれます。</p>
           <p>けれど、人の目は高いところにあります。タイヤの裏、看板の足元、草の下。赤いものは、人が見ない高さに立っています。</p>
@@ -1127,12 +2271,16 @@
             <p>ある日、東の記録が埋まります。そのとき鼻は、西を向きます。西には、体を待っている人格がいます。</p>
             <p>西の猫を起こすのは、あなたではありません。現実の町のどこかで、誰かが野良猫を見つけて、教えてくれたときです。そのとき、シラヤマは目を覚まし、西の記録が白いまま、あなたを待っています。</p>
             <p>猫は見たものを残すだけです。それがどこにあったか、覚えるのは人の仕事です。</p>
+            <div class="walkers" aria-hidden="true">
+              <img src="assets/takizawa-walk.png" alt="" />
+              <img src="assets/shirayama-walk.png" alt="" />
+            </div>
           </div>
         </div>
       </section>
 
       <!-- 8. スコープ -->
-      <section id="scope">
+      <section id="scope" class="reveal">
         <h2><small>08 SCOPE</small>今回のPR（feature-7）の範囲</h2>
         <div class="grid grid-2">
           <div class="card">
@@ -1142,8 +2290,9 @@
               <li>S02 猫えらび：locked（ねむりちゅう）のグレー表示・選択不可・案内文・導入一行</li>
               <li><code>src/domain/scenario/</code>（context.ts / lines.ts）＋ユニットテスト</li>
               <li><code>messages.json</code> の <code>scenario</code> ブロック、見回りの「赤いしるし。きろくに、ひとつ。」</li>
-              <li><code>cats.json</code>：シラヤマ <code>locked</code>、<code>aliasName</code> / <code>illustUrl</code> / <code>catchphrase</code>（任意）</li>
+              <li><code>cats.json</code>：シラヤマ <code>locked</code>、<code>aliasName</code> / <code>illustUrl</code> / <code>sleepIllustUrl</code> / <code>catchphrase</code>（任意）</li>
               <li>セッション：点検時刻・前回・最速（<code>lastRunByCat</code>、default 付きで旧 localStorage 互換）</li>
+              <li>キャラクターデザイン（タキザワ／シラヤマ）：顔・全身・表情・ポーズを切り出して LP とアプリで使用</li>
               <li>e2e：0本／一部／全部→2回目／ロック表示／旧 localStorage 互換</li>
             </ul>
           </div>
@@ -1153,12 +2302,368 @@
               <li>全点検での即終了（ゲームフローの変更）</li>
               <li>旧キー（<code>resultLow/Mid/High</code>, <code>unlockedCatIds</code>）の削除</li>
               <li><code>reportFormUrl</code> の実URL、速度パラメータ調整</li>
-              <li>タキザワのキャラクターイラスト（未着。写真で代用中）</li>
               <li>3D 見回り画面・Leaflet の変更（今回はゼロ）</li>
             </ul>
           </div>
         </div>
       </section>
     </main>
+    <footer>
+      ILLUSTRATION: assets/character-sheet.png（ぼうさいネコ キャラデザ）／ 3D: three.js（CDN, 読み込めない場合は静的背景）
+    </footer>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.178.0/build/three.module.js"
+        }
+      }
+    </script>
+    <script type="module">
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* -------------------------------------------------------------------
+         夜 → 朝：スクロール割合 t (0..1) を「記録の進み具合」として扱う。
+         しろい＝夜、一部＝夜明け前、半分より多い＝明け方、すべて＝朝。
+         ------------------------------------------------------------------- */
+      const STOPS = [
+        [0.0, ['#0a1230', '#14204a'], '#7dd3fc'],
+        [0.35, ['#141a45', '#4a2f6b'], '#a5b4fc'],
+        [0.7, ['#3a2a5e', '#7a3d5a'], '#fbbf24'],
+        [1.0, ['#5a3350', '#b9542b'], '#fdba74']
+      ];
+      const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+      const mix = (a, b, t) => {
+        const A = hex(a);
+        const B = hex(b);
+        return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',')})`;
+      };
+      let moodListeners = [];
+      function moodAt(t) {
+        let i = 0;
+        while (i < STOPS.length - 2 && t > STOPS[i + 1][0]) i++;
+        const [t0, c0, a0] = STOPS[i];
+        const [t1, c1, a1] = STOPS[i + 1];
+        const k = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
+        return { a: mix(c0[0], c1[0], k), b: mix(c0[1], c1[1], k), accent: mix(a0, a1, k), t };
+      }
+      const root = document.documentElement;
+      const hudSec = document.getElementById('hud-sec');
+      const hudRec = document.getElementById('hud-rec');
+      const hudBar = document.getElementById('hud-bar');
+      const hudDots = document.querySelectorAll('.hud .rec i');
+      let lastMood = null;
+      function onScroll() {
+        const max = Math.max(1, root.scrollHeight - window.innerHeight);
+        const t = Math.min(1, Math.max(0, window.scrollY / max));
+        const m = moodAt(t);
+        root.style.setProperty('--bg-a', m.a);
+        root.style.setProperty('--bg-b', m.b);
+        root.style.setProperty('--accent', m.accent);
+        hudSec.textContent = String(Math.round(90 - 90 * t));
+        const rec = Math.min(4, Math.floor(t * 4 + 0.02));
+        hudRec.textContent = String(rec);
+        hudDots.forEach((d, i) => d.classList.toggle('on', i < rec));
+        hudBar.style.width = `${(t * 100).toFixed(2)}%`;
+        lastMood = m;
+        moodListeners.forEach((fn) => fn(m));
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      onScroll();
+
+      /* ---------- セクションの出現 ---------- */
+      const io = new IntersectionObserver(
+        (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('in')),
+        { rootMargin: '0px 0px -10% 0px', threshold: 0.05 }
+      );
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+      /* ---------- タイプ文字（接続ログ） ---------- */
+      const typed = document.getElementById('typed');
+      const LOG = [
+        '> せつぞく … タキザワ → ひがしの なわばり',
+        '> ねこの時間は、90びょう。',
+        '> 赤いしるし。きろくに、ひとつ。',
+        '> にしの ひとは、まだ からだを まっている。'
+      ];
+      (async () => {
+        if (reduceMotion) {
+          typed.textContent = LOG[0];
+          return;
+        }
+        const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+        for (let n = 0; ; n = (n + 1) % LOG.length) {
+          const line = LOG[n];
+          typed.textContent = '';
+          for (const ch of line) {
+            typed.textContent += ch;
+            await sleep(38);
+          }
+          await sleep(2600);
+        }
+      })();
+
+      /* ---------- 人格カード：表情モニター ---------- */
+      const faceState = {};
+      document.querySelectorAll('.faces button').forEach((btn) => {
+        btn.addEventListener('click', () => setFace(btn));
+      });
+      function setFace(btn) {
+        const who = btn.dataset.face;
+        const img = document.getElementById(`${who}-face`);
+        const label = document.getElementById(`${who}-face-label`);
+        const say = document.getElementById(`${who}-face-say`);
+        img.src = btn.dataset.src;
+        label.textContent = btn.lastChild.textContent.trim();
+        say.textContent = btn.dataset.say;
+        btn.parentElement.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === btn));
+        faceState[who] = { manualAt: performance.now() };
+      }
+      // LINK 中のタキザワだけ、表情が自動で切り替わる（眠っているシラヤマは動かない）
+      if (!reduceMotion) {
+        const buttons = [...document.querySelectorAll('.faces button[data-face="takizawa"]')];
+        let i = 0;
+        setInterval(() => {
+          const st = faceState.takizawa;
+          if (st && performance.now() - st.manualAt < 8000) return;
+          i = (i + 1) % buttons.length;
+          setFace(buttons[i]);
+          faceState.takizawa = { manualAt: -Infinity };
+        }, 4200);
+      }
+
+      /* ---------- 人格カード：3D チルト＋シーン ---------- */
+      const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      if (fine && !reduceMotion) {
+        document.querySelectorAll('[data-tilt]').forEach((card) => {
+          card.addEventListener('pointermove', (e) => {
+            const r = card.getBoundingClientRect();
+            const px = (e.clientX - r.left) / r.width;
+            const py = (e.clientY - r.top) / r.height;
+            card.style.setProperty('--mx', `${px * 100}%`);
+            card.style.setProperty('--my', `${py * 100}%`);
+            const rx = (0.5 - py) * 5;
+            const ry = (px - 0.5) * 6;
+            card.style.transform = `perspective(1100px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+          });
+          card.addEventListener('pointerleave', () => {
+            card.style.transform = '';
+          });
+        });
+      }
+
+      /* -------------------------------------------------------------------
+         Three.js：ねこの時間の町。
+         猫の目の高さ（0.45m）から見た、線だけの町。赤いしるしが4つ光り、
+         縄張りの円が回り、においの粒が漂う。影・ポストエフェクトなし。
+         ------------------------------------------------------------------- */
+      const canvas = document.getElementById('scene');
+      (async () => {
+        let THREE;
+        try {
+          THREE = await import('three');
+        } catch (err) {
+          console.warn('three.js を読み込めなかったため静的背景で表示します', err);
+          canvas.remove();
+          return;
+        }
+
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'low-power' });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+        const scene = new THREE.Scene();
+        const fog = new THREE.FogExp2(0x0a1230, 0.045);
+        scene.fog = fog;
+
+        const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 120);
+        camera.position.set(0, 0.45, 9);
+
+        // 地面のグリッド
+        const grid = new THREE.GridHelper(160, 80, 0x7dd3fc, 0x7dd3fc);
+        grid.material.transparent = true;
+        grid.material.opacity = 0.14;
+        scene.add(grid);
+
+        // 道（明るい帯）
+        const road = new THREE.Mesh(
+          new THREE.PlaneGeometry(4.2, 160),
+          new THREE.MeshBasicMaterial({ color: 0x1b2a5a, transparent: true, opacity: 0.55 })
+        );
+        road.rotation.x = -Math.PI / 2;
+        road.position.y = 0.005;
+        scene.add(road);
+
+        // 建物：ワイヤーフレーム＋薄い面
+        const buildings = new THREE.Group();
+        const edgeMat = new THREE.LineBasicMaterial({ color: 0x8fb8ff, transparent: true, opacity: 0.55 });
+        const faceMat = new THREE.MeshBasicMaterial({ color: 0x0f1a3f, transparent: true, opacity: 0.6 });
+        let seed = 7;
+        const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+        for (let i = 0; i < 90; i++) {
+          const w = 1.6 + rnd() * 3.2;
+          const d = 1.6 + rnd() * 3.2;
+          const h = 0.9 + rnd() * 3.2;
+          const side = rnd() < 0.5 ? -1 : 1;
+          const x = side * (4.6 + rnd() * 14);
+          const z = -70 + rnd() * 110;
+          const geo = new THREE.BoxGeometry(w, h, d);
+          const mesh = new THREE.Mesh(geo, faceMat);
+          mesh.position.set(x, h / 2, z);
+          const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat);
+          edges.position.copy(mesh.position);
+          buildings.add(mesh, edges);
+        }
+        scene.add(buildings);
+
+        // 赤いしるし（消火栓）：4本。ひとつだけ「記録済み」の色。
+        const marks = [];
+        const markPositions = [
+          [1.9, -4],
+          [-1.9, -12],
+          [2.1, -21],
+          [-2.2, -33]
+        ];
+        const ringGeo = new THREE.RingGeometry(0.35, 0.42, 40);
+        markPositions.forEach(([x, z], i) => {
+          const g = new THREE.Group();
+          const body = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.09, 0.11, 0.55, 10),
+            new THREE.MeshBasicMaterial({ color: 0xef4444 })
+          );
+          body.position.y = 0.275;
+          const cap = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff8a8a }));
+          cap.position.y = 0.58;
+          const ring = new THREE.Mesh(
+            ringGeo,
+            new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.8, side: THREE.DoubleSide })
+          );
+          ring.rotation.x = -Math.PI / 2;
+          ring.position.y = 0.01;
+          const glow = new THREE.Sprite(
+            new THREE.SpriteMaterial({ color: 0xef4444, transparent: true, opacity: 0.35, depthWrite: false })
+          );
+          glow.scale.set(1.2, 1.2, 1);
+          glow.position.y = 0.58;
+          g.add(body, cap, ring, glow);
+          g.position.set(x, 0, z);
+          scene.add(g);
+          marks.push({ g, ring, glow, phase: i * 0.8 });
+        });
+
+        // 縄張り：点線の円（半径 = 122m を 1/6 に縮尺）
+        const tPts = [];
+        const R = 20;
+        for (let i = 0; i <= 160; i++) {
+          const a = (i / 160) * Math.PI * 2;
+          tPts.push(new THREE.Vector3(Math.cos(a) * R, 0.02, Math.sin(a) * R));
+        }
+        const territory = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints(tPts),
+          new THREE.LineDashedMaterial({ color: 0xef4444, dashSize: 0.8, gapSize: 0.5, transparent: true, opacity: 0.6 })
+        );
+        territory.computeLineDistances();
+        territory.position.z = -14;
+        scene.add(territory);
+
+        // においの粒
+        const N = 700;
+        const pos = new Float32Array(N * 3);
+        const vel = new Float32Array(N);
+        for (let i = 0; i < N; i++) {
+          pos[i * 3] = (rnd() - 0.5) * 40;
+          pos[i * 3 + 1] = rnd() * 4;
+          pos[i * 3 + 2] = -60 + rnd() * 75;
+          vel[i] = 0.05 + rnd() * 0.25;
+        }
+        const pGeo = new THREE.BufferGeometry();
+        pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        const pMat = new THREE.PointsMaterial({ color: 0xa5d8ff, size: 0.06, transparent: true, opacity: 0.7, depthWrite: false });
+        const points = new THREE.Points(pGeo, pMat);
+        scene.add(points);
+
+        // 上から降りてくる「接続」の光の柱（人格が体に入る）
+        const beam = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.02, 0.32, 30, 12, 1, true),
+          new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.07, side: THREE.DoubleSide, depthWrite: false })
+        );
+        beam.position.set(0, 15, 2.5);
+        scene.add(beam);
+
+        // ムード連動（夜→朝で霧色と粒の色）
+        moodListeners.push((m) => {
+          const rgb = m.a.match(/\d+/g).map(Number);
+          fog.color.setRGB(rgb[0] / 255, rgb[1] / 255, rgb[2] / 255);
+          const acc = m.accent.match(/\d+/g).map(Number);
+          pMat.color.setRGB(acc[0] / 255, acc[1] / 255, acc[2] / 255);
+          grid.material.color.setRGB(acc[0] / 255, acc[1] / 255, acc[2] / 255);
+          beam.material.color.setRGB(acc[0] / 255, acc[1] / 255, acc[2] / 255);
+        });
+        if (lastMood) moodListeners.at(-1)(lastMood);
+
+        // マウス視差
+        const target = { x: 0, y: 0 };
+        window.addEventListener('pointermove', (e) => {
+          target.x = (e.clientX / window.innerWidth - 0.5) * 2;
+          target.y = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        function resize() {
+          const w = canvas.clientWidth || window.innerWidth;
+          const h = canvas.clientHeight || window.innerHeight;
+          renderer.setSize(w, h, false);
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        let visible = true;
+        new IntersectionObserver((es) => es.forEach((e) => (visible = e.isIntersecting))).observe(canvas);
+
+        const clock = new THREE.Clock();
+        let camX = 0;
+        let camY = 0.45;
+        function frame() {
+          const t = clock.getElapsedTime();
+          if (visible) {
+            // 猫の歩幅で、ゆっくり前へ（ループ）
+            const zBase = 9 - ((t * 0.9) % 30);
+            camera.position.z = zBase;
+            camX += ((target.x * 0.5 + Math.sin(t * 0.6) * 0.35) - camX) * 0.03;
+            camY += ((0.45 - target.y * 0.12 + Math.sin(t * 2.2) * 0.012) - camY) * 0.08;
+            camera.position.x = camX;
+            camera.position.y = camY;
+            camera.lookAt(camX * 0.4, 0.5 - target.y * 0.2, zBase - 12);
+
+            marks.forEach(({ g, ring, glow, phase }) => {
+              // カメラの前に常に置かれるよう、後ろへ抜けたら前へ回す
+              if (g.position.z > camera.position.z + 2) g.position.z -= 40;
+              const k = (t * 0.9 + phase) % 1.6;
+              const s = 1 + k * 2.2;
+              ring.scale.set(s, s, 1);
+              ring.material.opacity = Math.max(0, 0.8 - k / 1.6);
+              glow.material.opacity = 0.25 + Math.sin(t * 3 + phase) * 0.12;
+            });
+            territory.rotation.y = t * 0.05;
+            territory.position.z = camera.position.z - 14;
+
+            const p = pGeo.attributes.position.array;
+            for (let i = 0; i < N; i++) {
+              p[i * 3 + 1] += vel[i] * 0.016;
+              if (p[i * 3 + 1] > 4.5) p[i * 3 + 1] = 0;
+            }
+            pGeo.attributes.position.needsUpdate = true;
+
+            beam.position.z = camera.position.z - 6.5;
+            beam.material.opacity = 0.05 + Math.sin(t * 1.3) * 0.025;
+            beam.rotation.y = t * 0.4;
+
+            renderer.render(scene, camera);
+          }
+          if (!reduceMotion) requestAnimationFrame(frame);
+        }
+        frame();
+      })();
+    </script>
   </body>
 </html>
