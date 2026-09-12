@@ -52,6 +52,12 @@ const DEFAULT_BUILDING_WIDTH_M = 8;
 const DEFAULT_BUILDING_DEPTH_M = 8;
 const DEFAULT_BUILDING_HEIGHT_M = 6;
 const MAX_TOWN_BUILDING_SPAN_M = 60;
+// 町モデルの編集ミスで、地表よりずっと下に取り残された迷子メッシュが混入することがある
+// （実例: 2026-09-12、モデル更新で追加された「道路」という名のメッシュが地下約3.2mに
+// 埋まった状態で残っており、画面には何も映らないのに、その真上を歩こうとすると
+// 見えない壁にぶつかる不具合になっていた）。そうしたメッシュも同じ2D投影の当たり判定
+// ロジックに乗ってしまうため、完全に地表より下にあるメッシュは建物として扱わない。
+const BURIED_MESH_MAX_Y_M = -0.5;
 // 一度点検対象として選ばれた消火栓は、この分だけ半径を広げて「維持」する。
 // タッチ操作でボタンを押そうとしている間にわずかに動いただけで選択が外れ、
 // 気づかず通り過ぎてしまう体験（H7）を緩和するための猶予。
@@ -174,6 +180,9 @@ function collectTownBuildingColliders(
     const width = box.max.x - box.min.x;
     const depth = box.max.z - box.min.z;
     if (width <= 0 || depth <= 0 || width > MAX_TOWN_BUILDING_SPAN_M || depth > MAX_TOWN_BUILDING_SPAN_M) {
+      return;
+    }
+    if (box.max.y < BURIED_MESH_MAX_Y_M) {
       return;
     }
 
