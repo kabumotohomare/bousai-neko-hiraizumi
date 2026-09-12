@@ -39,6 +39,11 @@ const SKY_COLOR = '#a9d0f5';
 // 深度バッファの精度不足によるちらつき(Zファイティング)を避ける。
 const GROUND_Y = -0.08;
 const ROAD_Y = 0.025;
+// 道路(0.025)と縄張りの輪(0.07)の間。当たり判定の可視化(影)を、
+// 地面・道路より手前に、輪より奥に描く。
+const COLLIDER_SHADOW_Y = 0.045;
+const COLLIDER_SHADOW_COLOR = '#000000';
+const COLLIDER_SHADOW_OPACITY = 0.35;
 const CAMERA_NEAR_M = 0.2;
 const CAMERA_FAR_MARGIN_M = 120;
 const SIDEWALK_M = 1.8;
@@ -52,6 +57,12 @@ const DEFAULT_BUILDING_WIDTH_M = 8;
 const DEFAULT_BUILDING_DEPTH_M = 8;
 const DEFAULT_BUILDING_HEIGHT_M = 6;
 const MAX_TOWN_BUILDING_SPAN_M = 60;
+// 町モデルの編集ミスで、地表よりずっと下に取り残された迷子メッシュが混入することがある
+// （実例: 2026-09-12、モデル更新で追加された「道路」という名のメッシュが地下約3.2mに
+// 埋まった状態で残っており、画面には何も映らないのに、その真上を歩こうとすると
+// 見えない壁にぶつかる不具合になっていた）。そうしたメッシュも同じ2D投影の当たり判定
+// ロジックに乗ってしまうため、完全に地表より下にあるメッシュは建物として扱わない。
+const BURIED_MESH_MAX_Y_M = -0.5;
 // 一度点検対象として選ばれた消火栓は、この分だけ半径を広げて「維持」する。
 // タッチ操作でボタンを押そうとしている間にわずかに動いただけで選択が外れ、
 // 気づかず通り過ぎてしまう体験（H7）を緩和するための猶予。
@@ -176,6 +187,9 @@ function collectTownBuildingColliders(
     if (width <= 0 || depth <= 0 || width > MAX_TOWN_BUILDING_SPAN_M || depth > MAX_TOWN_BUILDING_SPAN_M) {
       return;
     }
+    if (box.max.y < BURIED_MESH_MAX_Y_M) {
+      return;
+    }
 
     const center = { x: (box.min.x + box.max.x) / 2, z: (box.min.z + box.max.z) / 2 };
     if (!isRelevant(center)) {
@@ -193,6 +207,39 @@ function collectTownBuildingColliders(
     colliders.push(meshCollider(footprint.triangles, footprint.edges));
   });
   return colliders;
+}
+
+// 建物メッシュの当たり判定(足元の三角形)を、そのまま地面に薄い影として描く。
+// 屋根の庇や、モデル編集ミスによる迷子メッシュなど、見た目からは分からない
+// 当たり判定の範囲がある(実機で報告された「見えない壁にぶつかる」不具合)。
+// 当たり判定を無理に建物の見た目に一致させる代わりに、範囲そのものを
+// プレイヤーに見せて、そこへ踏み込まないよう誘導する。
+// 使う三角形は当たり判定(colliders)と全く同じものなので、見た目と実際の
+// 当たり判定がズレることはない。
+function createColliderShadowMesh(colliders: Collider[]): THREE.Mesh | null {
+  const positions: number[] = [];
+  for (const collider of colliders) {
+    if (collider.kind !== 'mesh') {
+      continue;
+    }
+    for (const [a, b, c] of collider.triangles) {
+      positions.push(a.x, COLLIDER_SHADOW_Y, a.z, b.x, COLLIDER_SHADOW_Y, b.z, c.x, COLLIDER_SHADOW_Y, c.z);
+    }
+  }
+  if (positions.length === 0) {
+    return null;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  const material = new THREE.MeshBasicMaterial({
+    color: COLLIDER_SHADOW_COLOR,
+    transparent: true,
+    opacity: COLLIDER_SHADOW_OPACITY,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  return new THREE.Mesh(geometry, material);
 }
 
 function createTerritoryRing(radius: number, color: string): THREE.Mesh {
@@ -679,7 +726,14 @@ export function PatrolScene({
 
             if (building.placement === 'town') {
               placeTownModel(model, origin);
-              colliders.push(...collectTownBuildingColliders(model, inPlayRadiusWorld));
+              const townColliders = collectTownBuildingColliders(model, inPlayRadiusWorld);
+              colliders.push(...townColliders);
+
+              const shadow = createColliderShadowMesh(townColliders);
+              if (shadow) {
+                scene.add(shadow);
+                disposable.add(shadow);
+              }
             } else {
               const pos = latLngToWorldPosition(building.lat, building.lng, origin);
               model.rotation.y = headingDegToRotationY(building.headingDeg);
