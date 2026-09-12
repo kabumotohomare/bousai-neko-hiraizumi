@@ -294,7 +294,14 @@ button {
 }
 
 .patrol-toast--inspect {
-  background: rgba(22, 163, 74, 0.92);
+  /* ミニマップ（top 58px〜190px）に隠れないよう、その下に大きめで出す */
+  top: 204px;
+  z-index: 23;
+  padding: 10px 18px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  background: rgba(22, 163, 74, 0.94);
+  box-shadow: 0 6px 18px rgba(23, 32, 51, 0.25);
 }
 
 .patrol-speech {
@@ -668,10 +675,9 @@ button {
   border-bottom: 1px dashed #dbe5f1;
 }
 
-.result-sense__hint {
-  margin: 0;
-  color: var(--mood-sub);
-  font-size: 0.9rem;
+.result-remaining .result-sense {
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 
 .result-line {
@@ -771,41 +777,7 @@ button {
   letter-spacing: 0.1em;
 }
 
-/* 切断スライド: 3つの感覚の説明 */
-.result-senses {
-  display: grid;
-  gap: 8px;
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-  text-align: left;
-}
-
-.result-senses li {
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: #f5f7fb;
-  border: 1px solid #dbe5f1;
-  font-size: 0.9rem;
-  color: var(--mood-sub);
-}
-
-.result-senses strong {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--mood-accent);
-  color: #fff;
-  font-size: 1.1rem;
-}
-
-/* 目（記録） */
+/* 結果1: 見つけた 消火栓 */
 .result-progress {
   height: 12px;
   border-radius: 999px;
@@ -995,45 +967,40 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
-/* ねむり（締め） */
-.result-sleeping {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: #f5f7fb;
-  border: 1px solid #dbe5f1;
-  text-align: left;
-}
-
-.result-sleeping__img {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  object-fit: cover;
-  filter: grayscale(1);
-  opacity: 0.8;
-}
-
-.result-sleeping__body {
-  display: grid;
-  gap: 2px;
-  font-size: 0.9rem;
-}
-
-.result-sleeping__badge {
-  justify-self: start;
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: #64748b;
-  color: #fff;
-  font-size: 0.72rem;
-}
-
-.result-sleeping__quote {
+.result-feet__best {
+  margin: 2px 0 0;
+  text-align: right;
+  font-size: 0.82rem;
   color: var(--mood-sub);
-  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-feet__best strong {
+  color: var(--mood-accent);
+}
+
+/* 結果1: のこってる 消火栓（区画） */
+.result-remaining {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed #dbe5f1;
+}
+
+.result-slide__title--small {
+  font-size: 1rem;
+}
+
+.result-compass--small {
+  transform: scale(0.72);
+  margin: -24px auto -28px;
+}
+
+/* 再挑戦 */
+.result-slide--retry .primary-button,
+.result-slide--retry .secondary-button {
+  width: 100%;
 }
 
 .result-closing {
@@ -1042,6 +1009,23 @@ button {
   border-top: 1px dashed #dbe5f1;
   color: var(--mood-sub);
   line-height: 1.7;
+  text-align: center;
+}
+
+.result-closing a {
+  display: inline-block;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+.result-closing__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mood-accent);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* ------------------------------------------------------------------ */

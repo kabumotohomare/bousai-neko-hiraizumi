@@ -7,15 +7,15 @@ import {
   DirectionLabel,
   ScenarioContext
 } from '../../domain/scenario/context';
-import { buildScenarioVars, fill, ScenarioLines, selectLines } from '../../domain/scenario/lines';
+import { buildScenarioVars, fill, selectLines } from '../../domain/scenario/lines';
 
-type Slide = 0 | 1 | 2 | 3 | 4;
-const LAST_SLIDE: Slide = 4;
+type Slide = 0 | 1 | 2 | 3;
+const LAST_SLIDE: Slide = 3;
 
 /**
  * S04 リザルト。
- * 90秒で人格は猫から出る。出る直前、猫から借りた3つの感覚（目・鼻・足）で今日を残す。
- * スライド: 切断 → 目(記録) → 鼻 → 足 → ねむり。
+ * スライド: 終わり → 結果1（見つけた／のこってる）→ 結果2（タイム）→ 再挑戦。
+ * 1周目に見える文は「猫が消火栓を見て回った」だけで読めるようにし、設定語を出さない。
  * 文言は messages.scenario、分岐は domain/scenario が担い、ここは表示だけ。
  * 画面の雰囲気（data-mood）は記録の進み具合（mapBranch）で夜→朝に変わる。
  */
@@ -58,7 +58,7 @@ export function ResultScreen() {
   const { ctx, lines, vars } = scenario;
   const s = messages.scenario;
   const isLast = slide === LAST_SLIDE;
-  const sleepingCat = cats.find((cat) => cat.id === ctx.sleepingCats[0]?.id) ?? null;
+  const bestSec = ctx.previousRun?.bestLastMarkSec ?? null;
 
   return (
     <main className="app-shell stack result-screen" data-slide={slide} data-mood={lines.mapBranch}>
@@ -94,26 +94,12 @@ export function ResultScreen() {
             {fill(s.disconnectIntro, vars)}
           </h2>
           <p className="subtitle">{s.disconnectSub}</p>
-          <ul className="result-senses" aria-label="かりた 3つの かんかく">
-            <li>
-              <strong>{s.slideLabels[1]}</strong>
-              <span>{s.senseHints.map}</span>
-            </li>
-            <li>
-              <strong>{s.slideLabels[2]}</strong>
-              <span>{s.senseHints.nose}</span>
-            </li>
-            <li>
-              <strong>{s.slideLabels[3]}</strong>
-              <span>{s.senseHints.feet}</span>
-            </li>
-          </ul>
         </section>
       ) : null}
 
       {slide === 1 ? (
         <section className="card stack result-slide" aria-labelledby="result-slide-1">
-          <SenseHeader id="result-slide-1" label={s.slideLabels[1]} hint={s.senseHints.map} />
+          <SectionHeader id="result-slide-1" label={s.sectionLabels.found} />
           <p className="subtitle">{s.progressLabel}</p>
           <div
             className="result-progress"
@@ -131,10 +117,10 @@ export function ResultScreen() {
           <p className="result-count">
             <strong>{ctx.knownCount}</strong> / {ctx.total}
             <span className="result-count__sub">
-              （{s.todayTag} {ctx.inspectedCount}つ）
+              （{s.todayTag} {ctx.inspectedCount}こ）
             </span>
           </p>
-          <ul className="result-marks" aria-label="赤いしるしの一覧">
+          <ul className="result-marks" aria-label="消火栓の一覧">
             {ctx.marks.map((mark) => (
               <li
                 key={mark.id}
@@ -152,28 +138,30 @@ export function ResultScreen() {
           </ul>
           <p className="result-line">{lines.mapLine}</p>
           {lines.mapGainedLine ? <p className="subtitle">{lines.mapGainedLine}</p> : null}
+
+          {lines.noseLines.length > 0 ? (
+            <div className="result-remaining" aria-labelledby="result-remaining">
+              <SectionHeader id="result-remaining" label={s.sectionLabels.remaining} small />
+              <Compass ctx={ctx} />
+              {lines.noseLines.map((line, index) => (
+                <p key={line} className={index === 0 ? 'result-line' : 'subtitle'}>
+                  {line}
+                </p>
+              ))}
+            </div>
+          ) : null}
         </section>
       ) : null}
 
       {slide === 2 ? (
         <section className="card stack result-slide" aria-labelledby="result-slide-2">
-          <SenseHeader id="result-slide-2" label={s.slideLabels[2]} hint={s.senseHints.nose} />
-          <Compass ctx={ctx} />
-          {lines.noseLines.map((line) => (
-            <p key={line} className="result-line">
-              {line}
-            </p>
-          ))}
-        </section>
-      ) : null}
-
-      {slide === 3 ? (
-        <section className="card stack result-slide" aria-labelledby="result-slide-3">
-          <SenseHeader id="result-slide-3" label={s.slideLabels[3]} hint={s.senseHints.feet} />
+          <SectionHeader id="result-slide-2" label={s.sectionLabels.feet} />
           <FeetBars
             ctx={ctx}
             nowLabel={s.feetNowLabel}
             prevLabel={s.feetPrevLabel}
+            bestLabel={s.feetBestLabel}
+            bestSec={bestSec}
             durationSec={gameConfig.gameDurationSec}
           />
           <p className="result-line">{lines.feetLine}</p>
@@ -181,59 +169,67 @@ export function ResultScreen() {
         </section>
       ) : null}
 
-      {slide === 4 ? (
+      {slide === 3 ? (
         <section
-          className="card stack result-slide result-slide--sleep"
-          aria-labelledby="result-slide-4"
+          className="card stack result-slide result-slide--retry"
+          aria-labelledby="result-slide-3"
         >
-          <CatPortrait cat={selectedCat} mood={lines.mapBranch} sleeping />
-          <h2 id="result-slide-4" className="result-line result-line--lead">
-            {s.sleepIntro}
+          <CatPortrait cat={selectedCat} mood={lines.mapBranch} />
+          <h2 id="result-slide-3" className="result-line result-line--lead">
+            {s.retryTitle}
           </h2>
-          <p className="subtitle">{s.sleepSub}</p>
-          {sleepingCat ? (
-            <SleepingCard cat={sleepingCat} badge={s.sleepingBadge} lines={lines} />
+          <button className="primary-button" onClick={() => replayPatrol()}>
+            {s.retryAgain}
+          </button>
+          <button className="secondary-button" onClick={() => goToMap()}>
+            {s.retryLeave}
+          </button>
+          {lines.closingLine ? (
+            <p className="result-closing">
+              {lines.closingBranch === 'nextCat' ? (
+                <button type="button" className="result-closing__link" onClick={() => goToMap()}>
+                  {lines.closingLine}
+                </button>
+              ) : (
+                <>
+                  {lines.closingLine}{' '}
+                  {lines.closingBranch === 'sleeping' ? (
+                    <a href={gameConfig.reportFormUrl} target="_blank" rel="noreferrer">
+                      {s.reportLink}
+                    </a>
+                  ) : null}
+                </>
+              )}
+            </p>
           ) : null}
-          <p className="result-closing">{lines.closingLine}</p>
         </section>
       ) : null}
 
-      <section className="card stack result-actions">
-        {!isLast ? (
+      {!isLast ? (
+        <section className="card stack result-actions">
           <button className="primary-button" onClick={() => setSlide((slide + 1) as Slide)}>
             {s.nextSlide}
           </button>
-        ) : (
-          <>
-            <button className="primary-button" onClick={() => replayPatrol()}>
-              もういちど遊ぶ
-            </button>
-            <button className="secondary-button" onClick={() => goToMap()}>
-              べつのねこで遊ぶ
-            </button>
-            <a
-              className="secondary-button"
-              href={gameConfig.reportFormUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{ display: 'grid', placeItems: 'center', textDecoration: 'none' }}
-            >
-              ねこの もくげきほうこくをする
-            </a>
-          </>
-        )}
-      </section>
+        </section>
+      ) : null}
     </main>
   );
 }
 
-function SenseHeader({ id, label, hint }: { id: string; label: string; hint: string }) {
+function SectionHeader({
+  id,
+  label,
+  small = false
+}: {
+  id: string;
+  label: string;
+  small?: boolean;
+}) {
   return (
     <header className="result-sense">
-      <h2 id={id} className="result-slide__title">
+      <h2 id={id} className={`result-slide__title${small ? ' result-slide__title--small' : ''}`}>
         {label}
       </h2>
-      <p className="result-sense__hint">{hint}</p>
     </header>
   );
 }
@@ -286,7 +282,7 @@ function CatPortrait({
   );
 }
 
-/** 鼻: スタート地点から見た8方位。未記録のしるしを点で置き、いちばん近いものに矢印を向ける。 */
+/** のこってる消火栓: スタート地点から見た8方位。未記録を点で置き、いちばん近いものに矢印を向ける。 */
 function Compass({ ctx }: { ctx: ScenarioContext }) {
   const nearest = ctx.nearestMissed;
   const angleOf = (direction: DirectionLabel) => DIRECTION_LABELS.indexOf(direction) * 45;
@@ -294,9 +290,9 @@ function Compass({ ctx }: { ctx: ScenarioContext }) {
 
   return (
     <div
-      className="result-compass"
+      className="result-compass result-compass--small"
       role="img"
-      aria-label={nearest ? `${nearest.label} の方角` : 'しらない においは ない'}
+      aria-label={nearest ? `${nearest.label} の方角` : 'のこってる 消火栓は ない'}
     >
       <span className="result-compass__ring" aria-hidden="true" />
       {DIRECTION_LABELS.filter((_, index) => index % 2 === 0).map((label) => (
@@ -335,16 +331,20 @@ function Compass({ ctx }: { ctx: ScenarioContext }) {
   );
 }
 
-/** 足: 今日と前回の「最後のしるしまでの秒数」を横棒で並べる。 */
+/** タイム: 今日と前回の「最後の消火栓までの秒数」を横棒で並べ、自己ベストがあれば小さく添える。 */
 function FeetBars({
   ctx,
   nowLabel,
   prevLabel,
+  bestLabel,
+  bestSec,
   durationSec
 }: {
   ctx: ScenarioContext;
   nowLabel: string;
   prevLabel: string;
+  bestLabel: string;
+  bestSec: number | null;
   durationSec: number;
 }) {
   const now = ctx.lastMarkSec;
@@ -353,7 +353,7 @@ function FeetBars({
     sec === null ? 0 : Math.min(100, Math.round((sec / durationSec) * 100));
 
   return (
-    <div className="result-feet" aria-label="さいごの しるしまでの 秒数">
+    <div className="result-feet" aria-label="さいごの 消火栓までの 秒数">
       <div className="result-feet__row">
         <span className="result-feet__label">{nowLabel}</span>
         <span className="result-feet__track">
@@ -368,24 +368,11 @@ function FeetBars({
         </span>
         <span className="result-feet__value">{prev === null ? '—' : `${prev}秒`}</span>
       </div>
+      {bestSec !== null ? (
+        <p className="result-feet__best">
+          {bestLabel}: <strong>{bestSec}秒</strong>
+        </p>
+      ) : null}
     </div>
-  );
-}
-
-/** 体を待っている人格。 */
-function SleepingCard({ cat, badge, lines }: { cat: Cat; badge: string; lines: ScenarioLines }) {
-  const { src, onError } = useCatImage(cat);
-  return (
-    <aside className="result-sleeping" aria-label={`${cat.name}（${badge}）`}>
-      {src ? <img className="result-sleeping__img" src={src} alt="" onError={onError} /> : null}
-      <div className="result-sleeping__body">
-        <span className="result-sleeping__badge">{badge}</span>
-        <strong>{cat.name}</strong>
-        <span className="subtitle">{cat.aliasName ?? ''}</span>
-        {lines.closingBranch === 'sleeping' && cat.catchphrase ? (
-          <span className="result-sleeping__quote">「{cat.catchphrase}」</span>
-        ) : null}
-      </div>
-    </aside>
   );
 }

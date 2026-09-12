@@ -67,7 +67,7 @@ test('a sleeping (locked) cat is greyed out and cannot be selected', async ({ pa
 
   // aria-disabled のため Playwright の actionability を外してタップを再現する
   await page.locator('.cat-item--locked', { hasText: 'シラヤマ' }).click({ force: true });
-  await expect(page.getByRole('status')).toContainText('からだを まっている');
+  await expect(page.getByRole('status')).toContainText('まだ 見つかっていないニャ');
   await expect(start).toBeDisabled();
 });
 
@@ -155,14 +155,14 @@ test('cat pins stay aligned with their territory circles after a patrol round tr
   await page.locator('.cat-item:not(.cat-item--locked)').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
-  // S04 はシナリオ5スライド（切断→目→鼻→足→ねむり）。行動ボタンは最後のスライドに出る。
+  // S04 は4スライド（終わり→結果1→結果2→再挑戦）。行動ボタンは最後のスライドに出る。
   // タイマーは setInterval ベースで、3D描画で main thread が混雑すると tick が遅延しうる
   // ため、gameDurationSec の額面(12s)より十分長いタイムアウトを取る。
-  await page.waitForSelector('text=ねこの 記録', { timeout: 45_000 });
-  for (let i = 0; i < 4; i += 1) {
+  await page.waitForSelector('text=みまわりの 結果', { timeout: 45_000 });
+  for (let i = 0; i < 3; i += 1) {
     await page.getByRole('button', { name: 'つぎへ' }).click();
   }
-  await page.getByRole('button', { name: 'べつのねこで遊ぶ' }).click();
+  await page.getByRole('button', { name: '今日もう帰るにゃ' }).click();
   await page.waitForSelector('.cat-pin');
 
   // 修正前はここで移動後(fitBounds後)の位置に追従できず、円とピンがずれたままになっていた。

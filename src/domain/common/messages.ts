@@ -1,62 +1,60 @@
 import { z } from 'zod';
 
 /**
- * リザルト画面（S04）と猫えらび（S02）のシナリオ文言。
- * `{catName}` `{alias}` `{missing}` `{known}` `{total}` `{gained}` `{direction}` `{distance}`
- * `{hop}` `{sec}` `{prevSec}` `{prevInspected}` `{diff}` `{sleepingName}` `{sleepingAlias}`
- * `{durationSec}` を実行時に置換する。
- * 世界観に依存する語（からだ・はいる・記録・ねむる）はここに閉じ、
- * ロジック側（domain/scenario）には持ち込まない。
+ * リザルト画面（S04）と猫えらび（S02）の文言。
+ * `{catName}` `{alias}` `{missing}` `{known}` `{total}` `{gained}` `{inspected}` `{direction}`
+ * `{distance}` `{hop}` `{sec}` `{prevSec}` `{prevInspected}` `{bestSec}` `{sleepingName}`
+ * `{sleepingAlias}` `{nextCatName}` `{durationSec}` を実行時に置換する。
+ *
+ * 1周目に見える文は、「猫が消火栓を見て回った」だけの理解で読める語にする
+ * （からだ・はいる・かりた・切断 などの設定語は置かない）。
+ * 文言はここに閉じ、ロジック側（domain/scenario）には持ち込まない。
  */
 export const ScenarioMessagesSchema = z.object({
   resultTitle: z.string(),
   nextSlide: z.string(),
-  /** 5スライドの見出し: 切断 / 目(記録) / 鼻 / 足 / ねむり */
-  slideLabels: z.tuple([z.string(), z.string(), z.string(), z.string(), z.string()]),
-  /** 各感覚の意味を一行で */
-  senseHints: z.object({ map: z.string(), nose: z.string(), feet: z.string() }),
+  /** 4スライドの見出し: 終わり / 結果1(見つけた・のこってる) / 結果2(タイム) / 再挑戦 */
+  slideLabels: z.tuple([z.string(), z.string(), z.string(), z.string()]),
+  /** 結果1・結果2 の区画見出し */
+  sectionLabels: z.object({ found: z.string(), remaining: z.string(), feet: z.string() }),
 
-  // 切断（導入）
+  // 終わり（導入）
   disconnectIntro: z.string(),
   disconnectSub: z.string(),
 
-  // 目（記録）
+  // 結果1: 見つけた（目）
   progressLabel: z.string(),
   todayTag: z.string(),
   mapEmpty: z.string(),
-  mapLow: z.string(),
-  mapHigh: z.string(),
+  mapFound: z.string(),
   mapComplete: z.string(),
   mapGained: z.string(),
 
-  // 鼻
+  // 結果1: のこってる（鼻）
   noseNearest: z.string(),
   noseHop: z.string(),
-  noseComplete: z.string(),
-  noseSleeping: z.string(),
 
-  // 足
+  // 結果2: タイム（足）
   feetNone: z.string(),
   feetFirst: z.string(),
-  feetFaster: z.string(),
-  feetSame: z.string(),
-  feetSlower: z.string(),
-  feetMoreMarks: z.string(),
-  feetFewerMarks: z.string(),
   feetBest: z.string(),
+  feetFaster: z.string(),
+  feetNotFaster: z.string(),
   feetPrev: z.string(),
   feetNowLabel: z.string(),
   feetPrevLabel: z.string(),
+  feetBestLabel: z.string(),
 
-  // ねむり（締め）
-  sleepIntro: z.string(),
-  sleepSub: z.string(),
+  // 再挑戦
+  retryTitle: z.string(),
+  retryAgain: z.string(),
+  retryLeave: z.string(),
+  nextCatUnlocked: z.string(),
+  nextCatLocked: z.string(),
+  reportLink: z.string(),
+
+  // 猫えらび
   sleepingBadge: z.string(),
-  closingSleeping: z.string(),
-  closingAllAwake: z.string(),
-  closingOpen: z.string(),
-
-  // 猫えらび（接続）
   selectIntro: z.string(),
   selectSleeping: z.string(),
   selectLockedTap: z.string(),
@@ -66,57 +64,46 @@ export const ScenarioMessagesSchema = z.object({
 export type ScenarioMessages = z.infer<typeof ScenarioMessagesSchema>;
 
 export const defaultScenarioMessages: ScenarioMessages = {
-  resultTitle: 'ねこの 記録',
+  resultTitle: 'みまわりの 結果',
   nextSlide: 'つぎへ',
-  slideLabels: ['切断', '目', '鼻', '足', 'ねむり'],
-  senseHints: {
-    map: 'かりた 目。この なわばりで 見たもの、まだ 見ていないもの。',
-    nose: 'かりた 鼻。まだ 見ていない 赤の、いちばん近い 方角。',
-    feet: 'かりた 足。この からだで、どれだけ はやく まわれたか。'
-  },
+  slideLabels: ['終わり', '結果1', '結果2', '再挑戦'],
+  sectionLabels: { found: '見つけた 消火栓', remaining: 'のこってる 消火栓', feet: 'タイム' },
 
-  disconnectIntro: 'ねこの時間、おわり。{catName}は、からだから でる。',
-  disconnectSub: 'でる まえに、かりた 3つの かんかくで、きょうを のこす。',
+  disconnectIntro: '{catName}の みまわり、おわりニャ',
+  disconnectSub: 'きょうの 結果を 見るニャ',
 
-  progressLabel: 'このなわばりで 見つけた 赤いしるし',
+  progressLabel: 'この なわばりの 消火栓',
   todayTag: 'きょう',
-  mapEmpty: '{alias}の 記録は、まだ しろい。',
-  mapLow: '{alias}で、まだ しらない 赤が {missing}つ。',
-  mapHigh: '記録の はんぶんより むこうが、見えた。まだ {missing}つ。',
-  mapComplete: '{alias}の 記録は、できた。',
-  mapGained: 'きょう、記録に ふえた しるし: {gained}つ。',
+  mapEmpty: 'きょうは 見つからなかったニャ',
+  mapFound: '消火栓を {inspected}こ みつけられたニャ',
+  mapComplete: 'ぜんぶ 見つけたニャ！',
+  mapGained: 'あたらしく 見つけたのは {gained}こニャ',
 
-  noseNearest: 'いちばん近い「まだ」は、{direction} {distance}m。',
-  noseHop: '{hop}の あとに まわると、ちかい。',
-  noseComplete: 'この なわばりに、しらない においは ない。',
-  noseSleeping: 'においは、{sleepingAlias}から。まだ、だれの 記録にも ない。',
+  noseNearest: 'つぎは {direction} {distance}m に あるニャ',
+  noseHop: 'その あとは {hop}ニャ',
 
-  feetNone: 'この からだでは、まだ 走れていない。',
-  feetFirst: 'この からだに、はじめて はいった。さいごの しるしまで {sec}秒。',
-  feetFaster: 'からだが、みちを おぼえた。まえより はやい。{sec}秒。',
-  feetSame: 'まえと おなじ 足。{sec}秒。',
-  feetSlower: 'きょうは、まわりみちを した。{sec}秒。',
-  feetMoreMarks: 'まえより {diff}つ おおく、しるしを 見た。{sec}秒。',
-  feetFewerMarks: 'まえより {diff}つ すくない。しるしは、にげない。',
-  feetBest: 'この からだの、いちばん はやい 足。{sec}秒。',
-  feetPrev: 'まえ: {prevInspected}つ、{prevSec}秒。',
+  feetNone: 'つぎは 時間内に 見つけるニャ',
+  feetFirst: 'はじめての タイムだニャ。{sec}秒',
+  feetBest: '自己ベストだニャ！ {sec}秒',
+  feetFaster: '前回よりも 早く できたニャ。{sec}秒',
+  feetNotFaster: 'もっと 早く 走れたニャ。{sec}秒',
+  feetPrev: 'まえ: {prevInspected}こ、{prevSec}秒',
   feetNowLabel: 'きょう',
   feetPrevLabel: 'まえ',
+  feetBestLabel: 'いちばん 早い',
 
-  sleepIntro: 'ねこは ねむる。なにも おぼえていない。',
-  sleepSub: '記録だけが、まちに のこる。',
-  sleepingBadge: 'ねむりちゅう',
-  closingSleeping:
-    '{sleepingName}は、からだを まっている。まちの ひとが ねこを みつけたら、はいれる。',
-  closingAllAwake: 'べつの なわばりの 記録も、まだ しろい。',
-  closingOpen: 'つぎの ねこの時間まで、記録は のこる。',
+  retryTitle: 'もう一回 やるニャ？',
+  retryAgain: 'もう一回 挑戦するにゃ。',
+  retryLeave: '今日もう帰るにゃ',
+  nextCatUnlocked: '次は {nextCatName}で プレーしてみようニャ',
+  nextCatLocked: '{sleepingAlias}にも ねこが いるニャ。見かけたら おしえてニャ',
+  reportLink: 'ねこの もくげきほうこく',
 
-  selectIntro: 'ねこの時間は、{durationSec}びょう。ひとつ えらんで、からだに はいる。',
-  selectSleeping:
-    '{sleepingName}は、まだ からだを まっている。まちの ひとが ねこを みつけたら、はいれる。',
-  selectLockedTap:
-    '{catName}は、からだを まっている。ねこを みつけたら、ほうこくで おしえてください。',
-  selectConnectable: 'はいれる'
+  sleepingBadge: 'まだ いない',
+  selectIntro: '1回の みまわりは {durationSec}秒ニャ。ねこを えらぶニャ。',
+  selectSleeping: '{sleepingName}は まだ 見つかっていないニャ。',
+  selectLockedTap: '{catName}は まだ 見つかっていないニャ。見かけたら おしえてニャ',
+  selectConnectable: 'えらべる'
 };
 
 export const MessagesSchema = z.object({
@@ -136,7 +123,7 @@ export type Messages = z.infer<typeof MessagesSchema>;
 export const defaultMessages: Messages = {
   boundary: 'この先はなわばりじゃにゃい',
   timeUp: 'きょうはもうつかれた。みまわりはおわりだ。',
-  inspectSuccess: '赤いしるし。きろくに、ひとつ。',
+  inspectSuccess: '赤いやつが 見つかったニャ',
   resultLow: 'つぎはもっとたくさん見つけてみよう。',
   resultMid: 'この場所、ほんとうの町でもおぼえておこう。',
   resultHigh: 'みんなの見回りが、町のあんしんにつながる。',
