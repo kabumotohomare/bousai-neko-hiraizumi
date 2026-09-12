@@ -15,8 +15,10 @@ import {
   resolveObstacleMove,
   Vec2
 } from '../../domain/collision/obstacle';
+import { INSPECTED_COLOR, UNINSPECTED_COLOR } from '../../domain/hydrant/hydrantMarkerColors';
 import { findInspectableHydrantId } from '../../domain/hydrant/inspect';
 import { Hydrant } from '../../domain/hydrant/model';
+import { hydrantWorldPosition } from '../../domain/hydrant/worldPosition';
 import { Road } from '../../domain/road/model';
 import {
   headingDegToRotationY,
@@ -32,8 +34,6 @@ const CAMERA_FOV = 60;
 const TURN_SPEED_RAD_PER_SEC = 2.4;
 const DASH_TURN_MULTIPLIER = 1.4;
 const MAX_MOVE_STEP_M = 0.2;
-const INSPECTED_COLOR = '#16a34a';
-const UNINSPECTED_COLOR = '#dc2626';
 const SKY_COLOR = '#a9d0f5';
 // 道路(0.025)・町モデル(0.02)・建物の底面(0)など地表付近の要素と十分に離し、
 // 深度バッファの精度不足によるちらつき(Zファイティング)を避ける。
@@ -494,7 +494,7 @@ export function PatrolScene({
     disposable.add(ring);
 
     const hydrantPoints = hydrants.map((hydrant) => {
-      const pos = latLngToWorldPosition(hydrant.lat, hydrant.lng, origin);
+      const pos = hydrantWorldPosition(hydrant, origin);
       const marker = createHydrantMarker(inspectedRef.current.includes(hydrant.id));
       marker.position.set(pos.x, marker.position.y, pos.z);
       scene.add(marker);

@@ -4,6 +4,7 @@ import { PatrolMinimap } from '../../components/map/PatrolMinimap';
 import { PatrolScene } from '../../components/three/PatrolScene';
 import { VirtualStick } from '../../components/ui/VirtualStick';
 import { isHydrantInTerritory } from '../../domain/hydrant/inTerritory';
+import { hydrantWorldPosition } from '../../domain/hydrant/worldPosition';
 import { PlayerPose } from '../../domain/session/playerInput';
 import { distance2d, latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
 import { usePlayerInput } from './usePlayerInput';
@@ -64,7 +65,7 @@ export function PatrolScreen() {
     return hydrants
       .filter((hydrant) => hydrant.status === 'active')
       .filter((hydrant) => {
-        const hydrantWorld = latLngToWorldPosition(hydrant.lat, hydrant.lng, origin);
+        const hydrantWorld = hydrantWorldPosition(hydrant, origin);
         return isHydrantInTerritory(hydrantWorld, catWorld, selectedCat.radius);
       });
   }, [gameConfig.defaultMapCenter, hydrants, selectedCat]);

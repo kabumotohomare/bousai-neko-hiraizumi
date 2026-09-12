@@ -136,7 +136,7 @@ export type Hydrant = z.infer<typeof HydrantSchema>;
 ```ts
 export const GameConfigSchema = z.object({
   version: z.number(),
-  gameDurationSec: z.number().default(90),
+  gameDurationSec: z.number().default(150),
   playerMoveSpeedMps: z.number().default(2.2),
   inspectRadiusMeters: z.number().default(2.0),
   territoryBoundaryMarginMeters: z.number().default(1.0),
