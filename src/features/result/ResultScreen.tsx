@@ -27,6 +27,7 @@ export function ResultScreen() {
   const messages = useAppStore((state) => state.messages);
   const gameConfig = useAppStore((state) => state.gameConfig);
   const goToMap = useAppStore((state) => state.goToMap);
+  const goHome = useAppStore((state) => state.goHome);
   const replayPatrol = useAppStore((state) => state.replayPatrol);
 
   const [slide, setSlide] = useState<Slide>(0);
@@ -182,7 +183,7 @@ export function ResultScreen() {
           <button className="primary-button" onClick={() => replayPatrol()}>
             {s.retryAgain}
           </button>
-          <button className="secondary-button" onClick={() => goToMap()}>
+          <button className="secondary-button" onClick={() => goHome()}>
             {s.retryLeave}
           </button>
           {lines.closingLine ? (

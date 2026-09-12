@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { dismissEnding, openApp } from './helpers';
 
 /**
  * S04 リザルトのシナリオ分岐（記録 → 鼻 → 足）を、ゲーム結果を作って確認する。
@@ -42,7 +43,7 @@ async function patchData(page: Page, durationSec: number) {
 }
 
 async function startTakizawa(page: Page) {
-  await page.goto('/');
+  await openApp(page);
   await page.locator('.cat-item', { hasText: 'タキザワ' }).click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
@@ -117,8 +118,18 @@ test('0本: 見つからなかった、のこってる消火栓の方角、タ�
   await expect(page.locator('.result-screen')).not.toContainText('からだ');
   await expect(page.getByRole('button', { name: 'つぎへ' })).toHaveCount(0);
 
-  // 今日もう帰る → 猫えらび
+  // 今日もう帰る → エンディング → 猫えらび
   await page.getByRole('button', { name: '今日もう帰るにゃ' }).click();
+  await expect(page.locator('.ending .opening__video')).toHaveAttribute('src', '/op/ending.mp4');
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const bgm = (window as Window & { __bousaiEndingBgm?: HTMLAudioElement }).__bousaiEndingBgm;
+        return Boolean(bgm && !bgm.paused && bgm.loop);
+      })
+    )
+    .toBe(true);
+  await dismissEnding(page);
   await expect(page.getByRole('heading', { name: '猫をえらぶ' })).toBeVisible();
 });
 
@@ -202,14 +213,14 @@ async function seedLegacyProgress(page: Page, lastSelectedCatId: string) {
 
 test('既存の localStorage（lastRunByCat なし）でも起動する', async ({ page }) => {
   await seedLegacyProgress(page, 'cat_002');
-  await page.goto('/');
+  await openApp(page);
   await expect(page.getByRole('heading', { name: '猫をえらぶ' })).toBeVisible();
   await expect(page.locator('.cat-item.selected', { hasText: 'タキザワ' })).toBeVisible();
 });
 
 test('前回選択が locked の猫（シラヤマ）なら復元しない', async ({ page }) => {
   await seedLegacyProgress(page, 'cat_001');
-  await page.goto('/');
+  await openApp(page);
   await expect(page.getByRole('heading', { name: '猫をえらぶ' })).toBeVisible();
   await expect(page.locator('.cat-item.selected')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'このねこでみまわりスタート' })).toBeDisabled();

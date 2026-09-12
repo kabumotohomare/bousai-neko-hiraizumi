@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect } from 'react';
 import { BootScreen } from './features/boot/BootScreen';
 import { ErrorScreen } from './features/error/ErrorScreen';
+import { OpeningScreen } from './features/opening/OpeningScreen';
+import { EndingScreen } from './features/ending/EndingScreen';
 import { MapSelectionScreen } from './features/map-selection/MapSelectionScreen';
 import { PatrolScreen } from './features/patrol-3d/PatrolScreen';
 import { ResultScreen } from './features/result/ResultScreen';
@@ -27,6 +29,10 @@ export default function App() {
     return <BootScreen />;
   }
 
+  if (currentScreen === 'opening') {
+    return <OpeningScreen />;
+  }
+
   if (currentScreen === 'map') {
     return <MapSelectionScreen />;
   }
@@ -37,6 +43,10 @@ export default function App() {
 
   if (currentScreen === 'result') {
     return <ResultScreen />;
+  }
+
+  if (currentScreen === 'ending') {
+    return <EndingScreen />;
   }
 
   return <ErrorScreen />;
