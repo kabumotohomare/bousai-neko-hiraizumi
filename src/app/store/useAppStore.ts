@@ -11,6 +11,7 @@ import { hydrantWorldPosition } from '../../domain/hydrant/worldPosition';
 import { Road } from '../../domain/road/model';
 import { defaultLocalProgress, LocalProgress, PatrolSession } from '../../domain/session/model';
 import { estimatePatrolPathMeters, requiredDashSpeedMps } from '../../domain/session/patrolPath';
+import { playThemeSong, stopThemeSong } from '../../services/audio/themeSong';
 import { saveLocalProgress } from '../../services/storage/localProgress';
 import { latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
 
@@ -123,6 +124,10 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       });
       return;
     }
+
+    // ユーザー操作(このアクションを呼んだボタンのクリック)と同じ呼び出しの中で
+    // 同期的に再生を開始する。自動再生ポリシー対策のため。
+    playThemeSong();
 
     set({
       currentScreen: 'patrol',
@@ -266,6 +271,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   },
 
   goToMap: () => {
+    stopThemeSong();
     set({
       currentScreen: 'map',
       currentSession: null,
@@ -274,6 +280,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   },
 
   failScene: (cause?: unknown) => {
+    stopThemeSong();
     set({
       currentScreen: 'error',
       error: {
