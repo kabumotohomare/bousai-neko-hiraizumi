@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "faces": [
+    {
+      "building_id": "bldg_sample_388_114",
+      "face_id": "01",
+      "objectName": "bldg_sample_388_114_face_01",
+      "materialSlot": 0,
+      "uvAdjust": {
+        "offsetX": 0,
+        "offsetY": 0,
+        "rotationDeg": 0,
+        "scale": 1,
+        "flipX": false,
+        "flipY": false
+      }
+    }
+  ]
+}
