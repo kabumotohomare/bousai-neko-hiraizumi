@@ -4,28 +4,36 @@ import { ScenarioContext } from './context';
 /**
  * フラグ（ScenarioContext）から表示する文を選ぶ。
  * 文言そのものは messages.json の scenario ブロックが正本。ここは分岐だけ。
+ *
+ * リザルトは 4 スライド:
+ *   終わり → 結果1（見つけた＝目 / のこってる＝鼻）→ 結果2（タイム＝足）→ 再挑戦
  */
 
+/** 記録の埋まり具合。画面の色（data-mood）にも使う */
 export type MapBranch = 'empty' | 'low' | 'high' | 'complete';
-export type FeetBranch =
-  'none' | 'first' | 'best' | 'faster' | 'same' | 'slower' | 'moreMarks' | 'fewerMarks';
-export type ClosingBranch = 'sleeping' | 'allAwake' | 'open';
+/** 今回の「見つけた」一行の分岐 */
+export type FoundBranch = 'empty' | 'found' | 'complete';
+export type FeetBranch = 'none' | 'first' | 'best' | 'faster' | 'notFaster';
+/** 再挑戦スライドの猫案内 */
+export type ClosingBranch = 'sleeping' | 'nextCat' | 'none';
 
 export interface ScenarioLines {
   mapBranch: MapBranch;
+  foundBranch: FoundBranch;
   mapLine: string;
-  /** この回で記録が増えたときだけ入る */
+  /** 前からの記録があり、この回で新しく増えたときだけ入る */
   mapGainedLine: string | null;
+  /** のこってる消火栓がないときは空 */
   noseLines: string[];
   feetBranch: FeetBranch;
   feetLine: string;
   /** 前回があるときだけ入る */
   feetPrevLine: string | null;
   closingBranch: ClosingBranch;
-  closingLine: string;
+  closingLine: string | null;
 }
 
-/** 前回比で「速い／遅い」と判定する最小差（秒） */
+/** 前回比で「速い」と判定する最小差（秒） */
 export const FEET_DIFF_THRESHOLD_SEC = 2;
 
 export function fill(template: string, vars: Record<string, string | number>): string {
@@ -41,34 +49,47 @@ export function resolveMapBranch(ctx: ScenarioContext): MapBranch {
   return 'high';
 }
 
+export function resolveFoundBranch(ctx: ScenarioContext): FoundBranch {
+  if (ctx.knownRate >= 1) return 'complete';
+  if (ctx.inspectedCount === 0) return 'empty';
+  return 'found';
+}
+
+/**
+ * タイムの分岐。
+ * - none: 1本も点検していない
+ * - first: この猫で初めて（比べる前回がない）
+ * - best: 全部点検して、これまでの最速を閾値以上 上回った
+ * - faster: 前回と同じ本数以上を、前回より閾値以上 速く回った
+ * - notFaster: それ以外（同じ・遅い・本数が減った）
+ */
 export function resolveFeetBranch(ctx: ScenarioContext): FeetBranch {
   if (ctx.inspectedCount === 0 || ctx.lastMarkSec === null) return 'none';
   const prev = ctx.previousRun;
   if (!prev || prev.inspected === 0 || prev.lastMarkSec === null) return 'first';
 
-  // 全部点検して、これまでの最速をはっきり（閾値以上）上回ったら「いちばん はやい 足」
   const clearedAll = ctx.total > 0 && ctx.inspectedCount >= ctx.total;
   const prevBest = prev.bestLastMarkSec ?? null;
   if (clearedAll && prevBest !== null && ctx.lastMarkSec <= prevBest - FEET_DIFF_THRESHOLD_SEC) {
     return 'best';
   }
 
-  if (ctx.inspectedCount > prev.inspected) return 'moreMarks';
-  if (ctx.inspectedCount < prev.inspected) return 'fewerMarks';
-  const diff = ctx.lastMarkSec - prev.lastMarkSec;
-  if (diff <= -FEET_DIFF_THRESHOLD_SEC) return 'faster';
-  if (diff >= FEET_DIFF_THRESHOLD_SEC) return 'slower';
-  return 'same';
+  const sameOrMoreMarks = ctx.inspectedCount >= prev.inspected;
+  if (sameOrMoreMarks && ctx.lastMarkSec <= prev.lastMarkSec - FEET_DIFF_THRESHOLD_SEC) {
+    return 'faster';
+  }
+  return 'notFaster';
 }
 
 export function resolveClosingBranch(ctx: ScenarioContext): ClosingBranch {
   if (ctx.sleepingCats.length > 0) return 'sleeping';
-  if (ctx.otherTerritoriesUnfinished) return 'allAwake';
-  return 'open';
+  if (ctx.otherCats.length > 0) return 'nextCat';
+  return 'none';
 }
 
 export function buildScenarioVars(ctx: ScenarioContext): Record<string, string | number> {
   const sleeping = ctx.sleepingCats[0] ?? null;
+  const nextCat = ctx.otherCats[0] ?? null;
   return {
     alias: ctx.alias,
     catName: ctx.catName,
@@ -81,78 +102,65 @@ export function buildScenarioVars(ctx: ScenarioContext): Record<string, string |
     secPerMark: ctx.secPerMark ?? 0,
     prevSec: ctx.previousRun?.lastMarkSec ?? 0,
     prevInspected: ctx.previousRun?.inspected ?? 0,
+    bestSec: ctx.previousRun?.bestLastMarkSec ?? 0,
     diff: Math.abs(ctx.inspectedCount - (ctx.previousRun?.inspected ?? 0)),
     direction: ctx.nearestMissed?.direction ?? '',
     distance: ctx.nearestMissed?.distanceM ?? 0,
-    hop: ctx.nearestMissed?.label ?? '',
+    hop: ctx.nextHop?.label ?? '',
     sleepingName: sleeping?.name ?? '',
-    sleepingAlias: sleeping?.alias ?? ''
+    sleepingAlias: sleeping?.alias ?? '',
+    nextCatName: nextCat?.name ?? ''
   };
 }
 
 export function selectLines(ctx: ScenarioContext, m: ScenarioMessages): ScenarioLines {
-  const sleeping = ctx.sleepingCats[0] ?? null;
   const vars = buildScenarioVars(ctx);
 
-  // 目（記録）
+  // 結果1: 見つけた（目）
   const mapBranch = resolveMapBranch(ctx);
+  const foundBranch = resolveFoundBranch(ctx);
   const mapTemplate = {
     empty: m.mapEmpty,
-    low: m.mapLow,
-    high: m.mapHigh,
+    found: m.mapFound,
     complete: m.mapComplete
-  }[mapBranch];
+  }[foundBranch];
   const mapLine = fill(mapTemplate, vars);
-  const mapGainedLine = ctx.gained > 0 ? fill(m.mapGained, vars) : null;
+  // 「見つけた {inspected}こ」と同じ数を繰り返さないよう、前からの記録があるときだけ
+  const mapGainedLine = ctx.gained > 0 && ctx.knownBeforeCount > 0 ? fill(m.mapGained, vars) : null;
 
-  // 鼻（次の一手）
+  // 結果1: のこってる（鼻）。全部見つけたら区画ごと出さない
   const noseLines: string[] = [];
   if (ctx.nearestMissed) {
     noseLines.push(fill(m.noseNearest, vars));
     if (ctx.nextHop) {
-      noseLines.push(
-        fill(m.noseHop, {
-          ...vars,
-          hop: ctx.nearestMissed.label,
-          direction: ctx.nextHop.direction,
-          distance: ctx.nextHop.distanceM
-        })
-      );
-    }
-  } else {
-    noseLines.push(fill(m.noseComplete, vars));
-    if (sleeping) {
-      noseLines.push(fill(m.noseSleeping, vars));
+      noseLines.push(fill(m.noseHop, vars));
     }
   }
 
-  // 足（効率・前回比）
+  // 結果2: タイム（足）
   const feetBranch = resolveFeetBranch(ctx);
   const feetTemplate = {
     none: m.feetNone,
     first: m.feetFirst,
     best: m.feetBest,
     faster: m.feetFaster,
-    same: m.feetSame,
-    slower: m.feetSlower,
-    moreMarks: m.feetMoreMarks,
-    fewerMarks: m.feetFewerMarks
+    notFaster: m.feetNotFaster
   }[feetBranch];
   const feetLine = fill(feetTemplate, vars);
   const hasPrev = ctx.previousRun !== null && ctx.previousRun.inspected > 0;
   const feetPrevLine = hasPrev ? fill(m.feetPrev, vars) : null;
 
-  // 締め
+  // 再挑戦: 猫案内
   const closingBranch = resolveClosingBranch(ctx);
-  const closingTemplate = {
-    sleeping: m.closingSleeping,
-    allAwake: m.closingAllAwake,
-    open: m.closingOpen
-  }[closingBranch];
-  const closingLine = fill(closingTemplate, vars);
+  const closingLine = {
+    sleeping: () => fill(m.nextCatLocked, vars),
+    nextCat: () => fill(m.nextCatUnlocked, vars),
+    none: () => null
+  }[closingBranch]();
 
   return {
     mapBranch,
+    foundBranch,
     mapLine,
     mapGainedLine,
     noseLines,

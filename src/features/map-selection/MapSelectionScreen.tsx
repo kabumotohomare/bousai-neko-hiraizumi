@@ -5,7 +5,7 @@ import { fill } from '../../domain/scenario/lines';
 
 /**
  * S02 猫えらび（接続）。
- * unlocked = 体を持つ人格（はいれる）。locked = 体を待っている人格（ねむりちゅう）。
+ * unlocked = 選べる猫（えらべる）。locked = まだ見つかっていない猫（まだ いない）。
  * locked はグレー表示で選べない。タップすると案内と通報リンクを出す。
  */
 export function MapSelectionScreen() {
@@ -99,7 +99,7 @@ export function MapSelectionScreen() {
           <p className="select-locked-note" role="status">
             {lockedNote}{' '}
             <a href={gameConfig.reportFormUrl} target="_blank" rel="noreferrer">
-              ねこの もくげきほうこく
+              {s.reportLink}
             </a>
           </p>
         ) : null}

@@ -78,6 +78,8 @@ export interface ScenarioContext {
   previousRun: LastRun | null;
   /** まだ体（猫）が見つかっていない人格 = status: locked */
   sleepingCats: SleepingCat[];
+  /** 今回以外で選べる猫（status: unlocked）。再挑戦の「次は◯◯で」用 */
+  otherCats: SleepingCat[];
   /** 体を持つ他の人格のうち、なわばりの記録がまだ埋まっていないものがあるか */
   otherTerritoriesUnfinished: boolean;
 }
@@ -156,6 +158,9 @@ export function buildScenarioContext(input: BuildScenarioContextInput): Scenario
   const sleepingCats: SleepingCat[] = cats
     .filter((item) => item.status === 'locked' && item.id !== cat.id)
     .map((item) => ({ id: item.id, name: item.name, alias: catAlias(item) }));
+  const otherCats: SleepingCat[] = cats
+    .filter((item) => item.status === 'unlocked' && item.id !== cat.id)
+    .map((item) => ({ id: item.id, name: item.name, alias: catAlias(item) }));
 
   const activeHydrantWorlds = hydrants
     .filter((hydrant) => hydrant.status === 'active')
@@ -192,6 +197,7 @@ export function buildScenarioContext(input: BuildScenarioContextInput): Scenario
       lastMarkSec !== null && inspectedCount > 0 ? Math.round(lastMarkSec / inspectedCount) : null,
     previousRun: session.previousRun ?? null,
     sleepingCats,
+    otherCats,
     otherTerritoriesUnfinished
   };
 }
