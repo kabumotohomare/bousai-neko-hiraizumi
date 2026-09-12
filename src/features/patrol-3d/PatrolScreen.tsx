@@ -285,7 +285,7 @@ export function PatrolScreen() {
         <div className="patrol-run-streaks" aria-hidden="true" />
       ) : null}
 
-      <div className="patrol-controls">
+      <div className={showDashButton ? 'patrol-controls patrol-controls--mobile' : 'patrol-controls'}>
         <VirtualStick onChange={handleStick} />
         {showDashButton ? (
           <button

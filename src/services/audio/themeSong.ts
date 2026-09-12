@@ -42,3 +42,26 @@ export function stopThemeSong(): void {
   audio.pause();
   audio.currentTime = 0;
 }
+
+/** ポーズ操作で呼ぶ。「つづきから」で再開できるよう、再生位置は巻き戻さない。 */
+export function pauseThemeSong(): void {
+  if (!audio) {
+    return;
+  }
+  audio.pause();
+}
+
+/**
+ * 「つづきから」で呼ぶ。ポーズ時点の再生位置から再開する。
+ * ポーズ中にユーザー操作(ボタンクリック)から呼ばれるため、playThemeSong同様、
+ * 自動再生ポリシーでブロックされてもゲーム進行自体は止めない。
+ */
+export function resumeThemeSong(): void {
+  const element = getAudio();
+  if (!element.paused) {
+    return;
+  }
+  element.play().catch(() => {
+    // 自動再生がブロックされても、ゲーム進行自体は止めない。
+  });
+}
