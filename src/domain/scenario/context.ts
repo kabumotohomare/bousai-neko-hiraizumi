@@ -2,6 +2,7 @@ import { Cat } from '../cat/model';
 import { distanceXZ, Vec2 } from '../cat/territory';
 import { Hydrant } from '../hydrant/model';
 import { isHydrantInTerritory } from '../hydrant/inTerritory';
+import { hydrantWorldPosition } from '../hydrant/worldPosition';
 import { LastRun, PatrolSession } from '../session/model';
 import { latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
 
@@ -122,7 +123,7 @@ export function buildScenarioContext(input: BuildScenarioContextInput): Scenario
   const marks: ScenarioMark[] = hydrants
     .filter((hydrant) => hydrant.status === 'active')
     .map((hydrant) => {
-      const world = latLngToWorldPosition(hydrant.lat, hydrant.lng, origin);
+      const world = hydrantWorldPosition(hydrant, origin);
       return { hydrant, world, rawDistance: distanceXZ(spawnWorld, world) };
     })
     .filter(({ world }) => isHydrantInTerritory(world, catWorld, cat.radius))
@@ -160,7 +161,7 @@ export function buildScenarioContext(input: BuildScenarioContextInput): Scenario
     .filter((hydrant) => hydrant.status === 'active')
     .map((hydrant) => ({
       id: hydrant.id,
-      world: latLngToWorldPosition(hydrant.lat, hydrant.lng, origin)
+      world: hydrantWorldPosition(hydrant, origin)
     }));
   const knownNow = new Set([...knownBefore, ...inspectedThisRun]);
   const otherTerritoriesUnfinished = cats
