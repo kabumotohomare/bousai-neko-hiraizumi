@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Cat } from '../../domain/cat/model';
 import { GameConfig } from '../../domain/common/config';
+import { INSPECTED_COLOR, UNINSPECTED_COLOR } from '../../domain/hydrant/hydrantMarkerColors';
 import { Hydrant } from '../../domain/hydrant/model';
 import { PlayerPose } from '../../domain/session/playerInput';
 import { worldPositionToLatLng } from '../../services/transform/latLngToWorldPosition';
@@ -114,11 +115,14 @@ export function PatrolMinimap({
 
     hydrants.forEach((hydrant) => {
       const inspected = inspectedHydrantIds.includes(hydrant.id);
+      const color = inspected ? INSPECTED_COLOR : UNINSPECTED_COLOR;
       const marker = L.circleMarker([hydrant.lat, hydrant.lng], {
         radius: 4,
-        color: inspected ? '#16a34a' : '#dc2626',
-        fillColor: inspected ? '#16a34a' : '#dc2626',
-        fillOpacity: 1,
+        color,
+        fillColor: color,
+        // グレー(点検済み)はOSMタイルの道路・建物の色に近く、fillOpacity:1のままだと
+        // 地図に溶けて「消えた」ように見える。塗りだけ落として枠は残す。
+        fillOpacity: inspected ? 0.7 : 1,
         weight: 1
       }).addTo(map);
       layers.set(hydrant.id, marker);
