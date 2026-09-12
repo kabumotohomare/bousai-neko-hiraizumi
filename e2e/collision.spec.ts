@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { waitForCountdownToFinish } from './helpers';
 
 function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const metersPerLat = 111320;
@@ -25,6 +26,7 @@ test('territory boundary stops the cat without a rubber-band snap back (H8)', as
   await page.locator('.cat-item', { hasText: 'シラヤマ' }).click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
+  await waitForCountdownToFinish(page);
 
   const minimap = page.locator('.patrol-minimap');
   const center = { lat: 38.99066, lng: 141.11424 };
@@ -75,6 +77,7 @@ test('タキザワ moves in the direction she is facing, not backward (regressio
   await page.locator('.cat-item', { hasText: 'タキザワ' }).click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
+  await waitForCountdownToFinish(page);
 
   const minimap = page.locator('.patrol-minimap');
   const currentPos = async () => ({
