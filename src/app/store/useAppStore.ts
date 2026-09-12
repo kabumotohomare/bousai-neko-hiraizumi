@@ -11,13 +11,14 @@ import { hydrantWorldPosition } from '../../domain/hydrant/worldPosition';
 import { Road } from '../../domain/road/model';
 import { defaultLocalProgress, LocalProgress, PatrolSession } from '../../domain/session/model';
 import { estimatePatrolPathMeters, requiredDashSpeedMps } from '../../domain/session/patrolPath';
-import { pauseThemeSong, playThemeSong, resumeThemeSong, stopThemeSong } from '../../services/audio/themeSong';
+import { stopThemeSong } from '../../services/audio/themeSong';
 import { saveLocalProgress } from '../../services/storage/localProgress';
 import { latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
+import { pauseBgm, pausePatrolBgm, playPatrolBgm, resumeBgm, stopPatrolBgm } from '../../services/audio/bgm';
 
 export interface AppState {
   bootStatus: 'idle' | 'loading' | 'ready' | 'error';
-  currentScreen: 'loading' | 'map' | 'patrol' | 'result' | 'error';
+  currentScreen: 'loading' | 'opening' | 'map' | 'patrol' | 'result' | 'ending' | 'error';
   selectedCatId: string | null;
   cats: Cat[];
   hydrants: Hydrant[];
@@ -32,6 +33,7 @@ export interface AppState {
 
 interface AppActions {
   bootApp: () => Promise<void>;
+  finishOpening: () => void;
   selectCat: (catId: string) => void;
   startPatrol: () => void;
   tickPatrol: () => void;
@@ -39,6 +41,8 @@ interface AppActions {
   pausePatrol: () => void;
   resumePatrol: () => void;
   goToMap: () => void;
+  goHome: () => void;
+  finishEnding: () => void;
   replayPatrol: () => void;
   failScene: (cause?: unknown) => void;
 }
@@ -74,7 +78,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
 
       set({
         bootStatus: 'ready',
-        currentScreen: 'map',
+        currentScreen: 'opening',
         cats,
         hydrants,
         buildings,
@@ -92,6 +96,13 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         error: normalizeBootError(error)
       });
     }
+  },
+
+  finishOpening: () => {
+    if (get().currentScreen !== 'opening') {
+      return;
+    }
+    set({ currentScreen: 'map' });
   },
 
   selectCat: (catId: string) => {
@@ -127,7 +138,8 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
 
     // ユーザー操作(このアクションを呼んだボタンのクリック)と同じ呼び出しの中で
     // 同期的に再生を開始する。自動再生ポリシー対策のため。
-    playThemeSong();
+    // main の劇中歌(themeSong)と本PRの見回りBGMが重複するため、見回りBGMに統一する。
+    stopThemeSong();
 
     set({
       currentScreen: 'patrol',
@@ -145,6 +157,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         previousRun: state.localProgress.lastRunByCat[state.selectedCatId] ?? null
       }
     });
+    void playPatrolBgm();
   },
 
   tickPatrol: () => {
@@ -195,6 +208,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
           finished: true
         }
       });
+      pausePatrolBgm();
       return;
     }
 
@@ -248,14 +262,13 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       return;
     }
 
-    pauseThemeSong();
-
     set({
       currentSession: {
         ...state.currentSession,
         paused: true
       }
     });
+    pausePatrolBgm();
   },
 
   resumePatrol: () => {
@@ -265,15 +278,14 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     }
 
     // ユーザー操作(「つづきから」ボタンのクリック)と同じ呼び出しの中で
-    // 同期的に再生を再開する。自動再生ポリシー対策のため(startPatrolのplayThemeSongと同様)。
-    resumeThemeSong();
-
+    // 同期的に再生を再開する。自動再生ポリシー対策のため。
     set({
       currentSession: {
         ...state.currentSession,
         paused: false
       }
     });
+    void playPatrolBgm({ restart: false });
   },
 
   goToMap: () => {
@@ -283,6 +295,32 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       currentSession: null,
       error: null
     });
+    stopPatrolBgm();
+    resumeBgm();
+  },
+
+  /** リザルトの「今日もう帰るにゃ」→ エンディング映像＋BGM */
+  goHome: () => {
+    stopThemeSong();
+    set({
+      currentScreen: 'ending',
+      currentSession: null,
+      error: null
+    });
+    stopPatrolBgm();
+    pauseBgm();
+  },
+
+  finishEnding: () => {
+    if (get().currentScreen !== 'ending') {
+      return;
+    }
+    set({
+      currentScreen: 'map',
+      currentSession: null,
+      error: null
+    });
+    resumeBgm();
   },
 
   failScene: (cause?: unknown) => {
@@ -295,6 +333,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         cause
       }
     });
+    stopPatrolBgm();
   },
 
   replayPatrol: () => {

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { waitForCountdownToFinish } from './helpers';
+import { openApp, waitForCountdownToFinish } from './helpers';
 
 function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const metersPerLat = 111320;
@@ -22,7 +22,7 @@ test('territory boundary stops the cat without a rubber-band snap back (H8)', as
   });
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await openApp(page);
   await page.locator('.cat-item', { hasText: 'シラヤマ' }).click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
@@ -73,7 +73,7 @@ test('タキザワ moves in the direction she is facing, not backward (regressio
   // このテストは、実際のスポーン地点から「はしる」前進入力をした際の移動方向が、
   // スポーン時のheading(ミニマップの矢印の向き)と一致することを確認する。
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await openApp(page);
   await page.locator('.cat-item', { hasText: 'タキザワ' }).click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });

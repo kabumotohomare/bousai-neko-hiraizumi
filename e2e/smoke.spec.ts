@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { waitForCountdownToFinish } from './helpers';
+import { dismissEnding, openApp, waitForCountdownToFinish } from './helpers';
 
 /** 公開データでは locked の猫（シラヤマ）も選べるようにする。移動・物理の検証専用。 */
 async function unlockAllCats(page: Page) {
@@ -12,12 +12,12 @@ async function unlockAllCats(page: Page) {
 }
 
 test('boots and shows the cat selection screen', async ({ page }) => {
-  await page.goto('/');
+  await openApp(page);
   await expect(page.getByRole('heading', { name: '猫をえらぶ' })).toBeVisible();
 });
 
 test('shows the Leaflet map with a pin per cat', async ({ page }) => {
-  await page.goto('/');
+  await openApp(page);
 
   await expect(page.locator('.leaflet-tile-loaded').first()).toBeVisible();
   await expect(page.locator('.cat-pin')).toHaveCount(2);
@@ -26,7 +26,7 @@ test('shows the Leaflet map with a pin per cat', async ({ page }) => {
 
 test('the selection map cannot zoom out past Hiraizumi', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await openApp(page);
 
   await expect(page.locator('.leaflet-tile-loaded').first()).toBeVisible();
   await expect(page.locator('.cat-pin')).toHaveCount(2);
@@ -45,7 +45,7 @@ test('the selection map cannot zoom out past Hiraizumi', async ({ page }) => {
 });
 
 test('selecting a cat on the map enables the start button', async ({ page }) => {
-  await page.goto('/');
+  await openApp(page);
 
   const start = page.getByRole('button', { name: 'このねこでみまわりスタート' });
   await expect(start).toBeDisabled();
@@ -57,7 +57,7 @@ test('selecting a cat on the map enables the start button', async ({ page }) => 
 });
 
 test('a sleeping (locked) cat is greyed out and cannot be selected', async ({ page }) => {
-  await page.goto('/');
+  await openApp(page);
 
   const start = page.getByRole('button', { name: 'このねこでみまわりスタート' });
   await expect(page.locator('.cat-pin--locked', { hasText: 'シラヤマ' })).toHaveCount(1);
@@ -74,7 +74,7 @@ test('a sleeping (locked) cat is greyed out and cannot be selected', async ({ pa
 
 test('starting a patrol shows the new screen from the top', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 720 });
-  await page.goto('/');
+  await openApp(page);
 
   await page.locator('.cat-item:not(.cat-item--locked)').first().click();
 
@@ -90,7 +90,7 @@ test('starting a patrol shows the new screen from the top', async ({ page }) => 
 
 test('patrol overlay is ready for movement', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await openApp(page);
   await page.locator('.cat-item:not(.cat-item--locked)').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
 
@@ -129,7 +129,7 @@ test('cat pins stay aligned with their territory circles after a patrol round tr
   });
 
   await page.setViewportSize({ width: 1854, height: 900 });
-  await page.goto('/');
+  await openApp(page);
   await page.waitForSelector('.cat-pin');
 
   const measureOffset = async () =>
@@ -165,6 +165,7 @@ test('cat pins stay aligned with their territory circles after a patrol round tr
     await page.getByRole('button', { name: 'つぎへ' }).click();
   }
   await page.getByRole('button', { name: '今日もう帰るにゃ' }).click();
+  await dismissEnding(page);
   await page.waitForSelector('.cat-pin');
 
   // 修正前はここで移動後(fitBounds後)の位置に追従できず、円とピンがずれたままになっていた。
@@ -183,7 +184,7 @@ test('cat pins stay aligned with their territory circles after a patrol round tr
 
 test('pausing stops the timer and movement, and resuming continues normally', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await openApp(page);
   await page.locator('.cat-item:not(.cat-item--locked)').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
 
@@ -232,7 +233,7 @@ test('the cat cannot walk through a hydrant and reacts with a speech bubble', as
   });
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await openApp(page);
   await page.locator('.cat-item:not(.cat-item--locked)').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
@@ -281,10 +282,10 @@ test('every cat can move away from their own spawn point', async ({ page }) => {
   // シラヤマは公開時 locked（からだを まっている）だが、解放後もスポーンから動けることを
   // 保証したいので、このテストでは全猫を unlocked に差し替える（実データは変更しない）。
   await unlockAllCats(page);
-  await page.goto('/');
+  await openApp(page);
 
   for (const catName of ['シラヤマ', 'タキザワ']) {
-    await page.goto('/');
+    await openApp(page);
     await page.locator('.cat-item', { hasText: catName }).click();
     await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
     await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
