@@ -9,8 +9,19 @@ import { PlayerPose } from '../../domain/session/playerInput';
 import { distance2d, latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
 import { usePlayerInput } from './usePlayerInput';
 
+// スマホの実機ではポインタが確実に coarse になるが、PCブラウザの
+// レスポンシブデザインモードは「タッチのシミュレート」を有効にしない限り
+// pointer: coarse を報告しない（画面幅だけスマホサイズにした場合など）。
+// 見た目がスマホ幅なら、実際のポインタ種別によらずダッシュボタンを
+// 出したいので、画面幅もあわせて見る。
+const MOBILE_MAX_WIDTH_PX = 768;
+
 function isCoarsePointer(): boolean {
   return typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+}
+
+function isNarrowViewport(): boolean {
+  return typeof window !== 'undefined' && window.innerWidth <= MOBILE_MAX_WIDTH_PX;
 }
 
 export function PatrolScreen() {
@@ -35,7 +46,9 @@ export function PatrolScreen() {
   const [inspectFlash, setInspectFlash] = useState(false);
   const [obstacleLine, setObstacleLine] = useState<string | null>(null);
   const [playerPose, setPlayerPose] = useState<PlayerPose | null>(null);
-  const [showDashButton, setShowDashButton] = useState(isCoarsePointer);
+  const [touchLatched, setTouchLatched] = useState(isCoarsePointer);
+  const [narrowViewport, setNarrowViewport] = useState(isNarrowViewport);
+  const showDashButton = touchLatched || narrowViewport;
   const [stickMoving, setStickMoving] = useState(false);
   const { inputRef, setStick, setDash, dashing } = usePlayerInput();
 
@@ -133,12 +146,17 @@ export function PatrolScreen() {
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
       if (event.pointerType === 'touch') {
-        setShowDashButton(true);
+        setTouchLatched(true);
       }
     };
+    const onResize = () => setNarrowViewport(isNarrowViewport());
 
     window.addEventListener('pointerdown', onPointerDown);
-    return () => window.removeEventListener('pointerdown', onPointerDown);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('resize', onResize);
+    };
   }, []);
 
   const holdDash = useCallback(
