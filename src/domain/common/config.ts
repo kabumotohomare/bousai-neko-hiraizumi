@@ -9,7 +9,7 @@ export const MapBoundsSchema = z.object({
 
 export const GameConfigSchema = z.object({
   version: z.number(),
-  gameDurationSec: z.number().default(90),
+  gameDurationSec: z.number().default(150),
   playerMoveSpeedMps: z.number().default(2.2),
   targetClearSec: z.number().default(70),
   pathDetourFactor: z.number().default(1.35),
@@ -29,7 +29,7 @@ export type GameConfig = z.infer<typeof GameConfigSchema>;
 
 export const defaultGameConfig: GameConfig = {
   version: 1,
-  gameDurationSec: 90,
+  gameDurationSec: 150,
   playerMoveSpeedMps: 2.2,
   targetClearSec: 70,
   pathDetourFactor: 1.35,

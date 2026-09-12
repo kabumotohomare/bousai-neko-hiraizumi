@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "gameDurationSec": 90,
+  "gameDurationSec": 150,
   "playerMoveSpeedMps": 2.2,
   "targetClearSec": 70,
   "pathDetourFactor": 1.35,
