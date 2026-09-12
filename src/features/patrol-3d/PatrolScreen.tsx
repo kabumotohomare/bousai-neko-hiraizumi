@@ -9,9 +9,26 @@ import { PlayerPose } from '../../domain/session/playerInput';
 import { distance2d, latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
 import { usePlayerInput } from './usePlayerInput';
 
+// スマホの実機ではポインタが確実に coarse になるが、PCブラウザの
+// レスポンシブデザインモードは「タッチのシミュレート」を有効にしない限り
+// pointer: coarse を報告しない（画面幅だけスマホサイズにした場合など）。
+// 見た目がスマホ幅なら、実際のポインタ種別によらずダッシュボタンを
+// 出したいので、画面幅もあわせて見る。
+const MOBILE_MAX_WIDTH_PX = 768;
+
 function isCoarsePointer(): boolean {
   return typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 }
+
+function isNarrowViewport(): boolean {
+  return typeof window !== 'undefined' && window.innerWidth <= MOBILE_MAX_WIDTH_PX;
+}
+
+// みまわり開始時のカウントダウン(3→2→1→「スタート！」)。
+// 0 になったら「スタート！」をひと呼吸見せてから消す。
+const COUNTDOWN_START = 3;
+const COUNTDOWN_STEP_MS = 1000;
+const COUNTDOWN_GO_DISPLAY_MS = 600;
 
 export function PatrolScreen() {
   const cats = useAppStore((state) => state.cats);
@@ -35,9 +52,23 @@ export function PatrolScreen() {
   const [inspectFlash, setInspectFlash] = useState(false);
   const [obstacleLine, setObstacleLine] = useState<string | null>(null);
   const [playerPose, setPlayerPose] = useState<PlayerPose | null>(null);
-  const [showDashButton, setShowDashButton] = useState(isCoarsePointer);
+  const [touchLatched, setTouchLatched] = useState(isCoarsePointer);
+  const [narrowViewport, setNarrowViewport] = useState(isNarrowViewport);
+  const showDashButton = touchLatched || narrowViewport;
   const [stickMoving, setStickMoving] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(COUNTDOWN_START);
   const { inputRef, setStick, setDash, dashing } = usePlayerInput();
+
+  useEffect(() => {
+    if (countdown === null) {
+      return;
+    }
+    const timer = window.setTimeout(
+      () => setCountdown(countdown > 0 ? countdown - 1 : null),
+      countdown > 0 ? COUNTDOWN_STEP_MS : COUNTDOWN_GO_DISPLAY_MS
+    );
+    return () => window.clearTimeout(timer);
+  }, [countdown]);
 
   const handleStick = useCallback(
     (forward: number, turn: number) => {
@@ -119,7 +150,7 @@ export function PatrolScreen() {
   }, [messages.obstacleHit]);
 
   useEffect(() => {
-    if (!currentSession || currentSession.finished || currentSession.paused) {
+    if (!currentSession || currentSession.finished || currentSession.paused || countdown !== null) {
       return;
     }
 
@@ -128,17 +159,22 @@ export function PatrolScreen() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [currentSession, tickPatrol]);
+  }, [currentSession, tickPatrol, countdown]);
 
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
       if (event.pointerType === 'touch') {
-        setShowDashButton(true);
+        setTouchLatched(true);
       }
     };
+    const onResize = () => setNarrowViewport(isNarrowViewport());
 
     window.addEventListener('pointerdown', onPointerDown);
-    return () => window.removeEventListener('pointerdown', onPointerDown);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('resize', onResize);
+    };
   }, []);
 
   const holdDash = useCallback(
@@ -157,10 +193,11 @@ export function PatrolScreen() {
     Boolean(inspectableId) &&
     currentSession.remainingSec > 0 &&
     !currentSession.finished &&
-    !currentSession.paused;
+    !currentSession.paused &&
+    countdown === null;
 
   const handleInspect = () => {
-    if (!inspectableId || currentSession.remainingSec <= 0 || currentSession.paused) {
+    if (!inspectableId || currentSession.remainingSec <= 0 || currentSession.paused || countdown !== null) {
       return;
     }
 
@@ -196,7 +233,7 @@ export function PatrolScreen() {
         dashSpeedMps={currentSession.dashSpeedMps}
         inspectRadiusMeters={gameConfig.inspectRadiusMeters}
         inspectedHydrantIds={currentSession.inspectedHydrantIds}
-        paused={currentSession.paused}
+        paused={currentSession.paused || countdown !== null}
         inputRef={inputRef}
         onInspectableChange={onInspectableChange}
         onPlayerPose={onPlayerPose}
@@ -248,7 +285,7 @@ export function PatrolScreen() {
         <div className="patrol-run-streaks" aria-hidden="true" />
       ) : null}
 
-      <div className="patrol-controls">
+      <div className={showDashButton ? 'patrol-controls patrol-controls--mobile' : 'patrol-controls'}>
         <VirtualStick onChange={handleStick} />
         {showDashButton ? (
           <button
@@ -278,6 +315,14 @@ export function PatrolScreen() {
           てんけんする
         </button>
       </div>
+
+      {countdown !== null ? (
+        <div className="patrol-countdown" aria-live="assertive">
+          <span key={countdown} className="patrol-countdown__value">
+            {countdown > 0 ? countdown : 'スタート！'}
+          </span>
+        </div>
+      ) : null}
 
       {currentSession.paused ? (
         <div className="patrol-pause-overlay">

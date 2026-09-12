@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { dismissEnding, openApp } from './helpers';
+import { dismissEnding, openApp, waitForCountdownToFinish } from './helpers';
 
 /**
  * S04 リザルトのシナリオ分岐（記録 → 鼻 → 足）を、ゲーム結果を作って確認する。
@@ -47,6 +47,7 @@ async function startTakizawa(page: Page) {
   await page.locator('.cat-item', { hasText: 'タキザワ' }).click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
+  await waitForCountdownToFinish(page);
 }
 
 async function walkAndInspect(page: Page, count: number) {
@@ -179,6 +180,7 @@ test('全部（4本）→ もう一回: ぜんぶ 見つけた、2回目は 前�
   await next(page);
   await page.getByRole('button', { name: 'もう一回 挑戦するにゃ。' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
+  await waitForCountdownToFinish(page);
   await walkAndInspect(page, 4);
   await waitForResult(page);
 

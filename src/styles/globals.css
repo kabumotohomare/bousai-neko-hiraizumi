@@ -513,6 +513,22 @@ button {
   }
 }
 
+/* モバイル（左右の親指で持つ操作）では、押しっぱなしの「はしる」ボタンを左手側、
+   細かい方向操作が要るスティックを右手側に分け、てんけんするボタンはどちらの
+   親指からも届く中央に置く。「はしる」は base の .patrol-dash（左下）のままでよい。
+   PC(マウス/キーボード)では既存の左右振り分けレイアウトのまま変更しない。 */
+.patrol-controls--mobile .virtual-stick {
+  position: absolute;
+  right: 20px;
+  bottom: 0;
+}
+
+.patrol-controls--mobile .patrol-inspect {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
 .patrol-dash-hint {
   position: absolute;
   left: 20px;
@@ -541,6 +557,40 @@ button {
   width: 100%;
   max-width: 280px;
   text-align: center;
+}
+
+.patrol-countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.patrol-countdown__value {
+  font-size: 4.5rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+  animation: patrol-countdown-pop 1s ease-out;
+}
+
+@keyframes patrol-countdown-pop {
+  0% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  30% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .patrol-countdown__value {
+    animation: none;
+  }
 }
 
 .patrol-minimap {

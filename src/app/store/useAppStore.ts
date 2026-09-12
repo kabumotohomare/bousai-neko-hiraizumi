@@ -11,6 +11,7 @@ import { hydrantWorldPosition } from '../../domain/hydrant/worldPosition';
 import { Road } from '../../domain/road/model';
 import { defaultLocalProgress, LocalProgress, PatrolSession } from '../../domain/session/model';
 import { estimatePatrolPathMeters, requiredDashSpeedMps } from '../../domain/session/patrolPath';
+import { stopThemeSong } from '../../services/audio/themeSong';
 import { saveLocalProgress } from '../../services/storage/localProgress';
 import { latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
 import { pauseBgm, pausePatrolBgm, playPatrolBgm, resumeBgm, stopPatrolBgm } from '../../services/audio/bgm';
@@ -134,6 +135,11 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       });
       return;
     }
+
+    // ユーザー操作(このアクションを呼んだボタンのクリック)と同じ呼び出しの中で
+    // 同期的に再生を開始する。自動再生ポリシー対策のため。
+    // main の劇中歌(themeSong)と本PRの見回りBGMが重複するため、見回りBGMに統一する。
+    stopThemeSong();
 
     set({
       currentScreen: 'patrol',
@@ -271,6 +277,8 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       return;
     }
 
+    // ユーザー操作(「つづきから」ボタンのクリック)と同じ呼び出しの中で
+    // 同期的に再生を再開する。自動再生ポリシー対策のため。
     set({
       currentSession: {
         ...state.currentSession,
@@ -281,6 +289,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   },
 
   goToMap: () => {
+    stopThemeSong();
     set({
       currentScreen: 'map',
       currentSession: null,
@@ -292,6 +301,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
 
   /** リザルトの「今日もう帰るにゃ」→ エンディング映像＋BGM */
   goHome: () => {
+    stopThemeSong();
     set({
       currentScreen: 'ending',
       currentSession: null,
@@ -314,6 +324,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   },
 
   failScene: (cause?: unknown) => {
+    stopThemeSong();
     set({
       currentScreen: 'error',
       error: {

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { dismissEnding, openApp } from './helpers';
+import { dismissEnding, openApp, waitForCountdownToFinish } from './helpers';
 
 /** 公開データでは locked の猫（シラヤマ）も選べるようにする。移動・物理の検証専用。 */
 async function unlockAllCats(page: Page) {
@@ -97,6 +97,7 @@ test('patrol overlay is ready for movement', async ({ page }) => {
   await expect(page.locator('.scene-canvas')).toHaveAttribute('data-ready', 'true', {
     timeout: 20_000
   });
+  await waitForCountdownToFinish(page);
   await expect(page.locator('.scene-canvas canvas')).toBeVisible();
   await expect(page.getByRole('button', { name: 'てんけんする' })).toBeVisible();
   await expect(page.locator('.virtual-stick')).toBeVisible();
@@ -190,6 +191,7 @@ test('pausing stops the timer and movement, and resuming continues normally', as
   await expect(page.locator('.scene-canvas')).toHaveAttribute('data-ready', 'true', {
     timeout: 20_000
   });
+  await waitForCountdownToFinish(page);
 
   const remainingText = () =>
     page
@@ -235,6 +237,7 @@ test('the cat cannot walk through a hydrant and reacts with a speech bubble', as
   await page.locator('.cat-item:not(.cat-item--locked)').first().click();
   await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
   await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
+  await waitForCountdownToFinish(page);
 
   const minimap = page.locator('.patrol-minimap');
   // スポーン時は最寄りの消火栓の方を向いているので、まっすぐ前進すればぶつかる。
@@ -286,6 +289,7 @@ test('every cat can move away from their own spawn point', async ({ page }) => {
     await page.locator('.cat-item', { hasText: catName }).click();
     await page.getByRole('button', { name: 'このねこでみまわりスタート' }).click();
     await page.waitForSelector('.scene-canvas[data-ready="true"]', { timeout: 20_000 });
+    await waitForCountdownToFinish(page);
 
     const minimap = page.locator('.patrol-minimap');
     const spawnLat = await minimap.getAttribute('data-player-lat');
