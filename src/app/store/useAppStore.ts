@@ -7,6 +7,7 @@ import { AppError } from '../../domain/common/error';
 import { defaultMessages, Messages } from '../../domain/common/messages';
 import { isHydrantInTerritory } from '../../domain/hydrant/inTerritory';
 import { Hydrant } from '../../domain/hydrant/model';
+import { hydrantWorldPosition } from '../../domain/hydrant/worldPosition';
 import { Road } from '../../domain/road/model';
 import { defaultLocalProgress, LocalProgress, PatrolSession } from '../../domain/session/model';
 import { estimatePatrolPathMeters, requiredDashSpeedMps } from '../../domain/session/patrolPath';
@@ -294,7 +295,7 @@ function territoryHydrantWorlds(state: AppState, cat: Cat): { x: number; z: numb
   const catWorld = latLngToWorldPosition(cat.center.lat, cat.center.lng, origin);
   return state.hydrants
     .filter((hydrant) => hydrant.status === 'active')
-    .map((hydrant) => latLngToWorldPosition(hydrant.lat, hydrant.lng, origin))
+    .map((hydrant) => hydrantWorldPosition(hydrant, origin))
     .filter((hydrantWorld) => isHydrantInTerritory(hydrantWorld, catWorld, cat.radius));
 }
 

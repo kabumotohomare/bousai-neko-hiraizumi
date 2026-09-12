@@ -17,6 +17,7 @@ import {
 } from '../../domain/collision/obstacle';
 import { findInspectableHydrantId } from '../../domain/hydrant/inspect';
 import { Hydrant } from '../../domain/hydrant/model';
+import { hydrantWorldPosition } from '../../domain/hydrant/worldPosition';
 import { Road } from '../../domain/road/model';
 import {
   headingDegToRotationY,
@@ -494,7 +495,7 @@ export function PatrolScene({
     disposable.add(ring);
 
     const hydrantPoints = hydrants.map((hydrant) => {
-      const pos = latLngToWorldPosition(hydrant.lat, hydrant.lng, origin);
+      const pos = hydrantWorldPosition(hydrant, origin);
       const marker = createHydrantMarker(inspectedRef.current.includes(hydrant.id));
       marker.position.set(pos.x, marker.position.y, pos.z);
       scene.add(marker);
