@@ -39,6 +39,11 @@ const SKY_COLOR = '#a9d0f5';
 // 深度バッファの精度不足によるちらつき(Zファイティング)を避ける。
 const GROUND_Y = -0.08;
 const ROAD_Y = 0.025;
+// 道路(0.025)と縄張りの輪(0.07)の間。当たり判定の可視化(影)を、
+// 地面・道路より手前に、輪より奥に描く。
+const COLLIDER_SHADOW_Y = 0.045;
+const COLLIDER_SHADOW_COLOR = '#000000';
+const COLLIDER_SHADOW_OPACITY = 0.35;
 const CAMERA_NEAR_M = 0.2;
 const CAMERA_FAR_MARGIN_M = 120;
 const SIDEWALK_M = 1.8;
@@ -202,6 +207,39 @@ function collectTownBuildingColliders(
     colliders.push(meshCollider(footprint.triangles, footprint.edges));
   });
   return colliders;
+}
+
+// 建物メッシュの当たり判定(足元の三角形)を、そのまま地面に薄い影として描く。
+// 屋根の庇や、モデル編集ミスによる迷子メッシュなど、見た目からは分からない
+// 当たり判定の範囲がある(実機で報告された「見えない壁にぶつかる」不具合)。
+// 当たり判定を無理に建物の見た目に一致させる代わりに、範囲そのものを
+// プレイヤーに見せて、そこへ踏み込まないよう誘導する。
+// 使う三角形は当たり判定(colliders)と全く同じものなので、見た目と実際の
+// 当たり判定がズレることはない。
+function createColliderShadowMesh(colliders: Collider[]): THREE.Mesh | null {
+  const positions: number[] = [];
+  for (const collider of colliders) {
+    if (collider.kind !== 'mesh') {
+      continue;
+    }
+    for (const [a, b, c] of collider.triangles) {
+      positions.push(a.x, COLLIDER_SHADOW_Y, a.z, b.x, COLLIDER_SHADOW_Y, b.z, c.x, COLLIDER_SHADOW_Y, c.z);
+    }
+  }
+  if (positions.length === 0) {
+    return null;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  const material = new THREE.MeshBasicMaterial({
+    color: COLLIDER_SHADOW_COLOR,
+    transparent: true,
+    opacity: COLLIDER_SHADOW_OPACITY,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  return new THREE.Mesh(geometry, material);
 }
 
 function createTerritoryRing(radius: number, color: string): THREE.Mesh {
@@ -688,7 +726,14 @@ export function PatrolScene({
 
             if (building.placement === 'town') {
               placeTownModel(model, origin);
-              colliders.push(...collectTownBuildingColliders(model, inPlayRadiusWorld));
+              const townColliders = collectTownBuildingColliders(model, inPlayRadiusWorld);
+              colliders.push(...townColliders);
+
+              const shadow = createColliderShadowMesh(townColliders);
+              if (shadow) {
+                scene.add(shadow);
+                disposable.add(shadow);
+              }
             } else {
               const pos = latLngToWorldPosition(building.lat, building.lng, origin);
               model.rotation.y = headingDegToRotationY(building.headingDeg);
