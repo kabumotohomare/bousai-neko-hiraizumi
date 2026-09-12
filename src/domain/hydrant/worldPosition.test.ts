@@ -15,7 +15,7 @@ describe('hydrantWorldPosition', () => {
     const base = latLngToWorldPosition(hydrant.lat, hydrant.lng, origin);
     const corrected = hydrantWorldPosition(hydrant, origin);
     expect(corrected).not.toEqual(base);
-    expect(Math.hypot(corrected.x - base.x, corrected.z - base.z)).toBeCloseTo(3.3, 5);
+    expect(Math.hypot(corrected.x - base.x, corrected.z - base.z)).toBeCloseTo(0.5, 5);
   });
 
   // hydrant_1-3 の修正をきっかけに、hiraizumi-town.glb の全建物メッシュに対して

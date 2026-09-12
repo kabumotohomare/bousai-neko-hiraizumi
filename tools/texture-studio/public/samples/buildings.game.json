@@ -1,0 +1,11 @@
+[
+  {
+    "id": "bldg_sample_388_114",
+    "kind": "landmark",
+    "name": "sample",
+    "lat": 38.988,
+    "lng": 141.114,
+    "headingDeg": 0,
+    "modelUrl": "/models/buildings/sample.glb"
+  }
+]
