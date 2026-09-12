@@ -11,7 +11,7 @@ import { hydrantWorldPosition } from '../../domain/hydrant/worldPosition';
 import { Road } from '../../domain/road/model';
 import { defaultLocalProgress, LocalProgress, PatrolSession } from '../../domain/session/model';
 import { estimatePatrolPathMeters, requiredDashSpeedMps } from '../../domain/session/patrolPath';
-import { playThemeSong, stopThemeSong } from '../../services/audio/themeSong';
+import { pauseThemeSong, playThemeSong, resumeThemeSong, stopThemeSong } from '../../services/audio/themeSong';
 import { saveLocalProgress } from '../../services/storage/localProgress';
 import { latLngToWorldPosition } from '../../services/transform/latLngToWorldPosition';
 
@@ -248,6 +248,8 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       return;
     }
 
+    pauseThemeSong();
+
     set({
       currentSession: {
         ...state.currentSession,
@@ -261,6 +263,10 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     if (!state.currentSession || state.currentSession.finished || !state.currentSession.paused) {
       return;
     }
+
+    // ユーザー操作(「つづきから」ボタンのクリック)と同じ呼び出しの中で
+    // 同期的に再生を再開する。自動再生ポリシー対策のため(startPatrolのplayThemeSongと同様)。
+    resumeThemeSong();
 
     set({
       currentSession: {

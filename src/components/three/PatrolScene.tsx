@@ -1,6 +1,5 @@
 import { MutableRefObject, useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Building } from '../../domain/building/model';
 import { Cat } from '../../domain/cat/model';
@@ -26,6 +25,7 @@ import {
 } from '../../services/transform/latLngToWorldPosition';
 import { toRoadRibbon } from '../../services/transform/toRoadRibbon';
 import { toTownModelTransform } from '../../services/transform/townModelPlacement';
+import { loadGltf } from '../../services/three/gltfCache';
 import { PlayerInput, PlayerPose, readPlayerAxes } from '../../domain/session/playerInput';
 import { footprintOfMesh, placeObjectOnGround, worldXZPointsOfMesh } from './meshGeometry';
 
@@ -290,13 +290,6 @@ function createGenericBuilding(building: Building, x: number, z: number): THREE.
   return mesh;
 }
 
-function loadGltf(url: string): Promise<THREE.Group> {
-  const loader = new GLTFLoader();
-  return new Promise((resolve, reject) => {
-    loader.load(url, (gltf) => resolve(gltf.scene), undefined, reject);
-  });
-}
-
 function createGrassTexture(): THREE.CanvasTexture {
   const size = 64;
   const canvas = document.createElement('canvas');
@@ -483,6 +476,9 @@ export function PatrolScene({
     let frameId = 0;
     let lastInspectable: string | null | undefined;
     const disposable = new Set<THREE.Object3D>();
+    // 建物モデル(GLTF)は gltfCache 経由で複数回のみまわりにまたがって共有されるため、
+    // disposable には含めない（アンマウント時は scene から外すだけでジオメトリ/マテリアルは破棄しない）。
+    const landmarkModels = new Set<THREE.Object3D>();
     const hydrantMaterials = hydrantMeshesRef.current;
     hydrantMaterials.clear();
 
@@ -718,9 +714,12 @@ export function PatrolScene({
               return;
             }
 
+            // gltfCache 経由で読み込むため、猫えらび画面で先読みが間に合っていれば
+            // ここは待ち時間なしで解決する。
             const model = await loadGltf(url);
             if (cancelled) {
-              disposeObject(model);
+              // model はキャッシュ共有インスタンスなので disposeObject しない
+              // （次回以降そのURLの建物が描画できなくなってしまう）。
               return;
             }
 
@@ -756,7 +755,7 @@ export function PatrolScene({
               }
             }
             scene.add(model);
-            disposable.add(model);
+            landmarkModels.add(model);
           })
         );
 
@@ -786,6 +785,9 @@ export function PatrolScene({
       for (const object of disposable) {
         scene.remove(object);
         disposeObject(object);
+      }
+      for (const model of landmarkModels) {
+        scene.remove(model);
       }
 
       grassTexture.dispose();

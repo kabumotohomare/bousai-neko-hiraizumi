@@ -513,6 +513,22 @@ button {
   }
 }
 
+/* モバイル（左右の親指で持つ操作）では、押しっぱなしの「はしる」ボタンを左手側、
+   細かい方向操作が要るスティックを右手側に分け、てんけんするボタンはどちらの
+   親指からも届く中央に置く。「はしる」は base の .patrol-dash（左下）のままでよい。
+   PC(マウス/キーボード)では既存の左右振り分けレイアウトのまま変更しない。 */
+.patrol-controls--mobile .virtual-stick {
+  position: absolute;
+  right: 20px;
+  bottom: 0;
+}
+
+.patrol-controls--mobile .patrol-inspect {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
 .patrol-dash-hint {
   position: absolute;
   left: 20px;

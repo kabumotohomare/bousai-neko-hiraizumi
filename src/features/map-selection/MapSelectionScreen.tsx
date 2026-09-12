@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CatSelectionMap } from '../../components/map/CatSelectionMap';
 import { useAppStore } from '../../app/store/useAppStore';
 import { fill } from '../../domain/scenario/lines';
+import { preloadGltf } from '../../services/three/gltfCache';
 
 /**
  * S02 猫えらび（接続）。
@@ -10,11 +11,24 @@ import { fill } from '../../domain/scenario/lines';
  */
 export function MapSelectionScreen() {
   const cats = useAppStore((state) => state.cats);
+  const buildings = useAppStore((state) => state.buildings);
   const selectedCatId = useAppStore((state) => state.selectedCatId);
   const gameConfig = useAppStore((state) => state.gameConfig);
   const messages = useAppStore((state) => state.messages);
   const selectCat = useAppStore((state) => state.selectCat);
   const startPatrol = useAppStore((state) => state.startPatrol);
+
+  // みまわり画面（PatrolScene）で建物モデルを読み込むと、開始直後の
+  // 「3,2,1,スタート」表示より読み込みが長引いた分だけ建物の表示が遅れる。
+  // 猫を選んでいる待ち時間を使ってあらかじめ取得・パースしておくことで、
+  // みまわり開始時点ではキャッシュ済みになっている状態を目指す。
+  useEffect(() => {
+    for (const building of buildings) {
+      if (building.kind === 'landmark' && building.modelUrl) {
+        preloadGltf(building.modelUrl);
+      }
+    }
+  }, [buildings]);
 
   const [lockedNote, setLockedNote] = useState<string | null>(null);
   const s = messages.scenario;
